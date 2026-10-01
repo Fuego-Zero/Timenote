@@ -1,0 +1,72 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #faf7f5;
+  -webkit-text-size-adjust: 100%;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  background: #fff;
+  border-bottom: 1px solid #f0e6e0;
+}
+
+.app-brand {
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.app-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 16px 48px;
+  padding-bottom: max(48px, env(safe-area-inset-bottom));
+}
+
+.login-page {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 380px;
+}
+
+.event-title {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.feed-url {
+  word-break: break-all;
+}
+
+.form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.form-row > * {
+  flex: 1 1 120px;
+  min-width: 0;
+}

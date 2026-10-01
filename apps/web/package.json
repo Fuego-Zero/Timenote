@@ -1,0 +1,23 @@
+{
+  "name": "@timenote/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@timenote/calendar": "workspace:*",
+    "@timenote/contracts": "workspace:*",
+    "@timenote/runtime": "workspace:*",
+    "antd": "6.6.4",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "vite": "8.3.0"
+  }
+}
