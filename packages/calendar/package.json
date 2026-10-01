@@ -1,0 +1,16 @@
+{
+  "name": "@timenote/calendar",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@date-fns/tz": "1.5.0",
+    "@timenote/contracts": "workspace:*",
+    "ical-generator": "11.1.2",
+    "lunar-typescript": "1.8.6"
+  }
+}
