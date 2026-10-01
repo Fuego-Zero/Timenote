@@ -1,0 +1,33 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    env_file:
+      - .env
+
+    environment:
+      NODE_ENV: production
+      SQLITE_PATH: /data/timenote.sqlite
+      LOG_DIR: /data/logs
+      WEB_BIND_HOST: 0.0.0.0
+      WEB_PORT: 8720
+      API_PORT: 8721
+
+    # 只绑定本机回环；公网访问由同机的 HTTPS 反向代理转发到 127.0.0.1:8720。
+    ports:
+      - "127.0.0.1:8720:8720"
+
+    volumes:
+      - timenote_data:/data
+
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 20s
+
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  timenote_data:
