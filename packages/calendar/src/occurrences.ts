@@ -96,7 +96,10 @@ export function expandEvent(event: EventInput, window: YearWindow, timeZone: str
   return occurrences;
 }
 
-/** 从今天（用户时区）起最近的若干次发生，包括仍在持续中的那一次；用于编辑预览。 */
+/**
+ * 从今天（用户时区）起最近的若干次发生，包括仍在持续中的那一次；用于编辑预览。
+ * 普通事件始终返回唯一那一次（即使已经过去），与订阅里输出的内容一致。
+ */
 export function upcomingOccurrences(event: EventInput, now: Date, timeZone: string, count: number): Occurrence[] {
   if (event.kind === "event") {
     return expandEvent(event, { fromYear: 0, toYear: 0 }, timeZone);
