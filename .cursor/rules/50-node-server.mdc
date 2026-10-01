@@ -1,0 +1,120 @@
+---
+description: Node.js 后端与 API 服务的通用工程规则。
+globs:
+  - "**/server/**/*.{js,ts}"
+  - "**/api/**/*.{js,ts}"
+  - "**/backend/**/*.{js,ts}"
+alwaysApply: false
+---
+
+# Node Server 通用规则
+
+## 1. HTTP 层保持薄
+
+Route / Controller 主要负责：
+
+```text
+输入
+→ 鉴权
+→ 校验
+→ 调用业务能力
+→ 响应
+```
+
+不要直接堆：
+
+- 数据库细节
+- 第三方 SDK
+- 大量业务规则
+- 文件处理
+- 长事务
+
+## 2. Validation
+
+外部输入必须运行时校验：
+
+- params
+- query
+- body
+- headers
+- multipart metadata
+
+优先复用稳定公共 Schema。
+
+## 3. Auth
+
+认证和授权分离。
+
+不要因为用户已登录就默认拥有资源权限。
+
+权限检查应在服务端执行，不能只依赖前端隐藏按钮。
+
+## 4. Error Mapping
+
+业务错误、输入错误、外部依赖错误、未知错误要区分。
+
+不要向客户端暴露：
+
+- stack
+- 数据库异常细节
+- secret
+- 内部路径
+
+## 5. Request Context
+
+trace id / request id / current user 等 request context 应有统一传递方式。
+
+不要依赖散落的全局变量。
+
+## 6. Timeout
+
+所有外部 IO 都应考虑 timeout：
+
+- HTTP
+- DB
+- MCP
+- LLM
+- Storage
+
+不要允许请求无限挂起。
+
+## 7. Graceful Shutdown
+
+Server 应处理：
+
+- HTTP stop
+- DB disconnect
+- pending job
+- resource cleanup
+
+不要只 `process.exit()`。
+
+## 8. Health
+
+区分：
+
+- process alive
+- dependency configured
+- dependency reachable
+- service ready
+
+不要用一个 `/health` 混淆所有语义。
+
+## 9. Logging
+
+使用结构化日志。
+
+至少应能关联：
+
+- request
+- user（可记录非敏感 ID）
+- operation
+- error
+
+禁止打印 token、password、secret、完整敏感请求体。
+
+## 10. 单体优先
+
+没有明确部署/扩缩容/团队隔离需求时，优先模块化单体。
+
+不要为了“架构先进”过早微服务化。

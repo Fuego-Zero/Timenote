@@ -1,0 +1,127 @@
+---
+description: 错误处理、配置、Secrets 与基础安全规则。
+globs:
+  - "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# Error / Config / Security
+
+## 1. Fail Fast
+
+关键配置缺失时，在启动或首次明确边界处失败。
+
+不要让配置错误变成随机运行时异常。
+
+production 不应自动使用弱默认值：
+
+- JWT secret
+- DB password
+- encryption key
+- admin password
+
+## 2. 环境变量
+
+集中读取与校验环境变量。
+
+不要在业务代码到处：
+
+```ts
+process.env.X
+```
+
+不要在多个模块重复解析同一个配置。
+
+## 3. Secret
+
+绝不提交：
+
+- API key
+- password
+- access token
+- private key
+
+`.env.example` 只放变量名和非敏感示例。
+
+日志、错误响应、trace 中也不要泄露 secret。
+
+## 4. 错误类型
+
+建议区分：
+
+- ValidationError
+- AuthError
+- PermissionError
+- NotFoundError
+- ConflictError
+- ExternalServiceError
+- ConfigError
+- UnknownError
+
+不要求每个项目完全采用这些类名，但语义应可区分。
+
+## 5. 外部服务
+
+外部依赖失败时：
+
+- 明确 unavailable
+- 保留原始 cause（内部）
+- 对外返回稳定 error code
+
+不要自动伪造 fallback 数据，除非业务明确允许。
+
+## 6. 用户输入
+
+任何用户输入都不可信。
+
+特别注意：
+
+- 文件名
+- 路径
+- URL
+- HTML
+- shell argument
+- SQL
+- redirect
+- uploaded content
+
+## 7. Command Execution
+
+如果项目允许执行 shell / code：
+
+- 必须隔离
+- 限制工作目录
+- 限制凭据
+- 限制网络（按业务需要）
+- production 默认 fail closed
+
+禁止把未校验用户输入直接拼进 shell command。
+
+## 8. 文件路径
+
+防止 path traversal。
+
+不要直接相信：
+
+```text
+../../
+absolute path
+user-controlled filename
+```
+
+## 9. Web
+
+敏感 token 存储方式由项目安全模型决定。
+
+不要默认把长期高权限凭据放 localStorage。
+
+## 10. 依赖
+
+引入依赖前确认：
+
+- 是否真的需要
+- 维护状态
+- License
+- 是否与现有库重复
+
+避免为一个简单工具函数引入大型依赖。
