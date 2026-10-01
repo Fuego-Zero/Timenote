@@ -38,6 +38,8 @@
     "ical.js": "2.2.1",
     "jsdom": "26.1.0",
     "prettier": "3.9.7",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
     "typescript": "5.9.3",
     "vitest": "5.0.1"
   },
