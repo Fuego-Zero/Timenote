@@ -1,10 +1,11 @@
 # 部署说明
 
-timenote 是单进程、单 SQLite 文件的服务，按单实例部署：一个容器、一个命名卷、前面一层 HTTPS 反向代理。不要横向扩容或让多个进程共用同一数据库文件。
+timenote 是单进程、单 SQLite 文件的服务，按单实例部署：一个容器、一个命名卷。  
+**项目不配置 Nginx / SSL**；Compose 只暴露必要端口，由**部署方自行反代**并自理证书与域名。仓库仅提供一份 Nginx 示例供参考：[`deploy/nginx.example.conf`](../deploy/nginx.example.conf)。不要横向扩容或让多个进程共用同一数据库文件。
 
 ## 准备
 
-1. 一个解析到服务器的域名（例如 `cal.example.com`）。iPhone 订阅要求 HTTPS 证书有效。
+1. 一个解析到服务器的域名（例如 `cal.example.com`）。iPhone 订阅要求 HTTPS 证书有效——**证书由部署方申请与续期**。
 2. 服务器上安装 Docker 与 Docker Compose。
 3. 复制环境文件并修改：
 
@@ -18,8 +19,6 @@ chmod 600 .env
 ```dotenv
 NODE_ENV=production
 WEB_ORIGIN=https://cal.example.com
-INITIAL_ADMIN_USERNAME=admin
-INITIAL_ADMIN_PASSWORD=<至少 16 位的随机密码>
 ```
 
 `compose.yml` 会覆盖 `SQLITE_PATH`、`LOG_DIR`、端口与监听地址，`.env` 里这些值不生效。
@@ -39,11 +38,19 @@ docker compose logs -f   # 启动日志打印订阅基址与数据库路径
 | `/data/timenote.sqlite` | 数据库（含 `-wal`、`-shm`） |
 | `/data/logs/{web,api}/` | 失败请求日志（JSONL，按天） |
 
-端口只映射到宿主机 `127.0.0.1:8720`，不直接暴露公网。健康检查同时探测 Web `/` 与 API `/health`。
+### Compose 暴露端口清单
 
-## HTTPS 反向代理
+| 宿主机映射 | 容器端口 | 说明 |
+|------------|----------|------|
+| **`127.0.0.1:8720:8720`** | `8720` | Web + 同源 `/api/*` 反代；仅本机可达，供部署方反代 |
 
-以 Caddy 为例（自动申请证书）：
+进程内 API 监听 `8721`，**未**由 compose 发布到宿主机。健康检查同时探测 Web `/` 与 API `/health`。
+
+## 反向代理与 HTTPS（部署方自理）
+
+本仓库**不**安装、不维护 Nginx/Caddy，也**不**申请或挂载证书。请把 HTTPS 流量转到上表端口。可参考 [`deploy/nginx.example.conf`](../deploy/nginx.example.conf)（仅示例）。
+
+以 Caddy 为例（自动申请证书，仍属部署方配置）：
 
 ```caddyfile
 cal.example.com {
@@ -52,15 +59,17 @@ cal.example.com {
 }
 ```
 
-Nginx 需要自行配置证书，核心是 `proxy_pass http://127.0.0.1:8720;`，并保留 `Host`、`Origin`、`Cookie`、`If-None-Match` 请求头。无论哪种代理：
+若用 Nginx：核心是 `proxy_pass http://127.0.0.1:8720;`，保留 `Host`、`Origin`、`Cookie`、`If-None-Match` 等请求头；证书路径与 `server_name` 自行填写。无论哪种代理：
 
 - 不要对 `/api/` 开启响应缓存；订阅响应是 `private, no-cache`。
 - 不要改写 `Origin`，写请求依赖它与 `WEB_ORIGIN` 一致。
 - 访问日志会包含订阅地址里的完整 token，按敏感日志处理或在代理层对 `/api/feeds/` 路径脱敏。
 
+多容器拆分草案见 [`deployment-compose-multi.md`](./deployment-compose-multi.md)（未改现网 compose）。
+
 ## 首次登录
 
-用 `INITIAL_ADMIN_USERNAME` / `INITIAL_ADMIN_PASSWORD` 登录，立即在「账号设置」修改密码，再到「账号管理」为家人建号。首个管理员只在空库时创建一次，之后可以从 `.env` 删掉 `INITIAL_ADMIN_PASSWORD`。
+首次打开站点时按引导创建管理员账号（生产环境要求强密码），再到「账号管理」为家人建号。首个管理员只在空库时通过 `POST /api/setup/admin` 创建一次。
 
 ## 备份与恢复
 
@@ -104,4 +113,4 @@ pnpm build
 NODE_ENV=production WEB_ORIGIN=https://cal.example.com SQLITE_PATH=./data/timenote.sqlite pnpm start
 ```
 
-同样需要 HTTPS 反向代理。用进程管理器（systemd、pm2 等）保证单实例与自动重启。
+同样需要部署方自备 HTTPS 反向代理。用进程管理器（systemd、pm2 等）保证单实例与自动重启。
