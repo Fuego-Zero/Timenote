@@ -7,6 +7,7 @@ import { draftIssues } from "./eventDraft.js";
 import { EventForm } from "./EventForm.js";
 import { EventPreview } from "./EventPreview.js";
 
+/** 宽屏左表单右预览；窄屏仍为上表单下预览。布局靠 CSS 断点，避免条件渲染跳动。 */
 export function EventEditor({
   initial,
   editing,
@@ -63,23 +64,29 @@ export function EventEditor({
           </Button>
         </Space>
       }
-      size={screens.md ? 720 : "100%"}
+      size={screens.md ? 1000 : "100%"}
       title={editing ? "编辑事件" : "新建事件"}
       onClose={onClose}
     >
       {saveError ? <Alert showIcon style={{ marginBottom: 16 }} title={saveError} type="error" /> : null}
-      <EventForm
-        draft={draft}
-        errors={errors}
-        timeZone={timeZone}
-        onChange={next => {
-          setDraft(next);
-          setServerErrors({});
-        }}
-      />
-      <Divider />
-      <Typography.Title level={5}>未来几次（{timeZone}）</Typography.Title>
-      <EventPreview draft={draft} timeZone={timeZone} />
+      <div className="event-editor-layout">
+        <div className="event-editor-form">
+          <EventForm
+            draft={draft}
+            errors={errors}
+            timeZone={timeZone}
+            onChange={next => {
+              setDraft(next);
+              setServerErrors({});
+            }}
+          />
+        </div>
+        <Divider className="event-editor-divider" />
+        <div className="event-editor-preview">
+          <Typography.Title level={5}>未来几次（{timeZone}）</Typography.Title>
+          <EventPreview draft={draft} timeZone={timeZone} />
+        </div>
+      </div>
     </Drawer>
   );
 }
