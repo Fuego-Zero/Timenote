@@ -1,3 +1,21 @@
+:root {
+  /* 主题色单源数值见 apps/web/src/ui/themeTokens.ts；此处为 CSS 镜像，禁止另起主色硬编码 */
+  --color-primary: #d4380d;
+  --color-primary-hover: #f15a29;
+  --color-primary-active: #ad2102;
+  --color-link: #c0360c;
+  --color-link-hover: #d4380d;
+  --color-primary-soft: #fff2ee;
+  --color-selected-bg: #fff2ee;
+  --color-selected-text: #d4380d;
+  --color-primary-border: #ff9c6e;
+  --color-gradient-start: #ff7a45; /* 待图标源核对 */
+  --color-gradient-end: #d4380d; /* 待图标源核对 */
+  --color-accent-dark: #873800;
+  --color-surface: #faf7f5;
+  --color-border-warm: #f0e6e0;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -10,7 +28,7 @@ body,
 }
 
 body {
-  background: #faf7f5;
+  background: var(--color-surface);
   -webkit-text-size-adjust: 100%;
 }
 
@@ -22,7 +40,7 @@ body {
   padding: 12px 16px;
   padding-top: max(12px, env(safe-area-inset-top));
   background: #fff;
-  border-bottom: 1px solid #f0e6e0;
+  border-bottom: 1px solid var(--color-border-warm);
 }
 
 .app-brand {
@@ -113,7 +131,7 @@ body {
     max-height: calc(100vh - 160px);
     overflow: auto;
     padding-inline-start: 8px;
-    border-inline-start: 1px solid #f0e6e0;
+    border-inline-start: 1px solid var(--color-border-warm);
   }
 
   .event-editor-preview .ant-typography {

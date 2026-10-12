@@ -1,5 +1,5 @@
 import { backupFileSchema, type ImportResult } from "@timenote/contracts";
-import { Alert, App, Button, Space, Typography } from "antd";
+import { App, Button, Space, Typography } from "antd";
 import { useRef, useState } from "react";
 
 import { api, errorMessage } from "../../api/client.js";
@@ -7,7 +7,6 @@ import { api, errorMessage } from "../../api/client.js";
 export function BackupPage() {
   const { message } = App.useApp();
   const fileInput = useRef<HTMLInputElement>(null);
-  const [result, setResult] = useState<ImportResult>();
   const [busy, setBusy] = useState(false);
 
   async function exportFile() {
@@ -29,7 +28,6 @@ export function BackupPage() {
 
   async function importFile(file: File) {
     setBusy(true);
-    setResult(undefined);
     try {
       const parsed = backupFileSchema.safeParse(JSON.parse(await file.text()));
       if (!parsed.success) {
@@ -37,7 +35,8 @@ export function BackupPage() {
         return;
       }
 
-      setResult(await api<ImportResult>("/backup", "POST", parsed.data));
+      const result = await api<ImportResult>("/backup", "POST", parsed.data);
+      void message.success(`导入完成：新增 ${result.created}，更新 ${result.updated}`);
     } catch (error) {
       void message.error(error instanceof SyntaxError ? "文件不是有效的 JSON" : errorMessage(error));
     } finally {
@@ -75,9 +74,6 @@ export function BackupPage() {
           }}
         />
       </Space>
-      {result ? (
-        <Alert showIcon title={`导入完成：新增 ${result.created} 个，更新 ${result.updated} 个`} type="success" />
-      ) : null}
     </Space>
   );
 }

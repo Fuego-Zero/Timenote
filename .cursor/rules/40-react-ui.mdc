@@ -116,3 +116,22 @@ Props 应表达组件契约。
 项目已有成熟组件库时优先复用。
 
 不要因为视觉微差重新造一整套 Button / Modal / Form / Table。
+
+## 11. 操作反馈（toast）
+
+成功 / 失败 / 瞬时警告默认用 `App.useApp().message`（antd toast），不占用页面流动布局，自动消失。
+
+- 通过 `const { message } = App.useApp()` 调用；勿 `import { message } from "antd"`（脱离 AntdApp context）。
+- 不引入第二套 toast 库；根上已有 `AntdApp`（见 `apps/web/src/ui/AppProviders.tsx`）。
+- Modal（含 `Modal.confirm` / `Modal.success`）仅用于必须确认才能继续的破坏性或不可撤销步骤；不用 Modal 展示普通成功/失败。
+- 页内 `Alert` / `Typography` 仅用于静态帮助、表单校验区、长期状态说明；不用作一次性操作结果的唯一反馈。
+- 失败文案展示用户可读意图（或 `errorMessage(error)`），不展示堆栈、内部路径或未脱敏细节。
+- 备份导入成功文案固定：`导入完成：新增 N，更新 M`（N/M 为 `ImportResult.created` / `updated`）；导入结果用 toast，不用页内成功绿条或 Modal。
+- 导出成功可为浏览器下载、不额外 toast；导出失败用 `message.error`。
+
+## 12. 主题色
+
+主题色单源：`apps/web/src/ui/themeTokens.ts`（CSS 镜像：`apps/web/src/style.css` `:root`）。
+
+- antd `ConfigProvider` 从 `themeTokens` 取值（见 `AppProviders.tsx`）；自定义样式用 CSS 变量 `--color-*`。
+- 禁止在业务组件里散落硬编码主色 hex（如 `#d4380d`）；改色只改 tokens / `:root`。
