@@ -102,7 +102,7 @@ describe("事件", () => {
 
     const adminFeeds = await admin.request<{ feeds: { id: string }[] }>("GET", "/api/feed-tokens");
     expect(adminFeeds.json.feeds).toEqual([]);
-    expect(h.repo.getEvent(mine.json.event.ownerId, id)?.name).toBe("管理员的事");
+    expect(h.repo.events.getEvent(mine.json.event.ownerId, id)?.name).toBe("管理员的事");
   });
 });
 

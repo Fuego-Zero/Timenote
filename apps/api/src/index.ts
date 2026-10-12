@@ -1,4 +1,4 @@
-import { baseServer, RequestSignRegistry, type Config, type Repository } from "@timenote/runtime";
+import { baseServer, RequestSignRegistry, type Config, type OpenedRepository } from "@timenote/runtime";
 
 import type { ApiContext } from "./context.js";
 import { registerAuth } from "./http/auth.js";
@@ -11,7 +11,7 @@ import { registerUsers } from "./http/users.js";
 import { registerRequestSign } from "./requestSign.js";
 import { registerSession } from "./session.js";
 
-export async function createApiServer(config: Config, repo: Repository, options: { now?: () => number } = {}) {
+export async function createApiServer(config: Config, repo: OpenedRepository, options: { now?: () => number } = {}) {
   const app = await baseServer(config);
   const ctx: ApiContext = {
     app,

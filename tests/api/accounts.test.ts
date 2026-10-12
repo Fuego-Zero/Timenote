@@ -25,10 +25,10 @@ async function createUser(admin: ReturnType<Harness["browser"]>, username: strin
 describe("登录与会话", () => {
   it("ensureInitialAdmin 为空操作；首个管理员由引导/测试种子创建", async () => {
     const { ensureInitialAdmin } = await import("../../packages/runtime/src/index.js");
-    const before = h.repo.listUsers().length;
+    const before = h.repo.users.listUsers().length;
     await ensureInitialAdmin(h.repo, h.config);
-    expect(h.repo.listUsers()).toHaveLength(before);
-    expect(h.repo.listUsers().map(u => [u.username, u.role])).toEqual([["admin", "admin"]]);
+    expect(h.repo.users.listUsers()).toHaveLength(before);
+    expect(h.repo.users.listUsers().map(u => [u.username, u.role])).toEqual([["admin", "admin"]]);
   });
 
   it("账号不存在、停用与密码错误返回同一提示；会话 Cookie 为 HttpOnly + SameSite=Lax", async () => {
@@ -44,7 +44,7 @@ describe("登录与会话", () => {
     expect(cookie).toMatch(/^timenote\.session=[\w-]{43};/);
     expect(cookie).toContain("HttpOnly");
     expect(cookie).toContain("SameSite=Lax");
-    expect(h.repo.listUsers()[0]).not.toHaveProperty("password");
+    expect(h.repo.users.listUsers()[0]).not.toHaveProperty("password");
   });
 
   it("写请求必须同源，跨站请求即使带有效 Cookie 也被拒绝", async () => {
@@ -107,7 +107,7 @@ describe("管理员后台权限边界", () => {
       await user.request("DELETE", `/api/admin/users/${alice.id}`),
     ];
     expect(attempts.map(r => r.status)).toEqual([403, 403, 403, 403, 403]);
-    expect(h.repo.getUser(alice.id)?.role).toBe("user");
+    expect(h.repo.users.getUser(alice.id)?.role).toBe("user");
   });
 
   it("未登录访问管理接口返回 401", async () => {
@@ -160,19 +160,19 @@ describe("管理员后台权限边界", () => {
     const other = h.browser();
     await other.login("boss", "boss-password");
     expect((await other.request("DELETE", `/api/admin/users/${id}`)).status).toBe(200);
-    expect(h.repo.listUsers().map(u => u.username)).toEqual(["boss"]);
+    expect(h.repo.users.listUsers().map(u => u.username)).toEqual(["boss"]);
   });
 
   it("任何变更都不能让系统失去最后一个启用的管理员", async () => {
     const { deleteUser, updateUser } = await import("../../apps/api/src/accounts.js");
-    const [admin] = h.repo.listUsers();
+    const [admin] = h.repo.users.listUsers();
     // 通过 HTTP 时操作者本身就是另一位管理员，这里直接调用领域函数锁定兜底规则。
     const ghost = { ...admin!, id: "ghost-admin" };
     expect(() => updateUser(h.repo, ghost, admin!.id, { disabled: true }, Date.now())).toThrow(
       expect.objectContaining({ code: "LAST_ADMIN" })
     );
     expect(() => deleteUser(h.repo, ghost, admin!.id)).toThrow(expect.objectContaining({ code: "LAST_ADMIN" }));
-    expect(h.repo.getUser(admin!.id)?.disabled).toBe(false);
+    expect(h.repo.users.getUser(admin!.id)?.disabled).toBe(false);
   });
 
   it("删除账号同时删除其事件与订阅地址", async () => {
@@ -187,7 +187,7 @@ describe("管理员后台权限边界", () => {
 
     expect((await admin.request("DELETE", `/api/admin/users/${alice.id}`)).status).toBe(200);
     expect((await h.browser().request("GET", feedPath)).status).toBe(404);
-    expect(h.repo.listFeedTokens(alice.id)).toEqual([]);
+    expect(h.repo.feedTokens.listFeedTokens(alice.id)).toEqual([]);
   });
 });
 
@@ -257,8 +257,8 @@ describe("development auth bypass", () => {
       expect(feed.statusCode).toBe(200);
       expect(feed.headers["set-cookie"]).toBeUndefined();
 
-      const admin = dev.repo.listUsers().find(u => u.role === "admin")!;
-      dev.repo.putUser({ ...admin, disabled: true });
+      const admin = dev.repo.users.listUsers().find(u => u.role === "admin")!;
+      dev.repo.users.putUser({ ...admin, disabled: true });
       expect((await dev.browser().request("GET", "/api/events")).status).toBe(401);
       expect((await dev.browser().request("GET", "/api/auth/session")).json).toMatchObject({ user: null });
       // /api/feeds/* still bypasses session auth (owner disabled may 404 by existing feed rules)

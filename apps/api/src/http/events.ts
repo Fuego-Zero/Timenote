@@ -11,7 +11,7 @@ export function registerEvents(ctx: ApiContext) {
   const { app, repo } = ctx;
   app.get("/api/events", req => {
     const user = requireUser(req);
-    return { events: repo.listEvents(user.id) };
+    return { events: repo.events.listEvents(user.id) };
   });
 
   app.post("/api/events", (req, reply) => {
@@ -29,7 +29,7 @@ export function registerEvents(ctx: ApiContext) {
   app.delete("/api/events/:id", req => {
     const user = requireUser(req);
     const { id } = idParams.parse(req.params);
-    if (!repo.removeEvent(user.id, id)) {
+    if (!repo.events.removeEvent(user.id, id)) {
       throw new BusinessError("NOT_FOUND");
     }
 

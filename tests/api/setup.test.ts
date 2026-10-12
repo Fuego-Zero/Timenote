@@ -52,7 +52,7 @@ describe("首次引导 setup", () => {
   });
 
   it("空库时不种子；setup.needed 为 true", async () => {
-    expect(h.repo.listUsers()).toEqual([]);
+    expect(h.repo.users.listUsers()).toEqual([]);
     const status = await h.browser().request<{ needed: boolean }>("GET", "/api/setup");
     expect(status.status).toBe(200);
     expect(status.json).toMatchObject({ needed: true });
@@ -156,7 +156,7 @@ describe("ensureInitialAdmin no-op", () => {
     const repo = openRepository(sqlitePath);
     const config = loadConfig({ NODE_ENV: "development", SQLITE_PATH: sqlitePath, WEB_ORIGIN: webOrigin });
     await expect(ensureInitialAdmin(repo, config)).resolves.toBeUndefined();
-    expect(repo.listUsers()).toEqual([]);
+    expect(repo.users.listUsers()).toEqual([]);
     repo.close();
   });
 });

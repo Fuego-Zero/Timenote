@@ -12,7 +12,7 @@ export function registerUsers(ctx: ApiContext) {
   const { app, config, repo } = ctx;
   app.get("/api/admin/users", req => {
     requireAdmin(req);
-    return { users: repo.listUsers().map(toPublicUser) };
+    return { users: repo.users.listUsers().map(toPublicUser) };
   });
 
   app.post("/api/admin/users", async (req, reply) => {

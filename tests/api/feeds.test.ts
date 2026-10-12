@@ -35,7 +35,7 @@ function uids(body: string) {
 describe("订阅地址", () => {
   it("升级前没有保存明文的地址仍按哈希可用，列表里不再显示完整地址", async () => {
     const b = await signedIn();
-    const ownerId = h.repo.listUsers()[0]!.id;
+    const ownerId = h.repo.users.listUsers()[0]!.id;
     const id = crypto.randomUUID();
     const tokenHash = "ab".repeat(32);
     const payload = JSON.stringify({ id, ownerId, name: "旧设备", tokenHash, createdAt: 1, rotatedAt: 1 });
@@ -62,7 +62,7 @@ describe("订阅地址", () => {
 
     const list = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
     expect(list.json.feeds).toEqual([issued.feed]);
-    const stored = h.repo.listFeedTokens(h.repo.listUsers()[0]!.id);
+    const stored = h.repo.feedTokens.listFeedTokens(h.repo.users.listUsers()[0]!.id);
     expect(stored).toEqual([expect.objectContaining({ token, name: "iPhone" })]);
     expect(JSON.stringify(stored)).not.toMatch(/tokenHint/);
   });
@@ -163,7 +163,7 @@ describe("订阅地址", () => {
   it("缺字段的旧订阅按 all 导出全部事件", async () => {
     const b = await signedIn();
     const created = await b.request<{ event: CalendarEvent }>("POST", "/api/events", eventInput());
-    const ownerId = h.repo.listUsers()[0]!.id;
+    const ownerId = h.repo.users.listUsers()[0]!.id;
     const id = crypto.randomUUID();
     const token = "A".repeat(43);
     const { hashToken } = await import("../../packages/runtime/src/security.js");
@@ -278,7 +278,7 @@ describe("订阅地址", () => {
       eventScope: "all",
     });
     expect(backAll.json.feed).toMatchObject({ eventScope: "all", eventIds: [] });
-    const stored = h.repo.getFeedToken(h.repo.listUsers()[0]!.id, created.json.feed.id)!;
+    const stored = h.repo.feedTokens.getFeedToken(h.repo.users.listUsers()[0]!.id, created.json.feed.id)!;
     expect(stored.eventScope).toBe("all");
     expect(stored.eventIds).toBeUndefined();
   });

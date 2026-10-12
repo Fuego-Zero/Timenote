@@ -12,7 +12,7 @@ export function registerFeedTokens(ctx: ApiContext) {
   const { app, config, repo } = ctx;
   app.get("/api/feed-tokens", req => {
     const user = requireUser(req);
-    return { feeds: repo.listFeedTokens(user.id).map(feed => toFeedToken(config, feed)) };
+    return { feeds: repo.feedTokens.listFeedTokens(user.id).map(feed => toFeedToken(config, feed)) };
   });
 
   app.post("/api/feed-tokens", (req, reply) => {
@@ -37,7 +37,7 @@ export function registerFeedTokens(ctx: ApiContext) {
   app.delete("/api/feed-tokens/:id", req => {
     const user = requireUser(req);
     const { id } = idParams.parse(req.params);
-    if (!repo.removeFeedToken(user.id, id)) {
+    if (!repo.feedTokens.removeFeedToken(user.id, id)) {
       throw new BusinessError("NOT_FOUND");
     }
 
