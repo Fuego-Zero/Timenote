@@ -1,24 +1,19 @@
-import { backupFileSchema, type ImportResult } from "@timenote/contracts";
 import { App, Button, Space, Typography } from "antd";
 import { useRef, useState } from "react";
 
-import { api, errorMessage } from "../../api/client.js";
+import { errorMessage } from "../../api/client.js";
+import { exportBackupFile } from "./exportBackupFile.js";
+import { BackupImportError, importBackupFile } from "./importBackupFile.js";
 
 export function BackupPage() {
   const { message } = App.useApp();
   const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
 
-  async function exportFile() {
+  async function onExport() {
     setBusy(true);
     try {
-      const backup = await api<unknown>("/backup");
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `timenote-backup-${new Date().toISOString().slice(0, 10).replaceAll("-", "")}.json`;
-      link.click();
-      URL.revokeObjectURL(link.href);
+      await exportBackupFile();
     } catch (error) {
       void message.error(errorMessage(error));
     } finally {
@@ -26,19 +21,13 @@ export function BackupPage() {
     }
   }
 
-  async function importFile(file: File) {
+  async function onImport(file: File) {
     setBusy(true);
     try {
-      const parsed = backupFileSchema.safeParse(JSON.parse(await file.text()));
-      if (!parsed.success) {
-        void message.error("文件不是有效的 timenote 备份");
-        return;
-      }
-
-      const result = await api<ImportResult>("/backup", "POST", parsed.data);
+      const result = await importBackupFile(file);
       void message.success(`导入完成：新增 ${result.created}，更新 ${result.updated}`);
     } catch (error) {
-      void message.error(error instanceof SyntaxError ? "文件不是有效的 JSON" : errorMessage(error));
+      void message.error(error instanceof BackupImportError ? error.message : errorMessage(error));
     } finally {
       setBusy(false);
     }
@@ -53,7 +42,7 @@ export function BackupPage() {
         导出当前账号的全部事件（含原始日期、规则、模板和提醒）。导入只新增或覆盖同 ID 的本人事件，不会删除现有数据。
       </Typography.Paragraph>
       <Space wrap>
-        <Button loading={busy} type="primary" onClick={() => void exportFile()}>
+        <Button loading={busy} type="primary" onClick={() => void onExport()}>
           导出 JSON
         </Button>
         <Button loading={busy} onClick={() => fileInput.current?.click()}>
@@ -69,7 +58,7 @@ export function BackupPage() {
             const file = event.target.files?.[0];
             event.target.value = "";
             if (file) {
-              void importFile(file);
+              void onImport(file);
             }
           }}
         />

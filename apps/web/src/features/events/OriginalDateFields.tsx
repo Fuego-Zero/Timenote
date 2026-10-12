@@ -1,31 +1,12 @@
-import { formatLunarMonthDay, isoDate, LUNAR_MAX_YEAR, LUNAR_MIN_YEAR, solarToLunar } from "@timenote/calendar";
+import { isoDate, LUNAR_MAX_YEAR, LUNAR_MIN_YEAR } from "@timenote/calendar";
 import type { EventInput } from "@timenote/contracts";
 import { Alert, Checkbox, Form, Input, InputNumber, Segmented, Select, Space } from "antd";
 import { useState } from "react";
 
+import { dateLabels, dayOptions, lunarMonthOptions, monthOptions } from "./dateFieldOptions.js";
 import { withYear } from "./eventDraft.js";
 import { fieldStatus } from "./fieldStatus.js";
-
-const monthOptions = Array.from({ length: 12 }, (_value, index) => ({ label: `${index + 1} 月`, value: index + 1 }));
-const lunarMonthOptions = Array.from({ length: 12 }, (_value, index) => ({
-  label: formatLunarMonthDay(index + 1, 1, false).replace("初一", ""),
-  value: index + 1,
-}));
-
-const dateLabels: Record<EventInput["kind"], string> = {
-  birthday: "出生日期",
-  anniversary: "首次日期",
-  event: "开始日期",
-};
-
-function dayOptions(lunar: boolean, month: number) {
-  return Array.from({ length: 31 }, (_value, index) => index + 1)
-    .filter(day => (lunar ? day <= 30 : true))
-    .map(day => ({
-      label: lunar ? formatLunarMonthDay(month, day, false).replace(/^.*月/, "") : `${day} 日`,
-      value: day,
-    }));
-}
+import { switchCalendarDate } from "./switchCalendarDate.js";
 
 export function OriginalDateFields({
   draft,
@@ -41,28 +22,16 @@ export function OriginalDateFields({
   const setDate = (patch: Partial<EventInput["date"]>) => onChange({ ...draft, date: { ...date, ...patch } });
 
   function switchCalendar(calendar: EventInput["date"]["calendar"]) {
-    if (calendar === date.calendar) {
-      return;
+    const result = switchCalendarDate(date, calendar);
+    if (result.notice !== undefined) {
+      setNotice(result.notice);
+    } else if (calendar !== date.calendar) {
+      setNotice(undefined);
     }
 
-    if (calendar === "lunar" && date.year !== null) {
-      // 公历切换为农历依据时，换算原始日期并提示用户核对，避免把公历月日直接当成农历月日。
-      try {
-        const lunar = solarToLunar(isoDate(date.year, date.month, date.day));
-        onChange({ ...draft, date: { calendar, ...lunar } });
-        setNotice(
-          `已把公历 ${isoDate(date.year, date.month, date.day)} 换算为农历 ${lunar.year} 年${formatLunarMonthDay(lunar.month, lunar.day, lunar.leapMonth)}，请核对`
-        );
-      } catch (error) {
-        setNotice(error instanceof Error ? error.message : "无法换算");
-        onChange({ ...draft, date: { ...date, calendar, day: Math.min(date.day, 30) } });
-      }
-
-      return;
+    if (result.date !== date) {
+      onChange({ ...draft, date: result.date });
     }
-
-    setNotice(undefined);
-    onChange({ ...draft, date: { ...date, calendar, leapMonth: false } });
   }
 
   const yearUnknownAllowed = draft.kind !== "event";
