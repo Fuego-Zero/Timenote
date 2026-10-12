@@ -1,4 +1,4 @@
-import { isTimeZone, passwordSchema, usernameSchema } from "@timenote/contracts";
+import { isTimeZone } from "@timenote/contracts";
 
 export interface LogSink {
   write(message: string): void;
@@ -15,7 +15,6 @@ export interface Config {
   env: string;
   feedFutureYears: number;
   feedPastYears: number;
-  initialAdmin?: { username: string; password: string };
   loginLimit: number;
   logSink?: LogSink;
   sessionTtlSeconds: number;
@@ -80,28 +79,6 @@ function origin(value: string, httpsOnly: boolean) {
   return parsed.origin;
 }
 
-function initialAdmin(env: NodeJS.Dict<string>) {
-  const username = env.INITIAL_ADMIN_USERNAME?.trim();
-  const password = env.INITIAL_ADMIN_PASSWORD;
-  if (!username && !password) {
-    return undefined;
-  }
-
-  if (!username || !password) {
-    throw new Error("INITIAL_ADMIN_USERNAME 和 INITIAL_ADMIN_PASSWORD 必须同时配置");
-  }
-
-  const parsedName = usernameSchema.safeParse(username);
-  if (!parsedName.success) {
-    throw new Error("INITIAL_ADMIN_USERNAME 格式无效");
-  }
-
-  if (!passwordSchema.safeParse(password).success) {
-    throw new Error("INITIAL_ADMIN_PASSWORD 长度必须为 8-128 位");
-  }
-
-  return { username: parsedName.data, password };
-}
 
 export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
   const nodeEnv = text(env, "NODE_ENV", "development");
@@ -148,6 +125,5 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
     defaultTimeZone,
     feedPastYears: integer(env, "FEED_WINDOW_PAST_YEARS", 1, 0, 10),
     feedFutureYears: integer(env, "FEED_WINDOW_FUTURE_YEARS", 20, 1, 50),
-    initialAdmin: initialAdmin(env),
   };
 }

@@ -21,7 +21,7 @@ pnpm env:init
 pnpm dev
 ```
 
-`env:init` 只在 `.env` 不存在时生成，写入随机的初始管理员密码，不打印密码、不覆盖已有文件；`.env` 已被 Git 忽略。打开 [timenote](http://127.0.0.1:8720)，用 `.env` 里的 `INITIAL_ADMIN_USERNAME` / `INITIAL_ADMIN_PASSWORD` 登录，然后在右上角「账号设置」里修改密码。全部变量见[环境变量](docs/environment-variables.md)。
+`env:init` 只在 `.env` 不存在时生成基础配置，不覆盖已有文件；`.env` 已被 Git 忽略。打开 [timenote](http://127.0.0.1:8720)，空库时用首次引导创建管理员账号。全部变量见[环境变量](docs/environment-variables.md)。
 
 | 服务                | 地址                         |
 | ------------------- | ---------------------------- |
@@ -41,7 +41,7 @@ pnpm start
 
 1. 管理员在「账号管理」为家人创建账号（可选时区，提醒按账号时区换算）。
 2. 在「事件」里新建生日/纪念日/普通事件，表单下方实时显示未来 5 次的日期、标题和提醒时间。
-3. 在「订阅」里为设备创建订阅地址。完整地址只显示这一次，服务端只保存摘要；丢失后轮换即可。
+3. 在「订阅」里为设备创建订阅地址。地址会留在列表里，可以随时复制；泄露后轮换或撤销，旧地址立即失效。
 4. iPhone 按[验收清单](docs/iphone-acceptance.md)添加已订阅的日历。
 5. 「备份」可导出/导入 JSON（只含自己的事件）；数据库级备份用 `pnpm db:backup`。
 
@@ -59,7 +59,7 @@ pnpm verify       # 以上全部，并在 .tmp/verification-results/latest 保�
 
 ## 部署
 
-单实例 Docker + 命名卷持久化，公网经 HTTPS 反向代理访问，详见[部署说明](docs/deployment.md)与[安全说明](docs/security.md)。
+单实例 Docker + 命名卷持久化；Compose 暴露端口，**HTTPS / Nginx / 证书由部署方自理**（示例见 [deploy/nginx.example.conf](deploy/nginx.example.conf)）。详见[部署说明](docs/deployment.md)与[安全说明](docs/security.md)。
 
 ```sh
 cp .env.example .env   # 改为 production、https 的 WEB_ORIGIN 和强随机管理员密码

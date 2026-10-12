@@ -24,8 +24,6 @@ export default defineConfig({
     env: {
       NODE_ENV: "test",
       SQLITE_PATH: `.tmp/e2e/${Date.now()}.sqlite`,
-      INITIAL_ADMIN_USERNAME: "admin",
-      INITIAL_ADMIN_PASSWORD: "e2e-admin-password",
       DEFAULT_TIME_ZONE: "Asia/Shanghai",
       WEB_PORT: "4183",
       WEB_ORIGIN: webOrigin,
