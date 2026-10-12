@@ -54,37 +54,42 @@ function authenticate(ctx: ApiContext, req: FastifyRequest, allowPrivateLan: boo
   }
 
   const raw = req.cookies[config.cookieName];
-  if (!raw || !/^[A-Za-z0-9_-]{43}$/.test(raw)) {
-    return;
+  if (raw && /^[A-Za-z0-9_-]{43}$/.test(raw)) {
+    const session = repo.getSession(hashToken(raw));
+    const now = ctx.now();
+    if (session && session.expiresAt > now) {
+      const user = repo.getUser(session.userId);
+      if (user && !user.disabled) {
+        if (now - session.lastActiveAt > sessionTouchIntervalMs) {
+          repo.putSession({ ...session, lastActiveAt: now, expiresAt: now + config.sessionTtlSeconds * 1000 });
+        }
+
+        req.user = user;
+        req.sessionId = session.id;
+        req.userId = user.id;
+        return;
+      }
+    }
   }
 
-  const session = repo.getSession(hashToken(raw));
-  const now = ctx.now();
-  if (!session || session.expiresAt <= now) {
-    return;
+  // development 免登录：不落库、不设 Cookie，只挂 req.user；无启用 admin 则不注入。
+  if (config.devAuthBypass) {
+    const admin = repo.listUsers().find(user => user.role === "admin" && !user.disabled);
+    if (admin) {
+      req.user = admin;
+      req.userId = admin.id;
+    }
   }
-
-  const user = repo.getUser(session.userId);
-  if (!user || user.disabled) {
-    return;
-  }
-
-  if (now - session.lastActiveAt > sessionTouchIntervalMs) {
-    repo.putSession({ ...session, lastActiveAt: now, expiresAt: now + config.sessionTtlSeconds * 1000 });
-  }
-
-  req.user = user;
-  req.sessionId = session.id;
-  req.userId = user.id;
 }
 
-export function startSession(ctx: ApiContext, reply: FastifyReply, userId: string) {
+export function startSession(ctx: ApiContext, reply: FastifyReply, userId: string): string {
   const { config, repo } = ctx;
   const now = ctx.now();
   const token = opaqueToken();
+  const sessionId = hashToken(token);
   repo.purgeExpiredSessions(now);
   repo.putSession({
-    id: hashToken(token),
+    id: sessionId,
     userId,
     createdAt: now,
     lastActiveAt: now,
@@ -97,6 +102,7 @@ export function startSession(ctx: ApiContext, reply: FastifyReply, userId: strin
     path: "/",
     maxAge: config.sessionTtlSeconds,
   });
+  return sessionId;
 }
 
 export function endSession(ctx: ApiContext, req: FastifyRequest, reply: FastifyReply) {

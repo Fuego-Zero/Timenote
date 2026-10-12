@@ -10,6 +10,8 @@ export interface Config {
   cookieName: string;
   cookieSecure: boolean;
   defaultTimeZone: string;
+  /** development 且 DEV_AUTH_BYPASS 未设为 0 时，无真实会话则注入首个启用 admin（不落库、不设 Cookie）。 */
+  devAuthBypass: boolean;
   env: string;
   feedFutureYears: number;
   feedPastYears: number;
@@ -128,8 +130,11 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
   }
 
   const webBindHost = text(env, "WEB_BIND_HOST", "127.0.0.1");
+  // 仅 development 开启；未设置 DEV_AUTH_BYPASS 视为开启，设为 0 关闭。production/test 一律关闭。
+  const devAuthBypass = nodeEnv === "development" && env.DEV_AUTH_BYPASS !== "0";
   return {
     env: nodeEnv,
+    devAuthBypass,
     apiPort: integer(env, "API_PORT", 8721, 1, 65535),
     webPort: integer(env, "WEB_PORT", 8720, 1, 65535),
     webBindHost,
