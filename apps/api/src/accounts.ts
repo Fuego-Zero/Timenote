@@ -11,6 +11,7 @@ export function toPublicUser(user: StoredUser): PublicUser {
     role: user.role,
     disabled: user.disabled,
     timeZone: user.timeZone,
+    mustChangePassword: Boolean(user.mustChangePassword),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -50,6 +51,7 @@ export async function createUser(repo: Repository, input: CreateUserInput, defau
     role: input.role,
     disabled: false,
     timeZone: input.timeZone ?? defaultTimeZone,
+    mustChangePassword: false,
     createdAt: now,
     updatedAt: now,
     passwordHash,

@@ -17,4 +17,5 @@ export {
   writeSpan,
 } from "./log.js";
 export { openRepository, Repository } from "./repository.js";
+export { isStrongAdminPassword, strongAdminPasswordMessage } from "./passwordPolicy.js";
 export { dummyPasswordHash, hashPassword, hashToken, opaqueToken, verifyPassword } from "./security.js";

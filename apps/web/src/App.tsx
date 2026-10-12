@@ -1,12 +1,40 @@
 import { Button, Result, Spin } from "antd";
+import { useEffect, useState } from "react";
 
+import { api } from "./api/client.js";
 import { LoginPage } from "./features/auth/LoginPage.js";
+import { SetupPage } from "./features/auth/SetupPage.js";
 import { useSession } from "./features/auth/useSession.js";
 import { AppProviders } from "./ui/AppProviders.js";
 import { AppShell } from "./ui/AppShell.js";
 
 function Root() {
   const session = useSession();
+  const [setupNeeded, setSetupNeeded] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (session.state.status !== "ready" || session.state.user) {
+      return;
+    }
+
+    let active = true;
+    api<{ needed: boolean }>("/setup").then(
+      data => {
+        if (active) {
+          setSetupNeeded(data.needed);
+        }
+      },
+      () => {
+        if (active) {
+          setSetupNeeded(false);
+        }
+      }
+    );
+    return () => {
+      active = false;
+    };
+  }, [session.state]);
+
   if (session.state.status === "loading") {
     return <Spin fullscreen tip="加载中" />;
   }
@@ -16,6 +44,14 @@ function Root() {
   }
 
   if (!session.state.user) {
+    if (setupNeeded === null) {
+      return <Spin fullscreen tip="加载中" />;
+    }
+
+    if (setupNeeded) {
+      return <SetupPage onReady={session.setUser} />;
+    }
+
     return <LoginPage onLogin={session.setUser} />;
   }
 

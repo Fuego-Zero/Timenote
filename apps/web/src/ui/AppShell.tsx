@@ -18,6 +18,7 @@ export function AppShell({
   onLogout: () => void;
 }) {
   const [accountOpen, setAccountOpen] = useState(false);
+  const forcePasswordChange = Boolean(user.mustChangePassword);
   const items = [
     { key: "events", label: "事件", children: <EventsPage user={user} /> },
     { key: "feeds", label: "订阅", children: <FeedsPage /> },
@@ -43,7 +44,13 @@ export function AppShell({
       <main className="app-main">
         <Tabs destroyOnHidden items={items} />
       </main>
-      <AccountModal open={accountOpen} user={user} onClose={() => setAccountOpen(false)} onUserChange={onUserChange} />
+      <AccountModal
+        forcePasswordChange={forcePasswordChange}
+        open={accountOpen || forcePasswordChange}
+        user={user}
+        onClose={() => setAccountOpen(false)}
+        onUserChange={onUserChange}
+      />
     </>
   );
 }
