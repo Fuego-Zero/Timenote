@@ -7,5 +7,6 @@
   },
   "eslint.format.enable": false,
   "eslint.run": "onType",
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"]
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "cSpell.words": ["timenote"]
 }
