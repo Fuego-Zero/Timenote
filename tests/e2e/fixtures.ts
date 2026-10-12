@@ -4,6 +4,15 @@ export const adminPassword = "e2e-admin-password";
 
 export async function login(page: Page, username = "admin", password = adminPassword) {
   await page.goto("/");
+  const setupTitle = page.getByRole("heading", { name: "首次设置管理员" });
+  if (await setupTitle.isVisible().catch(() => false)) {
+    await page.getByLabel("用户名").fill(username);
+    await page.getByLabel("密码").fill(password);
+    await page.getByRole("button", { name: "创建并进入" }).click();
+    await expect(page.getByRole("tab", { name: "事件" })).toBeVisible();
+    return;
+  }
+
   await page.getByLabel("用户名").fill(username);
   await page.getByLabel("密码").fill(password);
   await page.getByRole("button", { name: "登 录" }).click();
@@ -21,9 +30,14 @@ export async function pickOption(page: Page, select: Locator, label: string) {
   await select.click();
   await expect(select).toHaveAttribute("aria-expanded", "true");
   for (let attempt = 0; attempt < 40; attempt += 1) {
-    const activeId = await select.getAttribute("aria-activedescendant");
-    const active = activeId ? await page.locator(`[id="${activeId}"]`).getAttribute("aria-label") : null;
-    if (active === label) {
+    // 月、日下拉会同时留在 DOM 里且选项 id 重复，只读当前可见列表的高亮项。
+    const active = page
+      .locator(".ant-select-dropdown")
+      .filter({ visible: true })
+      .last()
+      .locator(".ant-select-item-option-active");
+    const current = (await active.getAttribute("aria-label")) ?? (await active.getAttribute("title"));
+    if (current === label) {
       await page.keyboard.press("Enter");
       await expect(select).toHaveAttribute("aria-expanded", "false");
       return;

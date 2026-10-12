@@ -48,7 +48,7 @@ export function redactPath(path: string) {
 }
 
 function sensitiveKey(key: string) {
-  return /password|token|authorization|cookie|url/i.test(key);
+  return /password|token|authorization|cookie|url|signkey|signature|anonsign/i.test(key);
 }
 
 export function redact(value: unknown): unknown {

@@ -95,8 +95,8 @@ describe("事件", () => {
     expect((await alice.request("PUT", `/api/events/${id}`, eventInput({ name: "篡改" }))).status).toBe(404);
     expect((await alice.request("DELETE", `/api/events/${id}`)).status).toBe(404);
 
-    const feed = await alice.request<{ url: string }>("POST", "/api/feed-tokens", { name: "iPhone" });
-    const body = (await h.browser().request("GET", new URL(feed.json.url).pathname)).body;
+    const feed = await alice.request<{ feed: { url: string } }>("POST", "/api/feed-tokens", { name: "iPhone" });
+    const body = (await h.browser().request("GET", new URL(feed.json.feed.url).pathname)).body;
     expect(body).toContain("Alice 的事");
     expect(body).not.toContain("管理员的事");
 

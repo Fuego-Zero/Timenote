@@ -23,9 +23,11 @@ async function createUser(admin: ReturnType<Harness["browser"]>, username: strin
 }
 
 describe("登录与会话", () => {
-  it("首个管理员来自环境变量，重复启动不重复创建", async () => {
+  it("ensureInitialAdmin 为空操作；首个管理员由引导/测试种子创建", async () => {
     const { ensureInitialAdmin } = await import("../../packages/runtime/src/index.js");
+    const before = h.repo.listUsers().length;
     await ensureInitialAdmin(h.repo, h.config);
+    expect(h.repo.listUsers()).toHaveLength(before);
     expect(h.repo.listUsers().map(u => [u.username, u.role])).toEqual([["admin", "admin"]]);
   });
 
@@ -179,12 +181,92 @@ describe("管理员后台权限边界", () => {
     const alice = await createUser(admin, "alice");
     const session = h.browser();
     await session.login("alice", "alice-password");
-    const issued = await session.request<{ url: string }>("POST", "/api/feed-tokens", { name: "iPhone" });
-    const feedPath = new URL(issued.json.url).pathname;
+    const issued = await session.request<{ feed: { url: string } }>("POST", "/api/feed-tokens", { name: "iPhone" });
+    const feedPath = new URL(issued.json.feed.url).pathname;
     expect((await session.request("GET", feedPath)).status).toBe(200);
 
     expect((await admin.request("DELETE", `/api/admin/users/${alice.id}`)).status).toBe(200);
     expect((await h.browser().request("GET", feedPath)).status).toBe(404);
     expect(h.repo.listFeedTokens(alice.id)).toEqual([]);
+  });
+});
+
+describe("development auth bypass", () => {
+  it("development injects first enabled admin without cookie; test/prod stay locked", async () => {
+    const dev = await harness({ NODE_ENV: "development" });
+    try {
+      expect(dev.config.devAuthBypass).toBe(true);
+      const session = await dev.browser().request<{ user: PublicUser | null }>("GET", "/api/auth/session");
+      expect(session.status).toBe(200);
+      expect(session.headers["set-cookie"]).toBeUndefined();
+      expect(session.json.user).toMatchObject({ username: "admin", role: "admin" });
+      const events = await dev.browser().request("GET", "/api/events");
+      expect(events.status).toBe(200);
+      expect(events.headers["set-cookie"]).toBeUndefined();
+
+      await dev.browser().request("POST", "/api/auth/logout");
+      const again = await dev.browser().request<{ user: PublicUser | null }>("GET", "/api/auth/session");
+      expect(again.json.user?.username).toBe("admin");
+    } finally {
+      await dev.close();
+    }
+
+    const off = await harness({ NODE_ENV: "development", DEV_AUTH_BYPASS: "0" });
+    try {
+      expect(off.config.devAuthBypass).toBe(false);
+      expect((await off.browser().request("GET", "/api/events")).status).toBe(401);
+      expect((await off.browser().request("GET", "/api/auth/session")).json).toMatchObject({ user: null });
+    } finally {
+      await off.close();
+    }
+
+    expect(h.config.devAuthBypass).toBe(false);
+    expect((await h.browser().request("GET", "/api/events")).status).toBe(401);
+
+    const prod = await harness({
+      NODE_ENV: "production",
+      WEB_ORIGIN: "https://cal.example.com",
+      SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      COOKIE_SECURE: "true",
+    });
+    try {
+      expect(prod.config.devAuthBypass).toBe(false);
+      const res = await prod.app.inject({
+        method: "GET",
+        url: "/api/events",
+        headers: { origin: "https://cal.example.com" },
+      });
+      expect(res.statusCode).toBe(401);
+    } finally {
+      await prod.close();
+    }
+  });
+
+  it("no enabled admin means no bypass; health and feeds stay public", async () => {
+    const dev = await harness({ NODE_ENV: "development" });
+    try {
+      const health = await dev.app.inject({ method: "GET", url: "/health" });
+      expect(health.statusCode).toBe(200);
+
+      const b = dev.browser();
+      await b.login();
+      const issued = await b.request<{ feed: { url: string } }>("POST", "/api/feed-tokens", { name: "phone" });
+      expect(issued.status).toBe(201);
+      const feedPath = new URL(issued.json.feed.url!).pathname;
+      const feed = await dev.app.inject({ method: "GET", url: feedPath });
+      expect(feed.statusCode).toBe(200);
+      expect(feed.headers["set-cookie"]).toBeUndefined();
+
+      const admin = dev.repo.listUsers().find(u => u.role === "admin")!;
+      dev.repo.putUser({ ...admin, disabled: true });
+      expect((await dev.browser().request("GET", "/api/events")).status).toBe(401);
+      expect((await dev.browser().request("GET", "/api/auth/session")).json).toMatchObject({ user: null });
+      // /api/feeds/* still bypasses session auth (owner disabled may 404 by existing feed rules)
+      const feedAgain = await dev.app.inject({ method: "GET", url: feedPath });
+      expect(feedAgain.headers["set-cookie"]).toBeUndefined();
+      expect([200, 404]).toContain(feedAgain.statusCode);
+    } finally {
+      await dev.close();
+    }
   });
 });

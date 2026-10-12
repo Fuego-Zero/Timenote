@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import { isTimeZone } from "@timenote/contracts";
 
 export interface LogSink {
@@ -18,6 +20,8 @@ export interface Config {
   loginLimit: number;
   logSink?: LogSink;
   sessionTtlSeconds: number;
+  /** 请求完整性 MAC 的 HKDF 主密钥（≥32 字节）。 */
+  signMasterKey: Buffer;
   sqlitePath: string;
   webBindHost: string;
   /** 浏览器访问的同源地址，同时是订阅链接的公网基址。 */
@@ -80,6 +84,31 @@ function origin(value: string, httpsOnly: boolean) {
 }
 
 
+/** production 必填 base64url（解码≥32字节）；development/test 缺省时用固定派生密钥（勿用于生产）。 */
+function signMasterKey(env: NodeJS.Dict<string>, production: boolean): Buffer {
+  const raw = env.SIGN_MASTER_KEY?.trim();
+  if (!raw) {
+    if (production) {
+      throw new Error("缺少 SIGN_MASTER_KEY");
+    }
+
+    return createHash("sha256").update("timenote-dev-sign-master-key-v1").digest();
+  }
+
+  let key: Buffer;
+  try {
+    key = Buffer.from(raw, "base64url");
+  } catch {
+    throw new Error("SIGN_MASTER_KEY 必须是 base64url");
+  }
+
+  if (key.length < 32) {
+    throw new Error("SIGN_MASTER_KEY 解码后至少 32 字节");
+  }
+
+  return key;
+}
+
 export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
   const nodeEnv = text(env, "NODE_ENV", "development");
   const production = nodeEnv === "production";
@@ -120,6 +149,7 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
     cookieName: cookieSecure ? "__Host-timenote" : "timenote.session",
     cookieSecure,
     sessionTtlSeconds: integer(env, "SESSION_TTL_SECONDS", defaultSessionTtlSeconds, 300, 365 * 24 * 60 * 60),
+    signMasterKey: signMasterKey(env, production),
     loginLimit: integer(env, "LOGIN_RATE_LIMIT", 10, 1, 1000),
     bodyLimit: integer(env, "REQUEST_BODY_LIMIT", 1024 * 1024, 1024, 16 * 1024 * 1024),
     defaultTimeZone,

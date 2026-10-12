@@ -3,11 +3,21 @@ import { BusinessError, dummyPasswordHash, hashPassword, verifyPassword } from "
 
 import { toPublicUser } from "../accounts.js";
 import type { ApiContext } from "../context.js";
+import { issueSessionSignKey } from "../requestSign.js";
 import { endSession, requireUser, startSession } from "../session.js";
 
 export function registerAuth(ctx: ApiContext) {
   const { app, config, repo } = ctx;
-  app.get("/api/auth/session", req => ({ user: req.user ? toPublicUser(req.user) : null }));
+  app.get("/api/auth/session", req => {
+    if (req.user) {
+      return {
+        user: toPublicUser(req.user),
+        signKey: issueSessionSignKey(ctx, req.sessionId, req.user.id),
+      };
+    }
+
+    return { user: null, anonSign: ctx.requestSign.issueAnon(ctx.now()) };
+  });
 
   app.post(
     "/api/auth/login",
@@ -21,9 +31,10 @@ export function registerAuth(ctx: ApiContext) {
         throw new BusinessError("INVALID_CREDENTIALS");
       }
 
-      startSession(ctx, reply, user.id);
+      const sessionId = startSession(ctx, reply, user.id);
       req.userId = user.id;
-      return { user: toPublicUser(user) };
+      req.sessionId = sessionId;
+      return { user: toPublicUser(user), signKey: ctx.requestSign.sessionSignKey(sessionId) };
     }
   );
 
@@ -49,7 +60,7 @@ export function registerAuth(ctx: ApiContext) {
 
     const passwordHash = await hashPassword(input.newPassword);
     repo.transaction(() => {
-      repo.putUser({ ...user, passwordHash, updatedAt: ctx.now() });
+      repo.putUser({ ...user, passwordHash, mustChangePassword: false, updatedAt: ctx.now() });
       // 改密后其他设备上的登录全部失效，只保留当前会话。
       repo.removeUserSessions(user.id, req.sessionId);
     });

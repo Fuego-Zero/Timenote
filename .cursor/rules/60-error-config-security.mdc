@@ -125,3 +125,14 @@ user-controlled filename
 - 是否与现有库重复
 
 避免为一个简单工具函数引入大型依赖。
+
+## 11. 本仓库安全硬约束
+
+详细说明见 `docs/security.md`。实现时至少遵守：
+
+- 不开放公开注册；账号由管理员经服务端接口创建；管理能力服务端校验（如 `requireAdmin`），不依赖前端隐藏。
+- 写请求（POST/PUT/PATCH/DELETE）校验 `Origin` 与 `WEB_ORIGIN` 一致；拒绝跨站。
+- 订阅 URL 中的 token 视为 secret：日志脱敏；不存在 / 已撤销等返回同形响应，不暴露区别。
+- 不提供无鉴权管理接口、调试后门或绕过鉴权重置管理员的开关。
+- 5xx 对外只返回稳定错误码与 `requestId`，不暴露内部异常详情、堆栈或路径。
+- 请求完整性 MAC（SIGN）硬约束见 `docs/security.md`「请求完整性 MAC（SIGN）」；本文件不抄算法细节。

@@ -1,7 +1,7 @@
 import type { PublicUser } from "@timenote/contracts";
 import { useCallback, useEffect, useState } from "react";
 
-import { api, authExpiredEvent } from "../../api/client.js";
+import { api, authExpiredEvent, clearRequestSign } from "../../api/client.js";
 
 type SessionState = { status: "loading" } | { status: "ready"; user: PublicUser | null } | { status: "error" };
 
@@ -29,7 +29,10 @@ export function useSession() {
   }, [version]);
 
   useEffect(() => {
-    const expire = () => setState({ status: "ready", user: null });
+    const expire = () => {
+      clearRequestSign();
+      setState({ status: "ready", user: null });
+    };
     window.addEventListener(authExpiredEvent, expire);
     return () => window.removeEventListener(authExpiredEvent, expire);
   }, []);
@@ -41,6 +44,7 @@ export function useSession() {
   const setUser = useCallback((user: PublicUser | null) => setState({ status: "ready", user }), []);
   const logout = useCallback(async () => {
     await api("/auth/logout", "POST");
+    clearRequestSign();
     setState({ status: "ready", user: null });
   }, []);
 

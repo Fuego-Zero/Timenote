@@ -2,7 +2,7 @@ import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-import type { IssuedFeed } from "../../packages/contracts/src/index.js";
+import type { FeedToken } from "../../packages/contracts/src/index.js";
 import {
   hashPassword,
   loadConfig,
@@ -22,7 +22,10 @@ describe("迁移", () => {
     migrate(path);
     migrate(path);
     const db = openDatabase(path);
-    expect(db.prepare("SELECT name FROM schema_migration").all()).toEqual([{ name: "0001_initial" }]);
+    expect(db.prepare("SELECT name FROM schema_migration ORDER BY name").all()).toEqual([
+      { name: "0001_initial" },
+      { name: "0002_feed_token" },
+    ]);
     expect(db.pragma("journal_mode", { simple: true })).toBe("wal");
     db.close();
     openRepository(path).close();
@@ -61,19 +64,19 @@ describe("配置", () => {
       webOrigin: "http://127.0.0.1:8720",
       cookieSecure: false,
       cookieName: "timenote.session",
+      devAuthBypass: true,
       defaultTimeZone: "Asia/Shanghai",
       feedPastYears: 1,
       feedFutureYears: 20,
     });
-    expect(config.initialAdmin).toBeUndefined();
   });
 
   it("生产环境要求 HTTPS 来源，强制安全 Cookie 并使用 __Host- 前缀", () => {
     expect(() => loadConfig({ ...base, NODE_ENV: "production" })).toThrow();
-    const prod = loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com" });
-    expect(prod).toMatchObject({ cookieSecure: true, cookieName: "__Host-timenote" });
+    const prod = loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" });
+    expect(prod).toMatchObject({ cookieSecure: true, cookieName: "__Host-timenote", devAuthBypass: false });
     expect(() =>
-      loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com", COOKIE_SECURE: "false" })
+      loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", COOKIE_SECURE: "false" })
     ).toThrow(/COOKIE_SECURE/);
   });
 
@@ -83,8 +86,24 @@ describe("配置", () => {
     expect(() => loadConfig({ ...base, API_PORT: "70000" })).toThrow(/API_PORT/);
     expect(() => loadConfig({ ...base, DEFAULT_TIME_ZONE: "Mars/Base" })).toThrow(/DEFAULT_TIME_ZONE/);
     expect(() => loadConfig({ ...base, WEB_ORIGIN: "http://127.0.0.1:8720/app" })).toThrow();
-    expect(() => loadConfig({ ...base, INITIAL_ADMIN_USERNAME: "admin" })).toThrow();
-    expect(() => loadConfig({ ...base, INITIAL_ADMIN_USERNAME: "admin", INITIAL_ADMIN_PASSWORD: "short" })).toThrow();
+  });
+
+
+    it("DEV_AUTH_BYPASS only enables in development", () => {
+    expect(loadConfig(base).devAuthBypass).toBe(true);
+    expect(loadConfig({ ...base, DEV_AUTH_BYPASS: "0" }).devAuthBypass).toBe(false);
+    expect(loadConfig({ ...base, NODE_ENV: "test" }).devAuthBypass).toBe(false);
+    expect(
+      loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }).devAuthBypass
+    ).toBe(false);
+    expect(
+      loadConfig({
+        ...base,
+        NODE_ENV: "production",
+        WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        DEV_AUTH_BYPASS: "1",
+      }).devAuthBypass
+    ).toBe(false);
   });
 });
 
@@ -115,9 +134,9 @@ describe("安全", () => {
       const login = await b.login();
       const session = /=([\w-]{43})/.exec(String(login.headers["set-cookie"]))![1]!;
       await b.request("POST", "/api/events", eventInput());
-      const issued = await b.request<IssuedFeed>("POST", "/api/feed-tokens", { name: "iPhone" });
-      const token = /([\w-]{43})\.ics$/.exec(issued.json.url)![1]!;
-      await b.request("GET", new URL(issued.json.url).pathname);
+      const issued = await b.request<{ feed: FeedToken }>("POST", "/api/feed-tokens", { name: "iPhone" });
+      const token = /([\w-]{43})\.ics$/.exec(issued.json.feed.url!)![1]!;
+      await b.request("GET", new URL(issued.json.feed.url!).pathname);
 
       const log = lines.join("\n");
       expect(lines.length).toBeGreaterThanOrEqual(4);

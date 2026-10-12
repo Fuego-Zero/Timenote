@@ -19,3 +19,19 @@ export {
 export { openRepository, Repository } from "./repository.js";
 export { isStrongAdminPassword, strongAdminPasswordMessage } from "./passwordPolicy.js";
 export { dummyPasswordHash, hashPassword, hashToken, opaqueToken, verifyPassword } from "./security.js";
+export {
+  anonSignMaxActive,
+  anonSignTtlMs,
+  bodySha256Hex,
+  buildSignHeaders,
+  deriveSignKey,
+  isAnonSignPath,
+  isSignExemptPath,
+  normalizeSignPath,
+  normalizeSignQuery,
+  RequestSignRegistry,
+  requestSignHkdfSalt,
+  requestSignKeyLength,
+  signKeyToBase64Url,
+  verifyRequestSignature,
+} from "./requestSign.js";

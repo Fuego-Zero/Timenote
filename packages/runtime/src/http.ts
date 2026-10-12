@@ -20,6 +20,9 @@ export const safeMessages: Record<ErrorCode, string> = {
   CALENDAR_RANGE: "日期超出支持范围",
   PAYLOAD_TOO_LARGE: "请求体过大",
   RATE_LIMITED: "请求过于频繁，请稍后再试",
+  SIGN_INVALID: "请求签名无效",
+  SIGN_EXPIRED: "请求签名已过期",
+  SIGN_REPLAY: "请求签名已被使用",
   INTERNAL_ERROR: "服务暂时不可用",
 };
 
@@ -34,6 +37,9 @@ const statusByCode: Record<ErrorCode, number> = {
   CALENDAR_RANGE: 422,
   PAYLOAD_TOO_LARGE: 413,
   RATE_LIMITED: 429,
+  SIGN_INVALID: 403,
+  SIGN_EXPIRED: 403,
+  SIGN_REPLAY: 403,
   INTERNAL_ERROR: 500,
 };
 

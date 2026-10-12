@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { startWeb } from "../../apps/web/server/index.js";
-import type { IssuedFeed } from "../../packages/contracts/src/index.js";
+import type { FeedToken } from "../../packages/contracts/src/index.js";
 import { adminPassword, harness, type Harness } from "../helpers.js";
 
 let h: Harness;
@@ -52,8 +52,8 @@ describe("Web 同源反代", () => {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ name: "iPhone" }),
       })
-    ).json()) as IssuedFeed;
-    const path = new URL(issued.url).pathname;
+    ).json()) as { feed: FeedToken };
+    const path = new URL(issued.feed.url!).pathname;
 
     const feed = await fetch(base + path);
     expect(feed.status).toBe(200);
