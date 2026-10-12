@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { networkInterfaces } from "node:os";
 
 import { createApiServer } from "../apps/api/src/index.js";
@@ -11,6 +12,10 @@ import {
   resolveLogRoot,
 } from "../packages/runtime/src/index.js";
 import { migrate } from "../packages/runtime/src/migrate.js";
+
+if (!existsSync(".env") && !process.env.SQLITE_PATH) {
+  throw new Error("缺少 .env：本机开发先运行 pnpm env:init，部署时从 .env.example 复制后修改");
+}
 
 loadDotenv(".env");
 const config = loadConfig();
