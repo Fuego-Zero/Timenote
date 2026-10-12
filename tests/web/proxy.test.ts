@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { startWeb } from "../../apps/web/server/index.js";
 import type { FeedToken } from "../../packages/contracts/src/index.js";
+import { buildSignHeaders } from "../../packages/runtime/src/index.js";
 import { adminPassword, harness, type Harness } from "../helpers.js";
 
 let h: Harness;
@@ -26,6 +27,20 @@ afterEach(async () => {
   await h.close();
 });
 
+async function mintAnon(originBase: string) {
+  const res = await fetch(originBase + "/api/setup", {
+    headers: { origin: "http://127.0.0.1:8720" },
+  });
+  const json = (await res.json()) as {
+    anonSign?: { anonKeyId: string; signKey: string; expiresAt: number };
+  };
+  if (!json.anonSign) {
+    throw new Error("无法获取匿名签名密钥");
+  }
+
+  return json.anonSign;
+}
+
 function send(path: string, init: RequestInit & { cookie?: string } = {}) {
   const { cookie, headers, ...rest } = init;
   return fetch(base + path, {
@@ -36,21 +51,49 @@ function send(path: string, init: RequestInit & { cookie?: string } = {}) {
 
 describe("Web 同源反代", () => {
   it("透传会话 Cookie、缓存头与 ETag 条件请求，并加安全响应头", async () => {
+    const anon = await mintAnon(base);
+    const body = JSON.stringify({ username: "admin", password: adminPassword });
     const login = await send("/api/auth/login", {
       method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ username: "admin", password: adminPassword }),
+      headers: {
+        "content-type": "application/json",
+        ...buildSignHeaders({
+          method: "POST",
+          url: "/api/auth/login",
+          bodyText: body,
+          signKeyBase64Url: anon.signKey,
+          anonKeyId: anon.anonKeyId,
+          nowMs: h.clock.now,
+        }),
+      },
+      body,
     });
     expect(login.status).toBe(200);
     const cookie = login.headers.getSetCookie()[0]!.split(";")[0]!;
     expect(login.headers.get("x-content-type-options")).toBe("nosniff");
 
+    const sessionRes = await send("/api/auth/session", { cookie });
+    const sessionJson = (await sessionRes.json()) as { signKey?: string };
+    if (!sessionJson.signKey) {
+      throw new Error("登录后缺少会话签名密钥");
+    }
+
+    const createBody = JSON.stringify({ name: "iPhone" });
     const issued = (await (
       await send("/api/feed-tokens", {
         method: "POST",
         cookie,
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name: "iPhone" }),
+        headers: {
+          "content-type": "application/json",
+          ...buildSignHeaders({
+            method: "POST",
+            url: "/api/feed-tokens",
+            bodyText: createBody,
+            signKeyBase64Url: sessionJson.signKey,
+            nowMs: h.clock.now,
+          }),
+        },
+        body: createBody,
       })
     ).json()) as { feed: FeedToken };
     const path = new URL(issued.feed.url!).pathname;
@@ -77,14 +120,24 @@ describe("Web 同源反代", () => {
     try {
       const statuses: number[] = [];
       for (let i = 0; i < 3; i += 1) {
+        const anon = await mintAnon(`http://127.0.0.1:${proxy.port}`);
+        const body = JSON.stringify({ username: "admin", password: "wrong-password" });
         const res = await fetch(`http://127.0.0.1:${proxy.port}/api/auth/login`, {
           method: "POST",
           headers: {
             "content-type": "application/json",
             origin: "http://127.0.0.1:8720",
             "x-forwarded-for": `10.0.0.${i}`,
+            ...buildSignHeaders({
+              method: "POST",
+              url: "/api/auth/login",
+              bodyText: body,
+              signKeyBase64Url: anon.signKey,
+              anonKeyId: anon.anonKeyId,
+              nowMs: limited.clock.now,
+            }),
           },
-          body: JSON.stringify({ username: "admin", password: "wrong-password" }),
+          body,
         });
         statuses.push(res.status);
       }
