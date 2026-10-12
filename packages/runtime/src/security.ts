@@ -40,7 +40,7 @@ export async function verifyPassword(password: string, stored: string) {
   return actual.length === expected.length && timingSafeEqual(actual, expected);
 }
 
-/** 会话与订阅 token：32 字节随机值，数据库只保存 SHA-256 摘要。 */
+/** 32 字节随机值。会话只存 SHA-256；订阅 token 另外保存明文，以便登录后再次显示地址。 */
 export function opaqueToken() {
   return randomBytes(32).toString("base64url");
 }
