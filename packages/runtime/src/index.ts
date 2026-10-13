@@ -18,8 +18,8 @@ export {
 export {
   EventStore,
   FeedTokenStore,
-  openRepository,
   type OpenedRepository,
+  openRepository,
   SessionStore,
   UserStore,
 } from "./repository.js";
@@ -35,9 +35,9 @@ export {
   isSignExemptPath,
   normalizeSignPath,
   normalizeSignQuery,
-  RequestSignRegistry,
   requestSignHkdfSalt,
   requestSignKeyLength,
+  RequestSignRegistry,
   signKeyToBase64Url,
   verifyRequestSignature,
 } from "./requestSign.js";
