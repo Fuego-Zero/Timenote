@@ -77,5 +77,7 @@ function headerValue(headers: Record<string, string | string[] | undefined>, nam
     return raw[0]?.trim() || undefined;
   }
 
-  return raw?.trim() || undefined;
+  // 空串或全空白视同缺失。
+  const value = raw?.trim();
+  return value === "" ? undefined : value;
 }

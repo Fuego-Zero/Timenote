@@ -29,6 +29,8 @@ export async function createInitialAdmin(
   }
 
   const passwordHash = await hashPassword(input.password);
+  // 显示名称缺省、空串或全空白时用“管理员”。
+  const displayName = input.displayName?.trim();
   try {
     return repo.transaction(() => {
       if (repo.users.listUsers().length) {
@@ -38,7 +40,7 @@ export async function createInitialAdmin(
       const user: StoredUser = {
         id: randomUUID(),
         username: input.username,
-        displayName: input.displayName?.trim() || "管理员",
+        displayName: displayName === undefined || displayName === "" ? "管理员" : displayName,
         role: "admin",
         disabled: false,
         timeZone: config.defaultTimeZone,
