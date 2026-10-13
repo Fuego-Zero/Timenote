@@ -33,6 +33,7 @@ export function useSession() {
       clearRequestSign();
       setState({ status: "ready", user: null });
     };
+
     window.addEventListener(authExpiredEvent, expire);
     return () => window.removeEventListener(authExpiredEvent, expire);
   }, []);

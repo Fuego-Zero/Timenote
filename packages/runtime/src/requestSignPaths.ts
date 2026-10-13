@@ -21,7 +21,7 @@ export function normalizeSignQuery(url: string): string {
   }
 
   const params = new URLSearchParams(qs);
-  const pairs: Array<[string, string]> = [];
+  const pairs: [string, string][] = [];
   for (const [key, value] of params.entries()) {
     pairs.push([key, value]);
   }
@@ -51,7 +51,5 @@ export function isSignExemptPath(method: string, path: string): boolean {
 
 export function isAnonSignPath(method: string, path: string): boolean {
   const upper = method.toUpperCase();
-  return (
-    (upper === "POST" && path === "/api/auth/login") || (upper === "POST" && path === "/api/setup/admin")
-  );
+  return (upper === "POST" && path === "/api/auth/login") || (upper === "POST" && path === "/api/setup/admin");
 }

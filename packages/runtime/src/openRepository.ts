@@ -8,15 +8,15 @@ import { SessionStore } from "./sessionStore.js";
 import { openDatabase } from "./sqlite.js";
 import { UserStore } from "./userStore.js";
 
-export type OpenedRepository = {
-  users: UserStore;
-  sessions: SessionStore;
+export interface OpenedRepository {
+  close(): void;
   events: EventStore;
   feedTokens: FeedTokenStore;
+  sessions: SessionStore;
   /** 同步 IMMEDIATE 事务：读取-校验-写入之间不会插入其他写操作。 */
   transaction<T>(fn: () => T): T;
-  close(): void;
-};
+  users: UserStore;
+}
 
 /** 打开已迁移的数据库；未执行迁移时立即失败，不在运行时隐式建表。返回按表拆分的 Store 与薄事务/关闭。 */
 export function openRepository(path: string): OpenedRepository {

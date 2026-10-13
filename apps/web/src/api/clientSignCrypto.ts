@@ -40,7 +40,7 @@ export function normalizeClientSignQuery(url: string): string {
   }
 
   const params = new URLSearchParams(qs);
-  const pairs: Array<[string, string]> = [];
+  const pairs: [string, string][] = [];
   for (const [key, value] of params.entries()) {
     pairs.push([key, value]);
   }

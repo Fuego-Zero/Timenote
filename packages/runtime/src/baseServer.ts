@@ -4,8 +4,8 @@ import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
 
-import type { Config } from "./configTypes.js";
 import { safeMessages, toApiError } from "./apiErrors.js";
+import type { Config } from "./configTypes.js";
 import { incomingTraceId } from "./traceTypes.js";
 import { writeSpan } from "./writeSpan.js";
 

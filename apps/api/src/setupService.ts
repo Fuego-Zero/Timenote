@@ -3,12 +3,12 @@ import { randomUUID } from "node:crypto";
 import type { SetupAdminInput } from "@timenote/contracts";
 import {
   BusinessError,
+  type Config,
   hashPassword,
   isStrongAdminPassword,
-  strongAdminPasswordMessage,
-  type Config,
   type OpenedRepository,
   type StoredUser,
+  strongAdminPasswordMessage,
 } from "@timenote/runtime";
 
 export function hasEnabledAdmin(repo: OpenedRepository) {

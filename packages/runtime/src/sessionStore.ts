@@ -2,7 +2,7 @@ import { and, eq, lte, sql } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import { type Session, sessionSchema } from "./entities.js";
-import { sessions, tables } from "./schema.js";
+import { sessions, type tables } from "./schema.js";
 
 /** 会话表 DAO：只负责读写，不承载业务决策。 */
 export class SessionStore {
