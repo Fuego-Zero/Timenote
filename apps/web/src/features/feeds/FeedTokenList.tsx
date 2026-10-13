@@ -41,10 +41,10 @@ export function FeedTokenList({
               ...(url
                 ? [
                     <Button key="copy" type="link" onClick={() => onCopy(url)}>
-                      复制
+                      复制 HTTPS 地址
                     </Button>,
                     <Button key="webcal" href={feed.webcalUrl ?? undefined} type="link">
-                      webcal
+                      用日历 App 打开
                     </Button>,
                   ]
                 : []),

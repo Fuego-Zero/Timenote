@@ -7,7 +7,7 @@ export interface ScopeDraft {
   eventIds: string[];
 }
 
-export const emptyScopeDraft = (): ScopeDraft => ({ name: "iPhone", eventScope: "all", eventIds: [] });
+export const emptyScopeDraft = (): ScopeDraft => ({ name: "我的设备", eventScope: "all", eventIds: [] });
 
 export function FeedScopeFields({
   draft,

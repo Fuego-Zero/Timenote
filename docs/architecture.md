@@ -3,7 +3,7 @@
 ## 进程与端口
 
 ```text
-浏览器 / iPhone 日历
+浏览器 / 日历客户端（ICS 订阅）
         │  HTTPS（生产经反向代理）
         ▼
 apps/web  Node HTTP 服务  :8720（WEB_BIND_HOST）
@@ -40,11 +40,11 @@ Web 反代只转发白名单请求头（`content-type`、`cookie`、`origin`、`
 
 四张表都以 JSON `payload` 保存完整实体，读出时用 Zod 重新校验；表上的 `CHECK` 约束保证主键、归属列与 payload 一致，并禁止 payload 出现明文 `password` 或订阅 `token` 字段。删除账号通过外键级联删除其会话、事件与订阅地址。
 
-| 表            | 内容                                                                   |
-| ------------- | ---------------------------------------------------------------------- |
-| `user`        | 用户名、显示名称、角色、停用状态、时区、scrypt 密码哈希                |
-| `app_session` | 会话 token 的 SHA-256、归属账号、最后活跃与过期时间                    |
-| `event`       | 事件可编辑字段 + `id`、`ownerId`、`revision`、`createdAt`、`updatedAt` |
+| 表            | 内容                                                                                                      |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| `user`        | 用户名、显示名称、角色、停用状态、时区、scrypt 密码哈希                                                   |
+| `app_session` | 会话 token 的 SHA-256、归属账号、最后活跃与过期时间                                                       |
+| `event`       | 事件可编辑字段 + `id`、`ownerId`、`revision`、`createdAt`、`updatedAt`                                    |
 | `feed_token`  | 订阅地址名称、token 明文（用于再次显示）、SHA-256、创建与轮换时间；可选 `eventScope` / `eventIds`（见下） |
 
 迁移清单在 `packages/runtime/src/migrate.ts`，按顺序执行并记录 SHA-256 校验和；已应用的迁移被改动或数据库里有未登记的表时拒绝启动。

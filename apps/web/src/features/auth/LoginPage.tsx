@@ -32,7 +32,7 @@ export function LoginPage({ onLogin }: { onLogin: (user: PublicUser) => void }) 
       <Layout.Content>
         <Flex align="center" justify="center" style={{ minHeight: "100vh", padding: token.padding }}>
           <Card style={{ maxWidth: 380, width: "100%" }}>
-            <Typography.Title level={3}>timenote 纪念日</Typography.Title>
+            <Typography.Title level={3}>Timenote 纪念日</Typography.Title>
             <Typography.Paragraph type="secondary">账号由管理员创建，请使用分配的用户名登录。</Typography.Paragraph>
             {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
             <Form<LoginValues> layout="vertical" requiredMark={false} onFinish={values => void submit(values)}>

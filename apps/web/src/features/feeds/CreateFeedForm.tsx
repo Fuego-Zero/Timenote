@@ -25,7 +25,7 @@ export function CreateFeedForm({
       <Form.Item label="设备名称">
         <Input
           maxLength={30}
-          placeholder="设备名称，如 iPhone"
+          placeholder="如 iPhone、工作电脑"
           value={draft.name}
           aria-label="订阅名称"
           onChange={event => setDraft(current => ({ ...current, name: event.target.value }))}

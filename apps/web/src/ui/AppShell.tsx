@@ -36,7 +36,7 @@ export function AppShell({
       >
         <Flex align="center" gap={12} justify="space-between">
           <Typography.Text strong style={{ fontSize: token.fontSizeLG, whiteSpace: "nowrap" }}>
-            timenote 纪念日
+            Timenote 纪念日
           </Typography.Text>
           <Dropdown
             menu={{
