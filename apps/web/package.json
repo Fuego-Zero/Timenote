@@ -11,6 +11,7 @@
     "@timenote/contracts": "workspace:*",
     "@timenote/runtime": "workspace:*",
     "antd": "6.6.4",
+    "dayjs": "1.11.23",
     "react": "19.3.0",
     "react-dom": "19.3.0"
   },

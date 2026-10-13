@@ -53,6 +53,7 @@ test("纪念日重复规则：自定义间隔、三种结束条件、里程碑�
   await pickOption(page, monthly.getByLabel("重复", { exact: true }), "每月");
   await monthly.getByText("截止到").click();
   await monthly.getByLabel("截止日期").fill("2099-12-31");
+  await monthly.getByLabel("截止日期").press("Enter");
   await monthly.getByRole("button", { name: "保 存" }).click();
   await expect(monthly).toBeHidden();
   await expect(page.getByText("每月 · 至 2099-12-31")).toBeVisible();

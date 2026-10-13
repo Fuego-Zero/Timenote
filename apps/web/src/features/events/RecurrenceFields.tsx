@@ -9,7 +9,8 @@ import {
   type RecurrenceUnit,
   recurrenceUnits,
 } from "@timenote/contracts";
-import { Checkbox, Form, Input, InputNumber, Radio, Select, Space } from "antd";
+import { Checkbox, DatePicker, Form, Input, InputNumber, Radio, Select, Space } from "antd";
+import dayjs from "dayjs";
 import { useState } from "react";
 
 import { withRecurrence } from "./eventDraft.js";
@@ -169,14 +170,15 @@ export function RecurrenceFields({
             />
           ) : null}
           {recurrence.end.type === "until" ? (
-            <Input
-              min={start || undefined}
-              type="date"
-              value={recurrence.end.until}
+            <DatePicker
+              allowClear={false}
+              disabledDate={current => start !== "" && current.isBefore(dayjs(start), "day")}
+              format="YYYY-MM-DD"
+              value={dayjs(recurrence.end.until)}
               aria-label="截止日期"
-              onChange={event => {
-                if (event.target.value) {
-                  setRecurrence({ end: { type: "until", until: event.target.value } });
+              onChange={value => {
+                if (value) {
+                  setRecurrence({ end: { type: "until", until: value.format("YYYY-MM-DD") } });
                 }
               }}
             />
