@@ -176,3 +176,11 @@ const MAX_RETRY_COUNT = 3;
 ```
 
 不要把所有字面量都机械地抽成常量。
+
+## 14. 弃用 API
+
+禁止使用任何已弃用 API：带 `@deprecated` 的属性、组件、配置项，包括 antd、React、Vite 等。
+
+一律改用官方推荐的替代写法。
+
+编辑器、类型检查、构建或运行时控制台报 deprecated，视为未通过。
