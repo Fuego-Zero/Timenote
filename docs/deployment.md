@@ -1,6 +1,6 @@
 # 部署说明
 
-timenote 是单进程、单 SQLite 文件的服务，按单实例部署：一个容器、一个命名卷。  
+Timenote 是单进程、单 SQLite 文件的服务，按单实例部署：一个容器、一个命名卷。  
 **项目不配置 Nginx / SSL**；Compose 只暴露必要端口，由**部署方自行反代**并自理证书与域名。仓库仅提供一份 Nginx 示例供参考：[`deploy/nginx.example.conf`](../deploy/nginx.example.conf)。不要横向扩容或让多个进程共用同一数据库文件。
 
 ## 准备
