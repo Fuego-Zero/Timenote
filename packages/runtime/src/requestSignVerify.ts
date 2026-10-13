@@ -1,29 +1,19 @@
-import {
-  canonicalSignPayload,
-  requestSignHeaderNames,
-  requestSignWindowSeconds,
-} from "@timenote/contracts";
+import { canonicalSignPayload, requestSignHeaderNames, requestSignWindowSeconds } from "@timenote/contracts";
 
 import { BusinessError } from "./apiErrors.js";
-import {
-  bodySha256Hex,
-  deriveSignKey,
-  hmacSign,
-  safeEqualBase64Url,
-  type SignKeyKind,
-} from "./requestSignCrypto.js";
+import { bodySha256Hex, deriveSignKey, hmacSign, safeEqualBase64Url, type SignKeyKind } from "./requestSignCrypto.js";
 import { normalizeSignPath, normalizeSignQuery } from "./requestSignPaths.js";
 import type { RequestSignRegistry } from "./requestSignRegistry.js";
 
 export interface VerifySignInput {
-  method: string;
-  url: string;
   headers: Record<string, string | string[] | undefined>;
-  rawBody: Buffer | string | undefined;
+  method: string;
   nowMs: number;
+  rawBody: Buffer | string | undefined;
+  requireAnon: boolean;
   /** 已认证会话 id（cookie 会话）；与 anon 二选一。 */
   sessionKeyId?: string;
-  requireAnon: boolean;
+  url: string;
 }
 
 export function verifyRequestSignature(registry: RequestSignRegistry, masterKey: Buffer, input: VerifySignInput) {
@@ -87,5 +77,7 @@ function headerValue(headers: Record<string, string | string[] | undefined>, nam
     return raw[0]?.trim() || undefined;
   }
 
-  return raw?.trim() || undefined;
+  // 空串或全空白视同缺失。
+  const value = raw?.trim();
+  return value === "" ? undefined : value;
 }

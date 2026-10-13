@@ -1,4 +1,4 @@
-import { BusinessError, hashToken, type StoredUser } from "@timenote/runtime";
+import { hashToken, type StoredUser } from "@timenote/runtime";
 import type { FastifyRequest } from "fastify";
 
 import type { ApiContext } from "./context.js";

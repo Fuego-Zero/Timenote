@@ -5,7 +5,7 @@ import type { ApiContext } from "./context.js";
 import { rawJsonBodyParser } from "./rawJsonBodyParser.js";
 
 /** 安装 raw body 解析与请求完整性 MAC 校验（在会话认证之后）。 */
-export async function registerRequestSign(ctx: ApiContext) {
+export function registerRequestSign(ctx: ApiContext): void {
   const { app } = ctx;
   rawJsonBodyParser(app);
 
@@ -20,7 +20,7 @@ export async function registerRequestSign(ctx: ApiContext) {
 }
 
 function enforceRequestSign(ctx: ApiContext, req: FastifyRequest) {
-  const path = (req.url.split("?")[0] ?? "/");
+  const path = req.url.split("?")[0] ?? "/";
   if (isSignExemptPath(req.method, path)) {
     return;
   }
@@ -40,7 +40,7 @@ function enforceRequestSign(ctx: ApiContext, req: FastifyRequest) {
   verifyRequestSignature(ctx.requestSign, ctx.config.signMasterKey, {
     method: req.method,
     url: req.url,
-    headers: req.headers as Record<string, string | string[] | undefined>,
+    headers: req.headers,
     rawBody: req.rawBody,
     nowMs: ctx.now(),
     sessionKeyId,

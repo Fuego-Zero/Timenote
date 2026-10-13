@@ -5,9 +5,9 @@ import { useState } from "react";
 import { api, ApiRequestError, errorMessage } from "../../api/client.js";
 
 interface SetupValues {
+  displayName?: string;
   password: string;
   username: string;
-  displayName?: string;
 }
 
 export function SetupPage({ onReady }: { onReady: (user: PublicUser) => void }) {

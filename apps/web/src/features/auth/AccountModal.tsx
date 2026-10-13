@@ -19,8 +19,8 @@ export function AccountModal({
 }) {
   return (
     <Modal
-      closable={!forcePasswordChange}
       destroyOnHidden
+      closable={!forcePasswordChange}
       footer={null}
       keyboard={!forcePasswordChange}
       maskClosable={!forcePasswordChange}

@@ -1,10 +1,10 @@
 import { changePasswordInputSchema, loginInputSchema, updateProfileInputSchema } from "@timenote/contracts";
 
 import { toPublicUser } from "../accounts.js";
+import { authenticateCredentials, changeOwnPassword, updateProfile } from "../authService.js";
 import type { ApiContext } from "../context.js";
 import { issueSessionSignKey } from "../requestSign.js";
 import { endSession, requireUser, startSession } from "../session.js";
-import { authenticateCredentials, changeOwnPassword, updateProfile } from "../authService.js";
 
 export function registerAuth(ctx: ApiContext) {
   const { app, config, repo } = ctx;
