@@ -13,7 +13,10 @@ export function normalizeFeedScope(feed: StoredFeedToken): { eventScope: FeedEve
   return { eventScope: "all", eventIds: [] };
 }
 
-function scopeForStore(eventScope: FeedEventScope, eventIds: string[]): Pick<StoredFeedToken, "eventScope" | "eventIds"> {
+function scopeForStore(
+  eventScope: FeedEventScope,
+  eventIds: string[]
+): Pick<StoredFeedToken, "eventScope" | "eventIds"> {
   if (eventScope === "selected") {
     return { eventScope: "selected", eventIds };
   }
@@ -21,16 +24,15 @@ function scopeForStore(eventScope: FeedEventScope, eventIds: string[]): Pick<Sto
   return { eventScope: "all" };
 }
 
-/** 写入时校验 eventIds 均属当前账号；非本账号拒绝（400）。 */
+/** 写入时校验 eventIds 全部是本账号现存事件（不限个数）；含已删除或他人事件时拒绝（400），不静默剔除。 */
 export function assertOwnedEventIds(repo: OpenedRepository, ownerId: string, eventIds: string[]) {
-  if (eventIds.length === 0) {
+  const unique = [...new Set(eventIds)];
+  if (unique.length === 0) {
     return;
   }
 
-  const owned = new Set(repo.events.listEvents(ownerId).map(event => event.id));
-  const foreign = eventIds.filter(id => !owned.has(id));
-  if (foreign.length > 0) {
-    throw new BusinessError("INVALID_INPUT", { message: "所选事件不属于当前账号" });
+  if (repo.events.listEventsByIds(ownerId, unique).length !== unique.length) {
+    throw new BusinessError("INVALID_INPUT", { message: "部分事件已被删除，请刷新后重选" });
   }
 }
 

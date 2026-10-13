@@ -24,6 +24,7 @@ export function toFeedToken(config: Config, feed: StoredFeedToken): FeedToken {
     rotatedAt: feed.rotatedAt,
     eventScope: scope.eventScope,
     eventIds: scope.eventIds,
+    lastFetchedAt: feed.lastFetchedAt ?? null,
   };
 }
 

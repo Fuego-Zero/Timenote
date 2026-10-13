@@ -1,7 +1,7 @@
 import { backupFileSchema } from "@timenote/contracts";
 
 import type { ApiContext } from "../context.js";
-import { exportBackup, importBackup } from "../events.js";
+import { exportBackup, importBackup, previewImport } from "../events.js";
 import { requireUser } from "../session.js";
 
 export function registerBackup(ctx: ApiContext) {
@@ -14,6 +14,11 @@ export function registerBackup(ctx: ApiContext) {
       .header("Cache-Control", "no-store")
       .header("Content-Disposition", `attachment; filename="timenote-backup-${day}.json"`)
       .send(backup);
+  });
+
+  app.post("/api/backup/preview", req => {
+    const user = requireUser(req);
+    return previewImport(repo, user.id, backupFileSchema.parse(req.body));
   });
 
   app.post("/api/backup", req => {

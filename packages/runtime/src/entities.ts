@@ -33,5 +33,7 @@ export const storedFeedTokenSchema = z.object({
   /** 缺省或 null 读作 all；与 selected + []（空订阅）必须可区分，禁止把 [] 存成未配置。 */
   eventScope: z.enum(["all", "selected"]).optional(),
   eventIds: z.array(z.uuid()).optional(),
+  /** 日历客户端最近一次成功拉取（含 304）的时间；为避免频繁写库，距上次记录超过 1 小时才更新。 */
+  lastFetchedAt: z.int().optional(),
 });
 export type StoredFeedToken = z.infer<typeof storedFeedTokenSchema>;

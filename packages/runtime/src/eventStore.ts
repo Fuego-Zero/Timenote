@@ -7,6 +7,7 @@ import { events, type tables } from "./schema.js";
 
 /** 仓储层能处理的事件筛选；sort=nextOccurrence 与 nextWithinDays 依赖日历计算，由服务层处理。 */
 export type EventPageFilter = Omit<EventPageQuery, "nextWithinDays" | "sort">;
+export type EventFilter = Omit<EventPageFilter, "page" | "pageSize">;
 
 /** 与索引 event_owner_created_idx 逐字一致。 */
 const newestFirst = sql`json_extract(payload,'$.createdAt') DESC, id`;
@@ -27,30 +28,7 @@ export class EventStore {
 
   /** 分页列表：createdAt DESC, id；名称按字面子串匹配。 */
   listEventsPage(ownerId: string, query: EventPageFilter): PageResult<CalendarEvent> {
-    const conditions: SQL[] = [eq(events.owner, ownerId)];
-    if (query.q !== undefined) {
-      conditions.push(sql`json_extract(payload,'$.name') LIKE ${containsPattern(query.q)} ESCAPE '\\'`);
-    }
-
-    if (query.kind !== undefined) {
-      conditions.push(sql`json_extract(payload,'$.kind') = ${query.kind}`);
-    }
-
-    if (query.calendar !== undefined) {
-      conditions.push(sql`json_extract(payload,'$.date.calendar') = ${query.calendar}`);
-    }
-
-    if (query.hasAlarm !== undefined) {
-      conditions.push(
-        query.hasAlarm ? sql`json_array_length(payload,'$.alarms') > 0` : sql`json_array_length(payload,'$.alarms') = 0`
-      );
-    }
-
-    if (query.ids !== undefined) {
-      conditions.push(inArray(events.id, query.ids));
-    }
-
-    const where = and(...conditions);
+    const where = this.filterWhere(ownerId, query);
     const total = this.db.select({ total: count() }).from(events).where(where).get()?.total ?? 0;
     const items = this.db
       .select({ payload: events.payload })
@@ -64,7 +42,18 @@ export class EventStore {
     return { items, total, page: query.page, pageSize: query.pageSize };
   }
 
-  /** 按 id 批量读取本人事件；不属于 ownerId 的 id 被忽略。 */
+  /** 不分页的带筛选查询（createdAt DESC, id），供服务层按下次发生排序后再切页。 */
+  listEventsFiltered(ownerId: string, filter: EventFilter): CalendarEvent[] {
+    return this.db
+      .select({ payload: events.payload })
+      .from(events)
+      .where(this.filterWhere(ownerId, filter))
+      .orderBy(newestFirst)
+      .all()
+      .map(row => eventSchema.parse(JSON.parse(row.payload)));
+  }
+
+  /** 按 id 批量读取本人事件，不截断；id 列表以一个 JSON 参数传入 json_each，不受 SQLite 变量个数上限影响。 */
   listEventsByIds(ownerId: string, ids: readonly string[]): CalendarEvent[] {
     if (!ids.length) {
       return [];
@@ -73,10 +62,39 @@ export class EventStore {
     return this.db
       .select({ payload: events.payload })
       .from(events)
-      .where(and(eq(events.owner, ownerId), inArray(events.id, [...ids])))
+      .where(and(eq(events.owner, ownerId), sql`id IN (SELECT value FROM json_each(${JSON.stringify(ids)}))`))
       .orderBy(newestFirst)
       .all()
       .map(row => eventSchema.parse(JSON.parse(row.payload)));
+  }
+
+  private filterWhere(ownerId: string, filter: EventFilter) {
+    const conditions: SQL[] = [eq(events.owner, ownerId)];
+    if (filter.q !== undefined) {
+      conditions.push(sql`json_extract(payload,'$.name') LIKE ${containsPattern(filter.q)} ESCAPE '\\'`);
+    }
+
+    if (filter.kind !== undefined) {
+      conditions.push(sql`json_extract(payload,'$.kind') = ${filter.kind}`);
+    }
+
+    if (filter.calendar !== undefined) {
+      conditions.push(sql`json_extract(payload,'$.date.calendar') = ${filter.calendar}`);
+    }
+
+    if (filter.hasAlarm !== undefined) {
+      conditions.push(
+        filter.hasAlarm
+          ? sql`json_array_length(payload,'$.alarms') > 0`
+          : sql`json_array_length(payload,'$.alarms') = 0`
+      );
+    }
+
+    if (filter.ids !== undefined) {
+      conditions.push(inArray(events.id, filter.ids));
+    }
+
+    return and(...conditions);
   }
 
   getEvent(ownerId: string, id: string): CalendarEvent | undefined {
