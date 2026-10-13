@@ -143,20 +143,3 @@ describe("首次引导 setup", () => {
     }
   });
 });
-
-describe("ensureInitialAdmin no-op", () => {
-  it("始终 no-op，不创建账号", async () => {
-    const { ensureInitialAdmin, loadConfig, openRepository } = await import("../../packages/runtime/src/index.js");
-    const { migrate } = await import("../../packages/runtime/src/migrate.js");
-    const { temporaryDirectory } = await import("../fixtures.js");
-    const { join } = await import("node:path");
-    const dir = await temporaryDirectory("setup-");
-    const sqlitePath = join(dir, "db.sqlite");
-    migrate(sqlitePath);
-    const repo = openRepository(sqlitePath);
-    const config = loadConfig({ NODE_ENV: "development", SQLITE_PATH: sqlitePath, WEB_ORIGIN: webOrigin });
-    await expect(ensureInitialAdmin(repo, config)).resolves.toBeUndefined();
-    expect(repo.users.listUsers()).toEqual([]);
-    repo.close();
-  });
-});

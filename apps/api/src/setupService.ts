@@ -15,7 +15,7 @@ export function hasEnabledAdmin(repo: OpenedRepository) {
   return repo.users.listUsers().some(user => user.role === "admin" && !user.disabled);
 }
 
-/** 空库首次创建管理员；已有任意用户时拒绝。不含 INITIAL_ADMIN_* 环境种子。 */
+/** 空库首次创建管理员；已有任意用户时拒绝。 */
 export async function createInitialAdmin(
   repo: OpenedRepository,
   config: Config,

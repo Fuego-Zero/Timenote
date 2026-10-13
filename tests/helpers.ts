@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { createApiServer } from "../apps/api/src/index.js";
 import {
   buildSignHeaders,
-  ensureInitialAdmin,
   isSignExemptPath,
   loadConfig,
   type LogSink,
@@ -31,7 +30,6 @@ export async function harness(
   config.logSink = options.logSink;
   migrate(sqlitePath);
   const repo = openRepository(sqlitePath);
-  await ensureInitialAdmin(repo, config);
   const clock = { now: Date.UTC(2026, 9, 2, 4, 0, 0) };
   const app = await createApiServer(config, repo, { now: () => clock.now });
 

@@ -23,14 +23,6 @@ async function createUser(admin: ReturnType<Harness["browser"]>, username: strin
 }
 
 describe("登录与会话", () => {
-  it("ensureInitialAdmin 为空操作；首个管理员由引导/测试种子创建", async () => {
-    const { ensureInitialAdmin } = await import("../../packages/runtime/src/index.js");
-    const before = h.repo.users.listUsers().length;
-    await ensureInitialAdmin(h.repo, h.config);
-    expect(h.repo.users.listUsers()).toHaveLength(before);
-    expect(h.repo.users.listUsers().map(u => [u.username, u.role])).toEqual([["admin", "admin"]]);
-  });
-
   it("账号不存在、停用与密码错误返回同一提示；会话 Cookie 为 HttpOnly + SameSite=Lax", async () => {
     const b = h.browser();
     const wrong = await b.request("POST", "/api/auth/login", { username: "admin", password: "wrong-password" });

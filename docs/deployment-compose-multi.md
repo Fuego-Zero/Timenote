@@ -162,7 +162,7 @@ volumes:
 ### 卷与权限
 
 - `timenote_multi_data`（实验）或现网等价卷：仅挂 `api`。
-- 首次部署前 `chmod 600 .env`；初始管理员密码只注入 api。
+- 首次部署前 `chmod 600 .env`；首个管理员在空库时经 Web 首次引导创建（`POST /api/setup/admin`），不经环境变量注入。
 
 ---
 
