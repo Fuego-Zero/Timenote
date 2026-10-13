@@ -31,5 +31,3 @@ export const updateFeedTokenInputSchema = z.object({
   eventIds: z.array(z.uuid()).optional(),
 });
 export type UpdateFeedTokenInput = z.infer<typeof updateFeedTokenInputSchema>;
-
-export const feedTokenListSchema = z.object({ feeds: z.array(feedTokenSchema) });

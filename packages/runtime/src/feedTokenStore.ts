@@ -1,8 +1,13 @@
-import { and, eq } from "drizzle-orm";
+import type { PageQuery, PageResult } from "@timenote/contracts";
+import { and, count, eq, type SQL, sql } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import { type StoredFeedToken, storedFeedTokenSchema } from "./entities.js";
-import { feedTokens, tables } from "./schema.js";
+import { containsPattern, pageOffset } from "./pageQuery.js";
+import { feedTokens, type tables } from "./schema.js";
+
+/** 与索引 feed_token_owner_created_idx 逐字一致。 */
+const newestFirst = sql`json_extract(payload,'$.createdAt') DESC, id`;
 
 /** 订阅 token 表 DAO：只负责读写与归属过滤，不承载业务决策。 */
 export class FeedTokenStore {
@@ -16,6 +21,34 @@ export class FeedTokenStore {
       .all()
       .map(row => storedFeedTokenSchema.parse(JSON.parse(row.payload)))
       .sort((left, right) => left.createdAt - right.createdAt);
+  }
+
+  /** 分页列表：createdAt DESC, id；名称按字面子串匹配。 */
+  listFeedTokensPage(ownerId: string, query: PageQuery): PageResult<StoredFeedToken> {
+    const conditions: SQL[] = [eq(feedTokens.owner, ownerId)];
+    if (query.q !== undefined) {
+      conditions.push(sql`json_extract(payload,'$.name') LIKE ${containsPattern(query.q)} ESCAPE '\\'`);
+    }
+
+    const where = and(...conditions);
+    const total = this.db.select({ total: count() }).from(feedTokens).where(where).get()?.total ?? 0;
+    const items = this.db
+      .select({ payload: feedTokens.payload })
+      .from(feedTokens)
+      .where(where)
+      .orderBy(newestFirst)
+      .limit(query.pageSize)
+      .offset(pageOffset(query.page, query.pageSize))
+      .all()
+      .map(row => storedFeedTokenSchema.parse(JSON.parse(row.payload)));
+    return { items, total, page: query.page, pageSize: query.pageSize };
+  }
+
+  /** 事件删除后从本人订阅的 eventIds 中移除该 id，其余 id 保持原顺序；返回受影响的订阅数。 */
+  removeEventIdFromFeeds(ownerId: string, eventId: string) {
+    return this.db.run(
+      sql`UPDATE feed_token SET payload = json_set(payload, '$.eventIds', json((SELECT json_group_array(j.value ORDER BY j.key) FROM json_each(feed_token.payload, '$.eventIds') j WHERE j.value <> ${eventId}))) WHERE owner = ${ownerId} AND json_type(payload, '$.eventIds') = 'array' AND EXISTS (SELECT 1 FROM json_each(feed_token.payload, '$.eventIds') k WHERE k.value = ${eventId})`
+    ).changes;
   }
 
   getFeedToken(ownerId: string, id: string): StoredFeedToken | undefined {

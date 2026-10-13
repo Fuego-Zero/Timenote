@@ -7,5 +7,6 @@ export * from "./backup.js";
 export * from "./error.js";
 export * from "./event.js";
 export * from "./feed.js";
+export * from "./pagination.js";
 export * from "./user.js";
 export * from "./requestSign.js";

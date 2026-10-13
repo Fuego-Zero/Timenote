@@ -108,5 +108,3 @@ export const eventSchema = eventFields
   })
   .superRefine(refineEvent);
 export type CalendarEvent = z.infer<typeof eventSchema>;
-
-export const eventListSchema = z.object({ events: z.array(eventSchema) });

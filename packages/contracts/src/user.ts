@@ -65,7 +65,6 @@ export const sessionResponseSchema = z.object({
   /** 未登录时下发的匿名短时签名材料，供 login/setup 使用。 */
   anonSign: anonSignSchema.optional(),
 });
-export const userListSchema = z.object({ users: z.array(publicUserSchema) });
 
 export const setupAdminInputSchema = z.object({
   username: usernameSchema,

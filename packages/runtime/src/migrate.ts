@@ -5,7 +5,12 @@ import { fileURLToPath } from "node:url";
 
 import { openDatabase } from "./sqlite.js";
 
-export const migrationNames = ["0001_initial", "0002_feed_token"] as const;
+export const migrationNames = [
+  "0001_initial",
+  "0002_feed_token",
+  "0003_feed_event_ids_cleanup",
+  "0004_list_indexes",
+] as const;
 
 function sqlPath(name: string) {
   return join(dirname(fileURLToPath(import.meta.url)), "../migrations", `${name}.sql`);

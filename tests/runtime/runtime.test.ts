@@ -25,6 +25,8 @@ describe("迁移", () => {
     expect(db.prepare("SELECT name FROM schema_migration ORDER BY name").all()).toEqual([
       { name: "0001_initial" },
       { name: "0002_feed_token" },
+      { name: "0003_feed_event_ids_cleanup" },
+      { name: "0004_list_indexes" },
     ]);
     expect(db.pragma("journal_mode", { simple: true })).toBe("wal");
     db.close();
@@ -73,10 +75,21 @@ describe("配置", () => {
 
   it("生产环境要求 HTTPS 来源，强制安全 Cookie 并使用 __Host- 前缀", () => {
     expect(() => loadConfig({ ...base, NODE_ENV: "production" })).toThrow();
-    const prod = loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" });
+    const prod = loadConfig({
+      ...base,
+      NODE_ENV: "production",
+      WEB_ORIGIN: "https://cal.example.com",
+      SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    });
     expect(prod).toMatchObject({ cookieSecure: true, cookieName: "__Host-timenote", devAuthBypass: false });
     expect(() =>
-      loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA", COOKIE_SECURE: "false" })
+      loadConfig({
+        ...base,
+        NODE_ENV: "production",
+        WEB_ORIGIN: "https://cal.example.com",
+        SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        COOKIE_SECURE: "false",
+      })
     ).toThrow(/COOKIE_SECURE/);
   });
 
@@ -88,19 +101,24 @@ describe("配置", () => {
     expect(() => loadConfig({ ...base, WEB_ORIGIN: "http://127.0.0.1:8720/app" })).toThrow();
   });
 
-
-    it("DEV_AUTH_BYPASS only enables in development", () => {
+  it("DEV_AUTH_BYPASS only enables in development", () => {
     expect(loadConfig(base).devAuthBypass).toBe(true);
     expect(loadConfig({ ...base, DEV_AUTH_BYPASS: "0" }).devAuthBypass).toBe(false);
     expect(loadConfig({ ...base, NODE_ENV: "test" }).devAuthBypass).toBe(false);
     expect(
-      loadConfig({ ...base, NODE_ENV: "production", WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" }).devAuthBypass
+      loadConfig({
+        ...base,
+        NODE_ENV: "production",
+        WEB_ORIGIN: "https://cal.example.com",
+        SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      }).devAuthBypass
     ).toBe(false);
     expect(
       loadConfig({
         ...base,
         NODE_ENV: "production",
-        WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        WEB_ORIGIN: "https://cal.example.com",
+        SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
         DEV_AUTH_BYPASS: "1",
       }).devAuthBypass
     ).toBe(false);
