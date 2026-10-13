@@ -5,7 +5,10 @@ export const adminPassword = "e2e-admin-password";
 export async function login(page: Page, username = "admin", password = adminPassword) {
   await page.goto("/");
   const setupTitle = page.getByRole("heading", { name: "首次设置管理员" });
-  if (await setupTitle.isVisible().catch(() => false)) {
+  const loginButton = page.getByRole("button", { name: "登 录" });
+  // 会话与引导状态加载完前只有 Spin；等引导页或登录页任一出现后再分支。
+  await expect(setupTitle.or(loginButton)).toBeVisible();
+  if (await setupTitle.isVisible()) {
     await page.getByLabel("用户名").fill(username);
     await page.getByLabel("密码").fill(password);
     await page.getByRole("button", { name: "创建并进入" }).click();
@@ -15,7 +18,7 @@ export async function login(page: Page, username = "admin", password = adminPass
 
   await page.getByLabel("用户名").fill(username);
   await page.getByLabel("密码").fill(password);
-  await page.getByRole("button", { name: "登 录" }).click();
+  await loginButton.click();
   await expect(page.getByRole("tab", { name: "事件" })).toBeVisible();
 }
 
