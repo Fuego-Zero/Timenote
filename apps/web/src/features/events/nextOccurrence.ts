@@ -1,9 +1,9 @@
-import { upcomingOccurrences } from "@timenote/calendar";
+import { nextOccurrence as calendarNextOccurrence } from "@timenote/calendar";
 import type { CalendarEvent } from "@timenote/contracts";
 
 export function nextOccurrence(event: CalendarEvent, timeZone: string) {
   try {
-    return upcomingOccurrences(event, new Date(), timeZone, 1)[0];
+    return calendarNextOccurrence(event, new Date(), timeZone);
   } catch {
     return undefined;
   }

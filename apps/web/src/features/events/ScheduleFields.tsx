@@ -1,5 +1,5 @@
 import { addDays, daysBetween, isoDate } from "@timenote/calendar";
-import { type EventInput, maxDurationDays } from "@timenote/contracts";
+import { type EventInput, maxDurationDays, minCycleDays } from "@timenote/contracts";
 import { Form, Input, InputNumber, Select } from "antd";
 
 import { fieldStatus } from "./fieldStatus.js";
@@ -16,7 +16,11 @@ export function ScheduleFields({
 }) {
   const { date } = draft;
   const start = date.year === null ? undefined : isoDate(date.year, date.month, date.day);
-  const showFeb29 = date.calendar === "gregorian" && date.month === 2 && date.day === 29 && draft.kind !== "event";
+  const yearly = draft.recurrence.unit === "year";
+  const showFeb29 =
+    yearly && date.calendar === "gregorian" && date.month === 2 && date.day === 29 && draft.kind !== "event";
+  // 按天/周/月时持续天数不超过一个最短周期。
+  const maxDays = yearly ? maxDurationDays : Math.min(minCycleDays[draft.recurrence.unit], maxDurationDays);
   const showLeap = date.calendar === "lunar" && date.leapMonth;
   const showMissingDay = date.calendar === "lunar" && date.day === 30;
   return (
@@ -39,7 +43,7 @@ export function ScheduleFields({
       ) : (
         <Form.Item label="持续天数" {...fieldStatus(errors, "durationDays")}>
           <InputNumber
-            max={maxDurationDays}
+            max={maxDays}
             min={1}
             precision={0}
             suffix="天"

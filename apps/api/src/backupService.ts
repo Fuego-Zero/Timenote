@@ -1,23 +1,51 @@
 import { randomUUID } from "node:crypto";
 
-import type { BackupFile, CalendarEvent, EventInput } from "@timenote/contracts";
-import type { OpenedRepository } from "@timenote/runtime";
+import { type BackupFile, type CalendarEvent, type EventInput, exceedsRecurrenceLimit } from "@timenote/contracts";
+import { BusinessError, type OpenedRepository } from "@timenote/runtime";
 
-import { createEvent, reviseEvent } from "./eventService.js";
+import { assertRecurrenceLimit, createEvent, reviseEvent } from "./eventService.js";
 import { parseEventInput } from "./parseEventInput.js";
 
 export function exportBackup(repo: OpenedRepository, ownerId: string, now: number): BackupFile {
   return {
     format: "timenote-backup",
-    version: 1,
+    version: 2,
     exportedAt: new Date(now).toISOString(),
     events: repo.events.listEvents(ownerId).map(event => ({ id: event.id, event: editableFields(event) })),
   };
 }
 
 function editableFields(event: CalendarEvent): EventInput {
-  const { kind, name, titleTemplate, titlePrefix, note, date, durationDays, rules, alarms } = event;
-  return { kind, name, titleTemplate, titlePrefix, note, date, durationDays, rules, alarms };
+  const {
+    kind,
+    name,
+    titleTemplate,
+    titlePrefix,
+    note,
+    date,
+    durationDays,
+    rules,
+    alarms,
+    recurrence,
+    gregorianMissingDay,
+    milestones,
+    milestoneTemplate,
+  } = event;
+  return {
+    kind,
+    name,
+    titleTemplate,
+    titlePrefix,
+    note,
+    date,
+    durationDays,
+    rules,
+    alarms,
+    recurrence,
+    gregorianMissingDay,
+    milestones,
+    milestoneTemplate,
+  };
 }
 
 interface ImportItem {
@@ -74,7 +102,14 @@ function lookupFor(repo: OpenedRepository, ownerId: string): ImportLookup {
 
 /** 导入预览：只读，返回将新增与覆盖的条数。 */
 export function previewImport(repo: OpenedRepository, ownerId: string, file: BackupFile) {
-  const { created, updated } = planImport(parseItems(file), lookupFor(repo, ownerId));
+  const { steps, created, updated } = planImport(parseItems(file), lookupFor(repo, ownerId));
+  // 与实际导入同口径：覆盖的事件按导入内容计，其余现有事件照常计入。
+  const replaced = new Set(steps.flatMap(step => (step.action === "update" ? [step.id] : [])));
+  const kept = repo.events.listEvents(ownerId).filter(event => !replaced.has(event.id));
+  if (exceedsRecurrenceLimit([...kept, ...steps.map(step => step.input)])) {
+    throw new BusinessError("RECURRENCE_LIMIT");
+  }
+
   return { created, updated };
 }
 
@@ -94,6 +129,8 @@ export function importBackup(repo: OpenedRepository, ownerId: string, file: Back
       }
     }
 
+    // 超出总量上限时整份拒绝，事务回滚，不导入任何一条。
+    assertRecurrenceLimit(repo, ownerId);
     return { created: plan.created, updated: plan.updated };
   });
 }

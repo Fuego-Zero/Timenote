@@ -13,10 +13,13 @@ export {
   currentYearIn,
   expandEvent,
   feedWindow,
+  nextOccurrence,
   type Occurrence,
   todayIn,
   upcomingOccurrences,
   type YearWindow,
 } from "./occurrences.js";
+export { milestoneDates } from "./milestones.js";
+export { cycleStart } from "./recurrence.js";
 export { renderTitle } from "./title.js";
 export { eventDateIssues } from "./validation.js";

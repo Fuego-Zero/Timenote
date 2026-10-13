@@ -10,7 +10,7 @@ function alarmsAt(timeZone: string, date: { month: number; day: number }, alarm:
     date: { year: 2026, ...date },
     alarms: [alarm],
   });
-  return expandEvent(event, { fromYear: 2026, toYear: 2026 }, timeZone)[0]?.alarms.map(a => a.at);
+  return expandEvent(event, { fromYear: 2026, toYear: 2026 }, timeZone, "2026-10-02")[0]?.alarms.map(a => a.at);
 }
 
 describe("绝对 UTC 提醒", () => {

@@ -8,7 +8,7 @@ import { calendarEvent } from "../fixtures.js";
 const window = { fromYear: 2026, toYear: 2027 };
 
 function feed(events: CalendarEvent[], timeZone = "Asia/Shanghai") {
-  return buildFeed({ calendarName: "小明的纪念日", timeZone, window, events });
+  return buildFeed({ calendarName: "小明的纪念日", timeZone, window, events, today: "2026-10-02" });
 }
 
 function parse(text: string) {

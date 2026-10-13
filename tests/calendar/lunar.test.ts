@@ -18,7 +18,7 @@ function lunar(overrides: Parameters<typeof eventInput>[0] = {}) {
 describe("农历周年", () => {
   it("腊月廿九按目标农历年换算，落在下一公历年初", () => {
     const event = lunar({ date: { year: 1990, month: 12, day: 29 } });
-    const [occurrence] = expandEvent(event, { fromYear: 2025, toYear: 2025 }, tz);
+    const [occurrence] = expandEvent(event, { fromYear: 2025, toYear: 2025 }, tz, "2026-10-02");
     expect(occurrence).toMatchObject({ logicalYear: 2025, start: "2026-02-16", years: 35 });
   });
 
@@ -31,12 +31,14 @@ describe("农历周年", () => {
           rules: { leapMonth },
         }),
         { fromYear: 2025, toYear: 2026 },
-        tz
+        tz,
+        "2026-10-02"
       ).map(o => o.start);
     const regular = expandEvent(
       lunar({ titleTemplate: "{{name}}生日", date: { year: null, month: 6, day: 1 } }),
       { fromYear: 2026, toYear: 2026 },
-      tz
+      tz,
+      "2026-10-02"
     )[0]?.start;
 
     expect(leap("skip")).toEqual(["2025-07-25"]);
@@ -48,7 +50,8 @@ describe("农历周年", () => {
       expandEvent(
         lunar({ date: { year: 1990, month: 12, day: 30 }, rules: { missingDay } }),
         { fromYear: 2025, toYear: 2025 },
-        tz
+        tz,
+        "2026-10-02"
       ).map(o => o.start);
     // 农历 2025 年腊月只有 29 天，廿九即 2026-02-16。
     expect(starts("lastDay")).toEqual(["2026-02-16"]);
@@ -57,7 +60,7 @@ describe("农历周年", () => {
 
   it("超出 1900-2100 时抛出可见错误而不是静默算错", () => {
     const event = lunar({ date: { year: 1990, month: 1, day: 1 } });
-    expect(() => expandEvent(event, { fromYear: 2101, toYear: 2101 }, tz)).toThrow(CalendarRangeError);
+    expect(() => expandEvent(event, { fromYear: 2101, toYear: 2101 }, tz, "2026-10-02")).toThrow(CalendarRangeError);
   });
 
   it("校验已知年份的农历原始日期真实存在", () => {

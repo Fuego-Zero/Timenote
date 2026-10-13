@@ -47,7 +47,8 @@ describe("事件表单草稿", () => {
         date: { year: 2026, month: 10, day: 1 },
       }),
       { fromYear: 2026, toYear: 2026 },
-      tz
+      tz,
+      "2026-10-02"
     );
     expect(rangeText(occurrence!)).toBe("2026年10月1日 周四 至 2026年10月7日 周三");
     expect(alarmText("2026-02-15T01:00:00.000Z", tz)).toBe("2/15 09:00");

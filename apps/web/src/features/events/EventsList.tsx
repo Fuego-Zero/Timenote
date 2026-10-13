@@ -7,7 +7,7 @@ import {
   maxQueryLength,
   type PageResult,
 } from "@timenote/contracts";
-import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Typography } from "antd";
+import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Tag, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 import { errorMessage } from "../../api/client.js";
@@ -16,6 +16,7 @@ import { kindLabels, kindTagTones } from "./eventDraft.js";
 import { EventTag } from "./EventTag.js";
 import { nextOccurrence } from "./nextOccurrence.js";
 import { rangeText } from "./occurrenceText.js";
+import { recurrenceSummary } from "./recurrenceText.js";
 import type { EventListQuery } from "./useEvents.js";
 
 const calendarLabels: Record<CalendarSystem, string> = { gregorian: "公历", lunar: "农历" };
@@ -101,6 +102,11 @@ export function EventsList({
             <EventTag tone="solar">公历</EventTag>
           )}
           {event.durationDays > 1 ? <EventTag tone="duration">{event.durationDays} 天</EventTag> : null}
+          {recurrenceSummary(event).map(text => (
+            <Tag key={text} color="purple">
+              {text}
+            </Tag>
+          ))}
         </Space>
       ),
     },

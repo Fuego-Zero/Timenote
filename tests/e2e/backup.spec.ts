@@ -11,7 +11,7 @@ async function pickBackup(page: Page) {
     name: "backup.json",
     mimeType: "application/json",
     buffer: Buffer.from(
-      JSON.stringify({ format: "timenote-backup", version: 1, exportedAt: new Date().toISOString(), events })
+      JSON.stringify({ format: "timenote-backup", version: 2, exportedAt: new Date().toISOString(), events })
     ),
   });
   const dialog = page.getByRole("dialog").filter({ hasText: "确认导入" });
