@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest } from "fastify";
+import type { FastifyInstance } from "fastify";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -12,7 +12,7 @@ export function rawJsonBodyParser(app: FastifyInstance) {
   app.removeContentTypeParser("application/json");
   app.addContentTypeParser("application/json", { parseAs: "buffer" }, (req, body, done) => {
     const buffer = Buffer.isBuffer(body) ? body : Buffer.from(body);
-    (req as FastifyRequest).rawBody = buffer;
+    req.rawBody = buffer;
     if (buffer.length === 0) {
       done(null, null);
       return;

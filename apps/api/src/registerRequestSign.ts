@@ -20,7 +20,7 @@ export async function registerRequestSign(ctx: ApiContext) {
 }
 
 function enforceRequestSign(ctx: ApiContext, req: FastifyRequest) {
-  const path = (req.url.split("?")[0] ?? "/");
+  const path = req.url.split("?")[0] ?? "/";
   if (isSignExemptPath(req.method, path)) {
     return;
   }
@@ -40,7 +40,7 @@ function enforceRequestSign(ctx: ApiContext, req: FastifyRequest) {
   verifyRequestSignature(ctx.requestSign, ctx.config.signMasterKey, {
     method: req.method,
     url: req.url,
-    headers: req.headers as Record<string, string | string[] | undefined>,
+    headers: req.headers,
     rawBody: req.rawBody,
     nowMs: ctx.now(),
     sessionKeyId,
