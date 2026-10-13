@@ -1,12 +1,12 @@
-import { baseServer, RequestSignRegistry, type Config, type OpenedRepository } from "@timenote/runtime";
+import { baseServer, type Config, type OpenedRepository, RequestSignRegistry } from "@timenote/runtime";
 
 import type { ApiContext } from "./context.js";
 import { registerAuth } from "./http/auth.js";
-import { registerSetup } from "./http/setup.js";
 import { registerBackup } from "./http/backup.js";
 import { registerEvents } from "./http/events.js";
 import { registerFeeds } from "./http/feeds.js";
 import { registerFeedTokens } from "./http/feedTokens.js";
+import { registerSetup } from "./http/setup.js";
 import { registerUsers } from "./http/users.js";
 import { registerRequestSign } from "./requestSign.js";
 import { registerSession } from "./session.js";
