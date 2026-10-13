@@ -52,6 +52,8 @@ export {
   titleVariables,
 } from "./eventSchema.js";
 
+export { exceedsRecurrenceLimit, recurrenceBound } from "./recurrenceBound.js";
+
 export const eventSorts = ["createdAt", "nextOccurrence"] as const;
 export type EventSort = (typeof eventSorts)[number];
 

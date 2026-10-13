@@ -2,7 +2,7 @@ import { eventPageQuerySchema } from "@timenote/contracts";
 import { z } from "zod";
 
 import type { ApiContext } from "../context.js";
-import { createEvent, deleteEvent, listEventsByNextOccurrence, parseEventInput, updateEvent } from "../events.js";
+import { addEvent, deleteEvent, listEventsByNextOccurrence, parseEventInput, updateEvent } from "../events.js";
 import { requireUser } from "../session.js";
 
 const idParams = z.object({ id: z.uuid() });
@@ -22,7 +22,7 @@ export function registerEvents(ctx: ApiContext) {
 
   app.post("/api/events", (req, reply) => {
     const user = requireUser(req);
-    const event = createEvent(repo, user.id, parseEventInput(req.body), ctx.now());
+    const event = addEvent(repo, user.id, parseEventInput(req.body), ctx.now());
     return reply.code(201).send({ event });
   });
 

@@ -1,12 +1,15 @@
 import type { CalendarEvent } from "@timenote/contracts";
 import ical, { ICalAlarmType, ICalCalendarMethod, ICalEventTransparency } from "ical-generator";
 
+import type { IsoDate } from "./dates.js";
 import { expandEvent, type YearWindow } from "./occurrences.js";
 
 export interface FeedInput {
   calendarName: string;
   events: CalendarEvent[];
   timeZone: string;
+  /** 按天/周/月截断过去与未来次数的基准日（用户时区的今天），由调用方显式传入。 */
+  today: IsoDate;
   window: YearWindow;
 }
 
@@ -30,10 +33,10 @@ export function buildFeed(input: FeedInput): string {
   });
   for (const event of [...input.events].sort(stableOrder)) {
     const updated = new Date(Math.floor(event.updatedAt / 1000) * 1000);
-    for (const occurrence of expandEvent(event, input.window, input.timeZone)) {
+    for (const occurrence of expandEvent(event, input.window, input.timeZone, input.today)) {
       calendar.createEvent({
-        // 周年按事件 ID + 逻辑年份区分每一次发生；普通事件只有一次，保留稳定事件 ID。
-        id: event.kind === "event" ? `${event.id}@timenote` : `${event.id}-${occurrence.logicalYear}@timenote`,
+        // 按年为「ID-逻辑年份」，按天/周/月为「ID-k序号」，里程碑为「ID-m天数」；普通事件只有一次，保留稳定事件 ID。
+        id: event.kind === "event" ? `${event.id}@timenote` : `${event.id}-${occurrence.key}@timenote`,
         allDay: true,
         start: occurrence.start,
         end: occurrence.end,

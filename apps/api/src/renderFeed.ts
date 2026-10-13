@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { buildFeed, CalendarRangeError, feedWindow } from "@timenote/calendar";
+import { buildFeed, CalendarRangeError, feedWindow, todayIn } from "@timenote/calendar";
 import { BusinessError, type Config, hashToken, type OpenedRepository, type StoredFeedToken } from "@timenote/runtime";
 
 import { eventsForFeed } from "./feedScope.js";
@@ -36,6 +36,7 @@ export function renderFeedForToken(
       calendarName: `${owner.displayName || owner.username}的纪念日`,
       timeZone: owner.timeZone,
       window: feedWindow(new Date(now), owner.timeZone, config.feedPastYears, config.feedFutureYears),
+      today: todayIn(new Date(now), owner.timeZone),
       events: eventsForFeed(repo, owner.id, feed),
     });
   } catch (error) {

@@ -198,11 +198,6 @@ function refineEvent(value: EventFields, ctx: z.RefinementCtx) {
   const issue = (path: (string | number)[], message: string) => ctx.addIssue({ code: "custom", path, message });
   refineTemplates(value, issue);
   refineRecurrence(value, issue);
-  // 本提交只落数据结构，非默认规则与里程碑在日历展开就绪后放开。
-  if (!isDefaultRecurrence(value.recurrence) || value.milestones.length) {
-    issue(["recurrence"], "暂不支持重复规则和里程碑");
-  }
-
   if (value.kind === "event") {
     if (value.date.calendar !== "gregorian") {
       issue(["date", "calendar"], "普通事件只支持公历日期");

@@ -13,7 +13,7 @@ describe("公历周年", () => {
       titleTemplate: "{{name}}第 {{years}} 周年",
       date: { year: 2021, month: 5, day: 20 },
     });
-    const result = expandEvent(event, { fromYear: 2026, toYear: 2028 }, tz);
+    const result = expandEvent(event, { fromYear: 2026, toYear: 2028 }, tz, "2026-10-02");
     expect(result.map(o => [o.start, o.years, o.title])).toEqual([
       ["2026-05-20", 5, "我们第 5 周年"],
       ["2027-05-20", 6, "我们第 6 周年"],
@@ -23,12 +23,14 @@ describe("公历周年", () => {
 
   it("不生成第 0 周年或原始日期之前的年份", () => {
     const event = eventInput({ date: { year: 2021 } });
-    expect(expandEvent(event, { fromYear: 2019, toYear: 2022 }, tz).map(o => o.logicalYear)).toEqual([2022]);
+    expect(expandEvent(event, { fromYear: 2019, toYear: 2022 }, tz, "2026-10-02").map(o => o.logicalYear)).toEqual([
+      2022,
+    ]);
   });
 
   it("年份未知时每年生成且不显示岁数", () => {
     const event = eventInput({ titleTemplate: "{{name}}生日", date: { year: null } });
-    const result = expandEvent(event, { fromYear: 2026, toYear: 2027 }, tz);
+    const result = expandEvent(event, { fromYear: 2026, toYear: 2027 }, tz, "2026-10-02");
     expect(result.map(o => [o.start, o.years, o.title])).toEqual([
       ["2026-05-20", null, "小明生日"],
       ["2027-05-20", null, "小明生日"],
@@ -40,7 +42,8 @@ describe("公历周年", () => {
       expandEvent(
         eventInput({ date: { year: 2000, month: 2, day: 29 }, rules: { feb29 } }),
         { fromYear: 2027, toYear: 2028 },
-        tz
+        tz,
+        "2026-10-02"
       ).map(o => o.start);
     expect(starts("feb28")).toEqual(["2027-02-28", "2028-02-29"]);
     expect(starts("mar1")).toEqual(["2027-03-01", "2028-02-29"]);
@@ -49,9 +52,9 @@ describe("公历周年", () => {
 
   it("前缀与模板渲染幂等，标题只替换白名单变量", () => {
     const event = eventInput({ titlePrefix: "🎂", titleTemplate: "🎂 {{name}} {{years}} 岁" });
-    expect(expandEvent(event, { fromYear: 2026, toYear: 2026 }, tz)[0]?.title).toBe("🎂 小明 36 岁");
+    expect(expandEvent(event, { fromYear: 2026, toYear: 2026 }, tz, "2026-10-02")[0]?.title).toBe("🎂 小明 36 岁");
     const prefixed = eventInput({ titlePrefix: "🎂", titleTemplate: "{{name}}的 {{years}} 岁" });
-    expect(expandEvent(prefixed, { fromYear: 2026, toYear: 2026 }, tz)[0]?.title).toBe("🎂 小明的 36 岁");
+    expect(expandEvent(prefixed, { fromYear: 2026, toYear: 2026 }, tz, "2026-10-02")[0]?.title).toBe("🎂 小明的 36 岁");
   });
 });
 
@@ -64,14 +67,14 @@ describe("跨天与普通事件", () => {
       durationDays: 7,
       date: { year: 2026, month: 10, day: 1 },
     });
-    const result = expandEvent(event, { fromYear: 2030, toYear: 2040 }, tz);
+    const result = expandEvent(event, { fromYear: 2030, toYear: 2040 }, tz, "2026-10-02");
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({ start: "2026-10-01", lastDay: "2026-10-07", end: "2026-10-08", years: null });
   });
 
   it("12/30 起持续 5 天的周年事件跨越公历年", () => {
     const event = eventInput({ kind: "anniversary", durationDays: 5, date: { year: 2020, month: 12, day: 30 } });
-    expect(expandEvent(event, { fromYear: 2026, toYear: 2026 }, tz)[0]).toMatchObject({
+    expect(expandEvent(event, { fromYear: 2026, toYear: 2026 }, tz, "2026-10-02")[0]).toMatchObject({
       start: "2026-12-30",
       lastDay: "2027-01-03",
       end: "2027-01-04",

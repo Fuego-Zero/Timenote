@@ -1,14 +1,13 @@
 import { randomUUID } from "node:crypto";
 
+import { addDays, CalendarRangeError, compareIsoDate, type IsoDate, nextOccurrence, todayIn } from "@timenote/calendar";
 import {
-  addDays,
-  CalendarRangeError,
-  compareIsoDate,
-  type IsoDate,
-  todayIn,
-  upcomingOccurrences,
-} from "@timenote/calendar";
-import type { CalendarEvent, EventInput, EventPageQuery, PageResult } from "@timenote/contracts";
+  type CalendarEvent,
+  type EventInput,
+  type EventPageQuery,
+  exceedsRecurrenceLimit,
+  type PageResult,
+} from "@timenote/contracts";
 import { BusinessError, type OpenedRepository } from "@timenote/runtime";
 
 export function createEvent(
@@ -21,6 +20,22 @@ export function createEvent(
   const event: CalendarEvent = { ...input, id, ownerId, revision: 0, createdAt: now, updatedAt: now };
   repo.events.putEvent(event);
   return event;
+}
+
+/** 本人全部事件的重复与里程碑总量超出上限时拒绝；在写入后的同一事务里调用，抛错即回滚。 */
+export function assertRecurrenceLimit(repo: OpenedRepository, ownerId: string) {
+  if (exceedsRecurrenceLimit(repo.events.listEvents(ownerId))) {
+    throw new BusinessError("RECURRENCE_LIMIT");
+  }
+}
+
+/** 新建并检查总量上限。 */
+export function addEvent(repo: OpenedRepository, ownerId: string, input: EventInput, now: number) {
+  return repo.transaction(() => {
+    const event = createEvent(repo, ownerId, input, now);
+    assertRecurrenceLimit(repo, ownerId);
+    return event;
+  });
 }
 
 /** 修改只替换可编辑内容；ID、归属和创建时间不变，revision 递增供订阅识别更新。 */
@@ -55,6 +70,7 @@ export function updateEvent(repo: OpenedRepository, ownerId: string, id: string,
 
     const next = reviseEvent(existing, input, now);
     repo.events.putEvent(next);
+    assertRecurrenceLimit(repo, ownerId);
     return next;
   });
 }
@@ -62,7 +78,7 @@ export function updateEvent(repo: OpenedRepository, ownerId: string, id: string,
 /** 下次发生的开始日（用户时区）；已全部过去或日历换算超出范围时为 undefined。 */
 function nextStart(event: CalendarEvent, now: Date, timeZone: string, today: IsoDate): IsoDate | undefined {
   try {
-    const next = upcomingOccurrences(event, now, timeZone, 1)[0];
+    const next = nextOccurrence(event, now, timeZone);
     return next && compareIsoDate(next.lastDay, today) >= 0 ? next.start : undefined;
   } catch (error) {
     if (error instanceof CalendarRangeError) {

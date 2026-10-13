@@ -1,3 +1,3 @@
 export { parseEventInput } from "./parseEventInput.js";
-export { createEvent, deleteEvent, listEventsByNextOccurrence, updateEvent } from "./eventService.js";
+export { addEvent, createEvent, deleteEvent, listEventsByNextOccurrence, updateEvent } from "./eventService.js";
 export { exportBackup, importBackup, previewImport } from "./backupService.js";

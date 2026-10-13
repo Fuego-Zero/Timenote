@@ -9,6 +9,7 @@ export const errorCodes = [
   "USERNAME_TAKEN",
   "LAST_ADMIN",
   "CALENDAR_RANGE",
+  "RECURRENCE_LIMIT",
   "PAYLOAD_TOO_LARGE",
   "RATE_LIMITED",
   "SIGN_INVALID",
