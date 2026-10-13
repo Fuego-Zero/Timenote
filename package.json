@@ -21,12 +21,14 @@
     "build": "pnpm -r build",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:backup": "tsx scripts/backup.ts",
+    "icons": "tsx scripts/generateIcons.ts",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build",
     "verify": "node scripts/verify.mjs"
   },
   "devDependencies": {
     "@fuego0/configs": "1.1.0",
     "@playwright/test": "1.63.0",
+    "@resvg/resvg-js": "2.6.2",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.6.7",
@@ -37,6 +39,7 @@
     "eslint": "10.10.0",
     "ical.js": "2.2.1",
     "jsdom": "26.1.0",
+    "png-to-ico": "3.0.2",
     "prettier": "3.9.7",
     "react": "19.3.0",
     "react-dom": "19.3.0",
