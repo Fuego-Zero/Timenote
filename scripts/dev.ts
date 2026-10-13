@@ -5,7 +5,6 @@ import { createApiServer } from "../apps/api/src/index.js";
 import { startWeb } from "../apps/web/server/index.js";
 import {
   createFileLogSink,
-  ensureInitialAdmin,
   loadConfig,
   loadDotenv,
   openRepository,
@@ -24,7 +23,6 @@ config.logSink = config.logSink ?? createFileLogSink(logRoot, config.env);
 
 migrate(config.sqlitePath);
 const repo = openRepository(config.sqlitePath);
-await ensureInitialAdmin(repo, config);
 const api = await createApiServer(config, repo);
 // API 只在本机回环地址监听，浏览器和日历客户端统一经 Web 同源反代访问。
 await api.listen({ host: "127.0.0.1", port: config.apiPort });

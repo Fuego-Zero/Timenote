@@ -3,7 +3,6 @@ import { join } from "node:path";
 import { createApiServer } from "../apps/api/src/index.js";
 import {
   buildSignHeaders,
-  ensureInitialAdmin,
   isSignExemptPath,
   loadConfig,
   type LogSink,
@@ -16,10 +15,7 @@ export const webOrigin = "http://127.0.0.1:8720";
 export const adminPassword = "admin-password-1";
 
 /** 真实 SQLite 文件 + Fastify inject；时钟可拨以便验证签名时间窗。 */
-export async function harness(
-  env: NodeJS.Dict<string> = {},
-  options: { logSink?: LogSink; seedAdmin?: boolean } = {}
-) {
+export async function harness(env: NodeJS.Dict<string> = {}, options: { logSink?: LogSink; seedAdmin?: boolean } = {}) {
   const dir = await temporaryDirectory("api-");
   const sqlitePath = join(dir, "timenote.sqlite");
   const config = loadConfig({
@@ -31,7 +27,6 @@ export async function harness(
   config.logSink = options.logSink;
   migrate(sqlitePath);
   const repo = openRepository(sqlitePath);
-  await ensureInitialAdmin(repo, config);
   const clock = { now: Date.UTC(2026, 9, 2, 4, 0, 0) };
   const app = await createApiServer(config, repo, { now: () => clock.now });
 

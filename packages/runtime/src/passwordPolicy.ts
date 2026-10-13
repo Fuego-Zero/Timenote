@@ -1,4 +1,4 @@
-/** 生产环境首个管理员密码（环境变量种子 / 引导创建）的可测试规则。 */
+/** 生产环境首次引导创建管理员时的密码强度规则（可测试）。 */
 const weakAdminPasswords = new Set([
   "password",
   "passwordpassword",
