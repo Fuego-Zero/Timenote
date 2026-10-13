@@ -12,9 +12,10 @@ import {
 
 import { maxFeedTokensPerUser, normalizeFeedScope, resolveScopeInput } from "./feedScope.js";
 
-export function toFeedToken(config: Config, feed: StoredFeedToken): FeedToken {
+export function toFeedToken(repo: OpenedRepository, config: Config, feed: StoredFeedToken): FeedToken {
   const url = feed.token ? `${config.webOrigin}/api/feeds/${feed.token}.ics` : null;
   const scope = normalizeFeedScope(feed);
+  const names = new Map(repo.events.listEventsByIds(feed.ownerId, scope.eventIds).map(event => [event.id, event.name]));
   return {
     id: feed.id,
     name: feed.name,
@@ -24,6 +25,10 @@ export function toFeedToken(config: Config, feed: StoredFeedToken): FeedToken {
     rotatedAt: feed.rotatedAt,
     eventScope: scope.eventScope,
     eventIds: scope.eventIds,
+    events: scope.eventIds.flatMap(id => {
+      const name = names.get(id);
+      return name === undefined ? [] : [{ id, name }];
+    }),
     lastFetchedAt: feed.lastFetchedAt ?? null,
   };
 }
@@ -54,7 +59,7 @@ export function createFeedToken(
 
     repo.feedTokens.putFeedToken(feed);
   });
-  return { feed: toFeedToken(config, feed) };
+  return { feed: toFeedToken(repo, config, feed) };
 }
 
 /** 更新名称与/或事件范围；未传的字段保持原值。 */
@@ -88,7 +93,7 @@ export function updateFeedToken(
     repo.feedTokens.putFeedToken(next);
     return next;
   });
-  return { feed: toFeedToken(config, feed) };
+  return { feed: toFeedToken(repo, config, feed) };
 }
 
 /** 轮换后旧地址立即失效，返回 404；名称与 ID 保持不变。 */
@@ -104,5 +109,5 @@ export function rotateFeedToken(repo: OpenedRepository, config: Config, ownerId:
     repo.feedTokens.putFeedToken(next);
     return next;
   });
-  return { feed: toFeedToken(config, feed) };
+  return { feed: toFeedToken(repo, config, feed) };
 }

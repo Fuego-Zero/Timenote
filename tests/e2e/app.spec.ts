@@ -44,12 +44,12 @@ test("管理员建号，新账号新建农历生日、预览并通过订阅地�
     .getByRole("dialog", { name: "创建订阅地址" })
     .getByRole("button", { name: /^创\s?建$/ })
     .click();
-  const url = (await page.locator(".feed-url").innerText()).trim();
+  const url = (await page.locator("[data-feed-url]").getAttribute("data-feed-url")) ?? "";
   expect(url).toMatch(/^http:\/\/127\.0\.0\.1:4183\/api\/feeds\/[\w-]{43}\.ics$/);
   expect(url).not.toMatch(/1990|小明|alice/);
   await page.reload();
   await page.getByRole("tab", { name: "订阅" }).click();
-  await expect(page.locator(".feed-url")).toHaveText(url);
+  await expect(page.locator("[data-feed-url]")).toHaveAttribute("data-feed-url", url);
 
   const feed = await request.get(url);
   expect(feed.status()).toBe(200);

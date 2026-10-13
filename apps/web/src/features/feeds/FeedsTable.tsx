@@ -1,5 +1,5 @@
 import { type FeedToken, maxQueryLength, type PageQuery, type PageResult } from "@timenote/contracts";
-import { Button, Empty, Input, Popconfirm, Space, Table, type TableColumnsType, Typography } from "antd";
+import { Button, Empty, Input, Popconfirm, Space, Table, type TableColumnsType, Tooltip, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 const searchDebounceMs = 300;
@@ -9,7 +9,18 @@ function dateTime(ms: number) {
 }
 
 function scopeLabel(feed: FeedToken) {
-  return feed.eventScope === "selected" ? `已选 ${feed.eventIds.length}` : "全部";
+  if (feed.eventScope !== "selected") {
+    return "全部";
+  }
+
+  const label = `已选 ${feed.eventIds.length}`;
+  const title =
+    feed.events.length === 0 ? "没有选中事件" : feed.events.map(event => <div key={event.id}>{event.name}</div>);
+  return (
+    <Tooltip title={title}>
+      <span>{label}</span>
+    </Tooltip>
+  );
 }
 
 export function FeedsTable({
@@ -47,28 +58,21 @@ export function FeedsTable({
     {
       key: "name",
       title: "名称",
-      render: (_value, feed) => (
-        <Space orientation="vertical" size={0}>
-          <Typography.Text strong>{feed.name}</Typography.Text>
-          {feed.url ? (
-            <span className="feed-url">{feed.url}</span>
-          ) : (
-            <Typography.Text type="secondary">
-              升级地址时没有保存明文，无法再次显示；轮换后可在当时查看。
-            </Typography.Text>
-          )}
-        </Space>
-      ),
+      width: 200,
+      ellipsis: true,
+      render: (_value, feed) => <Typography.Text strong>{feed.name}</Typography.Text>,
     },
-    { key: "scope", title: "范围", render: (_value, feed) => scopeLabel(feed) },
+    { key: "scope", title: "范围", width: 100, render: (_value, feed) => scopeLabel(feed) },
     {
       key: "lastFetchedAt",
       title: "最近拉取",
+      width: 180,
       render: (_value, feed) => (feed.lastFetchedAt === null ? "从未拉取" : dateTime(feed.lastFetchedAt)),
     },
     {
       key: "createdAt",
       title: "创建时间",
+      width: 180,
       render: (_value, feed) => (
         <Space orientation="vertical" size={0}>
           <span>{dateTime(feed.createdAt)}</span>
@@ -81,6 +85,7 @@ export function FeedsTable({
     {
       key: "actions",
       title: "操作",
+      width: 300,
       render: (_value, feed) => {
         const { url } = feed;
         return (
@@ -90,7 +95,7 @@ export function FeedsTable({
             </Button>
             {url ? (
               <>
-                <Button type="link" onClick={() => onCopy(url)}>
+                <Button type="link" data-feed-url={url} onClick={() => onCopy(url)}>
                   复制 HTTPS 地址
                 </Button>
                 <Button href={feed.webcalUrl ?? undefined} type="link">

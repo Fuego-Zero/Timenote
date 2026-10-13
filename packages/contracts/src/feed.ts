@@ -15,6 +15,8 @@ export const feedTokenSchema = z.object({
   eventScope: z.enum(feedEventScopes),
   /** selected 时为所选事件 id（可为空）；all 时为空数组。 */
   eventIds: z.array(z.uuid()),
+  /** 所选事件的 id 与名称，顺序同 eventIds；all 时为空数组。 */
+  events: z.array(z.object({ id: z.uuid(), name: z.string() })),
   /** 最近被日历客户端拉取的时间；从未拉取为 null。 */
   lastFetchedAt: z.int().nullable(),
 });
