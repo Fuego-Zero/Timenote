@@ -59,7 +59,7 @@ export function AppShell({
       <Layout.Content
         style={{
           width: "100%",
-          maxWidth: 960,
+          maxWidth: 1440,
           margin: "0 auto",
           padding: token.paddingSM,
           paddingBottom: `max(${token.paddingXL}px, env(safe-area-inset-bottom))`,
