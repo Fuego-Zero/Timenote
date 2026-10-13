@@ -10,16 +10,19 @@ import { emptyScopeDraft, type ScopeDraft } from "./FeedScopeFields.js";
 import { FeedTokenList } from "./FeedTokenList.js";
 import { useFeedTokens } from "./useFeedTokens.js";
 
+/** 任务 12 由 EventPicker 替换；在此之前订阅表单取最近创建的 100 个事件作为选项。 */
+const feedEventOptionsQuery = { page: 1, pageSize: 100, sort: "createdAt" } as const;
+
 export function FeedsPage() {
   const { message } = App.useApp();
   const feeds = useFeedTokens();
-  const events = useEvents();
+  const events = useEvents(feedEventOptionsQuery);
   const [editing, setEditing] = useState<FeedToken>();
   const [editDraft, setEditDraft] = useState<ScopeDraft>(emptyScopeDraft);
 
   const eventOptions = useMemo(
-    () => (events.events ?? []).map(event => ({ label: event.name, value: event.id })),
-    [events.events]
+    () => (events.page?.items ?? []).map(event => ({ label: event.name, value: event.id })),
+    [events.page]
   );
 
   async function run(action: () => Promise<void>, success?: string) {
@@ -80,8 +83,8 @@ export function FeedsPage() {
         loading={!feeds.feeds && !feeds.error}
         onCopy={url => void copy(url)}
         onEdit={openEdit}
-        onRotate={id => void run(() => feeds.rotate(id), "地址已轮换")}
         onRevoke={id => void run(() => feeds.revoke(id))}
+        onRotate={id => void run(() => feeds.rotate(id), "地址已轮换")}
       />
       <EditFeedModal
         draft={editDraft}

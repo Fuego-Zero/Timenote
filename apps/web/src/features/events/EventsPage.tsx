@@ -1,8 +1,9 @@
-import type { EventInput, PublicUser } from "@timenote/contracts";
+import { type EventInput, eventPageQuerySchema, type PublicUser } from "@timenote/contracts";
 import { Alert, App, Button, Space, Typography } from "antd";
 import { useState } from "react";
 
 import { errorMessage } from "../../api/client.js";
+import { useUrlState } from "../../ui/useUrlState.js";
 import { draftFromEvent, newDraft } from "./eventDraft.js";
 import { EventEditor } from "./EventEditor.js";
 import { EventsList } from "./EventsList.js";
@@ -13,10 +14,23 @@ interface EditorState {
   initial: EventInput;
 }
 
+const eventsUrlSchema = eventPageQuerySchema.omit({ ids: true });
+
 export function EventsPage({ user }: { user: PublicUser }) {
   const { message } = App.useApp();
-  const events = useEvents();
+  const [query, setQuery] = useUrlState(eventsUrlSchema);
+  const events = useEvents(query);
   const [editor, setEditor] = useState<EditorState>();
+
+  async function remove(id: string) {
+    await events.remove(id);
+    // 删掉当前页最后一条且不在第一页时退回上一页，避免停在空页。
+    if (events.page?.items.length === 1 && query.page > 1) {
+      setQuery({ page: query.page - 1 });
+    } else {
+      events.reload();
+    }
+  }
 
   return (
     <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
@@ -30,11 +44,13 @@ export function EventsPage({ user }: { user: PublicUser }) {
       </Space>
       {events.error ? <Alert showIcon title={errorMessage(events.error)} type="error" /> : null}
       <EventsList
-        events={events.events ?? []}
-        loading={!events.events && !events.error}
+        loading={!events.page && !events.error}
+        page={events.page}
+        query={query}
         timeZone={user.timeZone}
         onEdit={event => setEditor({ initial: draftFromEvent(event), id: event.id })}
-        onRemove={id => events.remove(id)}
+        onQueryChange={setQuery}
+        onRemove={remove}
       />
       {editor ? (
         <EventEditor

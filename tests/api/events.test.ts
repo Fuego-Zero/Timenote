@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { BackupFile, CalendarEvent } from "../../packages/contracts/src/index.js";
+import type { BackupFile, CalendarEvent, PageResult } from "../../packages/contracts/src/index.js";
 import { eventInput } from "../fixtures.js";
 import { harness, type Harness } from "../helpers.js";
 
@@ -90,8 +90,8 @@ describe("事件", () => {
     const id = mine.json.event.id;
     await alice.request("POST", "/api/events", eventInput({ name: "Alice 的事" }));
 
-    const aliceList = await alice.request<{ events: CalendarEvent[] }>("GET", "/api/events");
-    expect(aliceList.json.events.map(e => e.name)).toEqual(["Alice 的事"]);
+    const aliceList = await alice.request<PageResult<CalendarEvent>>("GET", "/api/events");
+    expect(aliceList.json.items.map(e => e.name)).toEqual(["Alice 的事"]);
     expect((await alice.request("PUT", `/api/events/${id}`, eventInput({ name: "篡改" }))).status).toBe(404);
     expect((await alice.request("DELETE", `/api/events/${id}`)).status).toBe(404);
 
@@ -123,10 +123,10 @@ describe("备份", () => {
 
     const restored = await alice.request("POST", "/api/backup", exported.json);
     expect(restored.json).toEqual({ created: 2, updated: 0 });
-    const aliceEvents = await alice.request<{ events: CalendarEvent[] }>("GET", "/api/events");
-    expect(aliceEvents.json.events.map(e => e.name).sort()).toEqual(["乙", "甲"]);
-    const adminEvents = await admin.request<{ events: CalendarEvent[] }>("GET", "/api/events");
-    expect(adminEvents.json.events.map(e => e.id).sort()).not.toEqual(aliceEvents.json.events.map(e => e.id).sort());
+    const aliceEvents = await alice.request<PageResult<CalendarEvent>>("GET", "/api/events");
+    expect(aliceEvents.json.items.map(e => e.name).sort()).toEqual(["乙", "甲"]);
+    const adminEvents = await admin.request<PageResult<CalendarEvent>>("GET", "/api/events");
+    expect(adminEvents.json.items.map(e => e.id).sort()).not.toEqual(aliceEvents.json.items.map(e => e.id).sort());
   });
 
   it("格式不对的备份整体拒绝，不导入任何事件", async () => {
@@ -142,6 +142,6 @@ describe("备份", () => {
       ],
     };
     expect((await b.request("POST", "/api/backup", broken)).status).toBe(400);
-    expect((await b.request<{ events: unknown[] }>("GET", "/api/events")).json.events).toEqual([]);
+    expect((await b.request<PageResult<unknown>>("GET", "/api/events")).json.items).toEqual([]);
   });
 });
