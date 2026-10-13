@@ -26,12 +26,14 @@ export function BackupPage() {
     }
   }
 
+  /** 失败时提示后继续抛出：onOk 返回被拒绝的 Promise 时确认框保持打开，可直接重试或取消。 */
   async function runImport(backup: BackupFile) {
     try {
       const result = await importBackup(backup);
       void message.success(`导入完成：新增 ${result.created}，更新 ${result.updated}`);
     } catch (error) {
       showError(error);
+      throw error;
     }
   }
 
