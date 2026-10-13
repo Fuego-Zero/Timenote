@@ -45,7 +45,7 @@ test("管理员建号，新账号新建农历生日、预览并通过订阅地�
     .getByRole("button", { name: /^创\s?建$/ })
     .click();
   const calendarLink = page.getByRole("link", { name: "日历打开" });
-  // 「日历打开」是 webcal 链接，换回 http 后与原 HTTPS 地址一致（同由 feedTokenService 生成）。
+  // 「日历打开」是 webcal 链接，换回 http 后与复制地址一致（只替换协议）（同由 feedTokenService 生成）。
   const feedUrl = async () => ((await calendarLink.getAttribute("href")) ?? "").replace(/^webcal:/, "http:");
   const url = await feedUrl();
   expect(url).toMatch(/^http:\/\/127\.0\.0\.1:4183\/api\/feeds\/[\w-]{43}\.ics$/);
@@ -65,7 +65,7 @@ test("管理员建号，新账号新建农历生日、预览并通过订阅地�
   await page.getByRole("button", { name: "撤销" }).click();
   await page
     .locator(".ant-popconfirm")
-    .getByRole("button", { name: /^确\s?定$/ })
+    .getByRole("button", { name: /^撤\s?销$/ })
     .click();
   await expect.poll(async () => (await request.get(url)).status()).toBe(404);
   expect(violations).toEqual([]);

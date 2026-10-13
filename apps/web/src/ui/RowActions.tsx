@@ -3,7 +3,7 @@ import { Button, Divider, Popconfirm, Space, Tooltip } from "antd";
 export interface Confirm {
   description: string;
   okDanger: boolean;
-  okText?: string;
+  okText: string;
   title: string;
 }
 

@@ -95,6 +95,7 @@ export function UsersTable({
                         description: user.disabled
                           ? "启用后该账号可以重新登录，订阅恢复更新。"
                           : "该账号的登录与订阅立即失效。",
+                        okText: user.disabled ? "启用" : "停用",
                         okDanger: false,
                       },
                       onClick: () => onToggleDisabled(user),
@@ -108,6 +109,7 @@ export function UsersTable({
                         title: user.role === "admin" ? "设为普通用户" : "设为管理员",
                         description:
                           user.role === "admin" ? "该账号将失去账号管理权限。" : "该账号将可以管理所有账号。",
+                        okText: "确认",
                         okDanger: false,
                       },
                       onClick: () => onToggleRole(user),

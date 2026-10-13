@@ -29,7 +29,7 @@ alwaysApply: false
 
 ## 5. 确认
 
-- 确认一律用 Popconfirm，写全 `title` 和 `description`，有 `okText` 就写。
+- 确认一律用 Popconfirm，写全 `title`、`description`、`okText`。
 - ok 是否标红由 `okDanger` 显式决定：只有删除、撤销为 `true`，其余为 `false`。
 
 ## 6. 列宽

@@ -113,6 +113,7 @@ export function FeedsTable({
             confirm: {
               title: "轮换地址",
               description: "旧地址会立即失效，需要在设备上用新地址重新订阅。",
+              okText: "轮换",
               okDanger: false,
             },
             onClick: () => onRotate(feed.id),
@@ -124,6 +125,7 @@ export function FeedsTable({
             confirm: {
               title: "撤销地址",
               description: "撤销后该地址返回 404，设备上的订阅不再更新。",
+              okText: "撤销",
               okDanger: true,
             },
             onClick: () => onRevoke(feed.id),

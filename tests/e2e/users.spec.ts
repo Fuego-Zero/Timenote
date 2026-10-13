@@ -39,7 +39,7 @@ test("账号列表服务端分页；停用和改角色先确认，操作后停�
   await expect(row.getByText("启用", { exact: true })).toBeVisible();
 
   await row.getByRole("button", { name: "停用" }).click();
-  await disableConfirm.getByRole("button", { name: /^确\s?定$/ }).click();
+  await disableConfirm.getByRole("button", { name: /^停\s?用$/ }).click();
   await expect(row.getByText("已停用")).toBeVisible();
   await expect(page).toHaveURL(/page=2/);
   await expect(rows).toHaveCount(1);
@@ -48,7 +48,7 @@ test("账号列表服务端分页；停用和改角色先确认，操作后停�
   await page
     .locator(".ant-popover")
     .filter({ hasText: "该账号将可以管理所有账号" })
-    .getByRole("button", { name: /^确\s?定$/ })
+    .getByRole("button", { name: /^确\s?认$/ })
     .click();
   await expect(row.getByText("管理员", { exact: true })).toBeVisible();
   await expect(page).toHaveURL(/page=2/);
