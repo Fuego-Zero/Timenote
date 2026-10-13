@@ -7,7 +7,7 @@ import {
   maxQueryLength,
   type PageResult,
 } from "@timenote/contracts";
-import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Tag, Typography } from "antd";
+import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 import { errorMessage } from "../../api/client.js";
@@ -103,9 +103,9 @@ export function EventsList({
           )}
           {event.durationDays > 1 ? <EventTag tone="duration">{event.durationDays} 天</EventTag> : null}
           {recurrenceSummary(event).map(text => (
-            <Tag key={text} color="purple">
+            <EventTag key={text} tone="general">
               {text}
-            </Tag>
+            </EventTag>
           ))}
         </Space>
       ),
