@@ -35,6 +35,17 @@ export function reviseEvent(existing: CalendarEvent, input: EventInput, now: num
   };
 }
 
+/** 删除事件并在同一事务里把它从本人订阅的 eventIds 中移除，之后数据里不会留下悬空 id。 */
+export function deleteEvent(repo: OpenedRepository, ownerId: string, id: string) {
+  repo.transaction(() => {
+    if (!repo.events.removeEvent(ownerId, id)) {
+      throw new BusinessError("NOT_FOUND");
+    }
+
+    repo.feedTokens.removeEventIdFromFeeds(ownerId, id);
+  });
+}
+
 export function updateEvent(repo: OpenedRepository, ownerId: string, id: string, input: EventInput, now: number) {
   return repo.transaction(() => {
     const existing = repo.events.getEvent(ownerId, id);

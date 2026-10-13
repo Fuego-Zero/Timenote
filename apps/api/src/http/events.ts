@@ -1,8 +1,7 @@
-import { BusinessError } from "@timenote/runtime";
 import { z } from "zod";
 
 import type { ApiContext } from "../context.js";
-import { createEvent, parseEventInput, updateEvent } from "../events.js";
+import { createEvent, deleteEvent, parseEventInput, updateEvent } from "../events.js";
 import { requireUser } from "../session.js";
 
 const idParams = z.object({ id: z.uuid() });
@@ -29,10 +28,7 @@ export function registerEvents(ctx: ApiContext) {
   app.delete("/api/events/:id", req => {
     const user = requireUser(req);
     const { id } = idParams.parse(req.params);
-    if (!repo.events.removeEvent(user.id, id)) {
-      throw new BusinessError("NOT_FOUND");
-    }
-
+    deleteEvent(repo, user.id, id);
     return { success: true };
   });
 }

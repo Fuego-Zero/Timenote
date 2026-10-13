@@ -159,7 +159,6 @@ describe("订阅地址", () => {
     expect((await h.browser().request("GET", path)).status).toBe(404);
   });
 
-
   it("缺字段的旧订阅按 all 导出全部事件", async () => {
     const b = await signedIn();
     const created = await b.request<{ event: CalendarEvent }>("POST", "/api/events", eventInput());
@@ -249,7 +248,7 @@ describe("订阅地址", () => {
     const listed = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
     expect(listed.json.feeds.find(item => item.id === feed.json.feed.id)).toMatchObject({
       eventScope: "selected",
-      eventIds: [mine.json.event.id],
+      eventIds: [],
     });
   });
 
@@ -282,5 +281,4 @@ describe("订阅地址", () => {
     expect(stored.eventScope).toBe("all");
     expect(stored.eventIds).toBeUndefined();
   });
-
 });
