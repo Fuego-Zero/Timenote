@@ -7,12 +7,13 @@ import {
   maxQueryLength,
   type PageResult,
 } from "@timenote/contracts";
-import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Tag, Typography } from "antd";
+import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 import { errorMessage } from "../../api/client.js";
 import { RowActions } from "../../ui/RowActions.js";
-import { kindLabels } from "./eventDraft.js";
+import { kindLabels, kindTagTones } from "./eventDraft.js";
+import { EventTag } from "./EventTag.js";
 import { nextOccurrence } from "./nextOccurrence.js";
 import { rangeText } from "./occurrenceText.js";
 import type { EventListQuery } from "./useEvents.js";
@@ -84,7 +85,7 @@ export function EventsList({
       filterMultiple: false,
       filteredValue: query.kind ? [query.kind] : null,
       filters: eventKinds.map(kind => ({ text: kindLabels[kind], value: kind })),
-      render: (_value, event) => <Tag>{kindLabels[event.kind]}</Tag>,
+      render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{kindLabels[event.kind]}</EventTag>,
     },
     {
       key: "calendar",
@@ -94,8 +95,12 @@ export function EventsList({
       filters: calendarSystems.map(calendar => ({ text: calendarLabels[calendar], value: calendar })),
       render: (_value, event) => (
         <Space wrap size={4}>
-          {event.date.calendar === "lunar" ? <Tag color="gold">农历</Tag> : <Tag>公历</Tag>}
-          {event.durationDays > 1 ? <Tag color="blue">{event.durationDays} 天</Tag> : null}
+          {event.date.calendar === "lunar" ? (
+            <EventTag tone="lunar">农历</EventTag>
+          ) : (
+            <EventTag tone="solar">公历</EventTag>
+          )}
+          {event.durationDays > 1 ? <EventTag tone="duration">{event.durationDays} 天</EventTag> : null}
         </Space>
       ),
     },
@@ -108,7 +113,7 @@ export function EventsList({
         { text: "有提醒", value: "true" },
         { text: "无提醒", value: "false" },
       ],
-      render: (_value, event) => (event.alarms.length ? <Tag color="green">提醒</Tag> : null),
+      render: (_value, event) => (event.alarms.length ? <EventTag tone="reminder">提醒</EventTag> : null),
     },
     {
       key: "actions",

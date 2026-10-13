@@ -1,31 +1,24 @@
 import { type CalendarEvent, maxQueryLength, type PageResult } from "@timenote/contracts";
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Empty,
-  Flex,
-  Input,
-  Space,
-  Table,
-  type TableColumnsType,
-  Tag,
-  Typography,
-} from "antd";
+import { Alert, Button, Checkbox, Empty, Flex, Input, Space, Table, type TableColumnsType, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import { apiPath } from "../../api/apiPath.js";
 import { errorMessage } from "../../api/client.js";
 import { useApiResource } from "../../api/useApiResource.js";
-import { kindLabels } from "../events/eventDraft.js";
+import { kindLabels, kindTagTones } from "../events/eventDraft.js";
 import { fetchEventsByIds } from "../events/eventsByIds.js";
+import { EventTag } from "../events/EventTag.js";
 
 const pageSizeOptions = [10, 20, 50, 100];
 const searchDebounceMs = 300;
 
 const columns: TableColumnsType<CalendarEvent> = [
   { key: "name", title: "名称", render: (_value, event) => event.name },
-  { key: "kind", title: "类型", render: (_value, event) => <Tag>{kindLabels[event.kind]}</Tag> },
+  {
+    key: "kind",
+    title: "类型",
+    render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{kindLabels[event.kind]}</EventTag>,
+  },
 ];
 
 interface SelectedSnapshot {
