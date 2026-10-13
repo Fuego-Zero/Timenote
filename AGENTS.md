@@ -2,16 +2,16 @@
 
 本文件保存 Cursor 和 Codex 共用的项目工程原则，详细工程规则维护在 `.cursor/rules/`。
 
-## Engineering principles
+## 工程原则
 
-- Do not preserve backward compatibility. Remove obsolete paths instead of adding compatibility layers, fallbacks, or migrations.
-- Choose the simplest implementation that fully meets the current requirements. Avoid speculative abstractions, configuration, and indirection.
-- Grow the system in layers. Start from the smallest version that works end to end, and add each new capability on top of a product that already works. Never trade a working product for unfinished complexity.
-- Keep components modular and concerns clearly separated.
-- Prefer established, well-maintained libraries when they reduce overall complexity or improve reliability. Do not reimplement common functionality without a clear reason.
-- Lean on the dependencies already in the project before writing your own implementation or adding packages. Do not assume a library lacks a capability without checking its documentation and types.
-- Make architectural decisions for the long term. Do not accept a stopgap that only works for now and is meant to be replaced later.
-- Study how established products solve the problem before designing a solution. Adopt their proven patterns and conventions rather than inventing an approach from scratch.
+- 代码层面不做向后兼容：删掉过时路径，不加兼容层或兜底；数据库结构迁移另当别论，可以做。
+- 选能完整满足当前需求的最简实现，不做投机性抽象、配置和间接层；与「架构决策面向长期」冲突时，先排除临时方案，再在长期方案里选最简单的。
+- 分层生长：先做端到端跑通的最小版本，再在可用的产品上叠加功能，不为未完成的复杂度牺牲可用产品。
+- 模块化，关注点清晰分离。
+- 优先使用成熟、维护良好的库，无明确理由不重新实现常见功能。
+- 先用项目已有依赖，再考虑自己实现或新增依赖包；未查文档和类型前，不得认定某个库缺少某项能力。
+- 架构决策面向长期，不接受先凑合、以后再换的临时方案。
+- 设计前先研究成熟产品如何解决同类问题，采用已验证的模式和惯例，不自创。
 
 ## 注释与提交语言
 
