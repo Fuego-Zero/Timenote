@@ -5,13 +5,7 @@ import { isStrongAdminPassword } from "../../packages/runtime/src/passwordPolicy
 import { buildSignHeaders } from "../../packages/runtime/src/index.js";
 import { harness, type Harness, webOrigin } from "../helpers.js";
 
-
-async function signedSetupAdmin(
-  app: Harness["app"],
-  origin: string,
-  body: Record<string, string>,
-  nowMs: number
-) {
+async function signedSetupAdmin(app: Harness["app"], origin: string, body: Record<string, string>, nowMs: number) {
   const anonRes = await app.inject({ method: "GET", url: "/api/setup", headers: { origin } });
   const anonSign = (anonRes.json() as { anonSign: { anonKeyId: string; signKey: string } }).anonSign;
   const bodyText = JSON.stringify(body);
@@ -30,7 +24,6 @@ async function signedSetupAdmin(
     payload: bodyText,
   });
 }
-
 
 describe("password policy", () => {
   it("rejects short, single-class, and blacklisted admin passwords", () => {
@@ -107,11 +100,15 @@ describe("首次引导 setup", () => {
     // harness 默认 NODE_ENV=test，弱密码规则只在 production 强制；此处先确认 test 可创建
     expect(weak.statusCode).toBe(200);
 
-    const prod = await harness({
-      NODE_ENV: "production",
-      WEB_ORIGIN: "https://cal.example.com", SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      COOKIE_SECURE: "true",
-    }, { seedAdmin: false });
+    const prod = await harness(
+      {
+        NODE_ENV: "production",
+        WEB_ORIGIN: "https://cal.example.com",
+        SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        COOKIE_SECURE: "true",
+      },
+      { seedAdmin: false }
+    );
     try {
       const res = await signedSetupAdmin(
         prod.app,
