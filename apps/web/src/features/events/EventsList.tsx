@@ -27,6 +27,7 @@ import { errorMessage } from "../../api/client.js";
 import { kindLabels } from "./eventDraft.js";
 import { nextOccurrence } from "./nextOccurrence.js";
 import { rangeText } from "./occurrenceText.js";
+import { recurrenceSummary } from "./recurrenceText.js";
 import type { EventListQuery } from "./useEvents.js";
 
 const calendarLabels: Record<CalendarSystem, string> = { gregorian: "公历", lunar: "农历" };
@@ -108,6 +109,11 @@ export function EventsList({
         <Space wrap size={4}>
           {event.date.calendar === "lunar" ? <Tag color="gold">农历</Tag> : <Tag>公历</Tag>}
           {event.durationDays > 1 ? <Tag color="blue">{event.durationDays} 天</Tag> : null}
+          {recurrenceSummary(event).map(text => (
+            <Tag key={text} color="purple">
+              {text}
+            </Tag>
+          ))}
         </Space>
       ),
     },

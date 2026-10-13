@@ -1,4 +1,4 @@
-import type { EventInput } from "@timenote/contracts";
+import { type EventInput, titleVariables } from "@timenote/contracts";
 import { Button, Form, Input, Space } from "antd";
 
 import { fieldStatus } from "./fieldStatus.js";
@@ -14,8 +14,15 @@ export function TitleFields({
   errors: Record<string, string>;
   onChange: (draft: EventInput) => void;
 }) {
-  const yearsHint =
-    draft.kind === "event" || draft.date.year === null ? "可用 {{name}}" : "可用 {{name}} 与 {{years}}（岁数或周年数）";
+  const variableHints = {
+    name: "{{name}}",
+    years: "{{years}}（岁数或周年数）",
+    count: "{{count}}（第几次）",
+    days: "",
+  };
+  const yearsHint = `可用 ${titleVariables(draft)
+    .map(variable => variableHints[variable])
+    .join(" 与 ")}`;
   return (
     <>
       <Form.Item required extra={yearsHint} label="标题模板" {...fieldStatus(errors, "titleTemplate")}>
