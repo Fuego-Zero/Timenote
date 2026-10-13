@@ -7,6 +7,10 @@ import { AccountModal } from "../features/auth/AccountModal.js";
 import { BackupPage } from "../features/backup/BackupPage.js";
 import { EventsPage } from "../features/events/EventsPage.js";
 import { FeedsPage } from "../features/feeds/FeedsPage.js";
+import { enumParam, writeUrlState } from "./urlState.js";
+import { replaceSearch, useUrlState } from "./useUrlState.js";
+
+const tabSchema = enumParam("tab", ["events", "feeds", "backup", "users"], "events");
 
 export function AppShell({
   user,
@@ -20,6 +24,7 @@ export function AppShell({
   const { token } = theme.useToken();
   const [accountOpen, setAccountOpen] = useState(false);
   const forcePasswordChange = Boolean(user.mustChangePassword);
+  const [{ tab }, setTab] = useUrlState(tabSchema);
   const items = [
     { key: "events", label: "事件", children: <EventsPage user={user} /> },
     { key: "feeds", label: "订阅", children: <FeedsPage /> },
@@ -60,7 +65,17 @@ export function AppShell({
           paddingBottom: `max(${token.paddingXL}px, env(safe-area-inset-bottom))`,
         }}
       >
-        <Tabs destroyOnHidden items={items} />
+        <Tabs
+          destroyOnHidden
+          activeKey={items.some(item => item.key === tab) ? tab : "events"}
+          items={items}
+          onChange={key => {
+            const next = tabSchema.parse({ tab: key }).tab;
+            // 切换页签时清掉上一页的查询参数，新页面从默认状态开始。
+            replaceSearch(writeUrlState(tabSchema, { tab: next }, ""));
+            setTab({ tab: next });
+          }}
+        />
       </Layout.Content>
       <AccountModal
         forcePasswordChange={forcePasswordChange}
