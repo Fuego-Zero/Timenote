@@ -1,10 +1,12 @@
 import { type EventInput, maxAlarms } from "@timenote/contracts";
-import { Button, Form, Input, InputNumber, Select, Space, Switch } from "antd";
+import { Button, Flex, Form, Input, InputNumber, Select, Space, Switch } from "antd";
+import type { CSSProperties } from "react";
 
 import { fieldStatus } from "./fieldStatus.js";
 
 const presetDays = [0, 1, 3, 7];
 const customValue = -1;
+const rowItemStyle: CSSProperties = { flex: "1 1 120px", minWidth: 0 };
 
 type Alarm = EventInput["alarms"][number];
 
@@ -19,7 +21,7 @@ function AlarmRow({
 }) {
   const preset = presetDays.includes(alarm.daysBefore);
   return (
-    <div className="form-row">
+    <Flex wrap gap={8}>
       <Select
         options={[
           { label: "当天", value: 0 },
@@ -28,6 +30,7 @@ function AlarmRow({
           { label: "提前 7 天", value: 7 },
           { label: "自定义天数", value: customValue },
         ]}
+        style={rowItemStyle}
         value={preset ? alarm.daysBefore : customValue}
         aria-label="提前天数"
         onChange={value => onChange({ ...alarm, daysBefore: value === customValue ? 14 : value })}
@@ -38,6 +41,7 @@ function AlarmRow({
           min={0}
           precision={0}
           prefix="提前"
+          style={rowItemStyle}
           suffix="天"
           value={alarm.daysBefore}
           aria-label="自定义提前天数"
@@ -45,13 +49,16 @@ function AlarmRow({
         />
       )}
       <Input
+        style={rowItemStyle}
         type="time"
         value={alarm.time}
         aria-label="提醒时刻"
         onChange={event => onChange({ ...alarm, time: event.target.value || alarm.time })}
       />
-      <Button onClick={onRemove}>删除</Button>
-    </div>
+      <Button style={rowItemStyle} onClick={onRemove}>
+        删除
+      </Button>
+    </Flex>
   );
 }
 

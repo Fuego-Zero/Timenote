@@ -1,5 +1,5 @@
 import type { EventInput } from "@timenote/contracts";
-import { Alert, Button, Divider, Drawer, Grid, Space, Typography } from "antd";
+import { Alert, Button, Col, Divider, Drawer, Grid, Row, Space, theme, Typography } from "antd";
 import { useState } from "react";
 
 import { ApiRequestError, errorMessage } from "../../api/client.js";
@@ -7,7 +7,7 @@ import { draftIssues } from "./eventDraft.js";
 import { EventForm } from "./EventForm.js";
 import { EventPreview } from "./EventPreview.js";
 
-/** 宽屏左表单右预览；窄屏仍为上表单下预览。布局靠 CSS 断点，避免条件渲染跳动。 */
+/** 宽屏左表单右预览（预览 sticky）；窄屏为上表单下预览，中间用分隔线。断点取自 antd Grid。 */
 export function EventEditor({
   initial,
   editing,
@@ -22,6 +22,7 @@ export function EventEditor({
   onSave: (draft: EventInput) => Promise<void>;
 }) {
   const screens = Grid.useBreakpoint();
+  const { token } = theme.useToken();
   const [draft, setDraft] = useState(initial);
   const [submitted, setSubmitted] = useState(false);
   const [serverErrors, setServerErrors] = useState<Record<string, string>>({});
@@ -69,8 +70,8 @@ export function EventEditor({
       onClose={onClose}
     >
       {saveError ? <Alert showIcon style={{ marginBottom: 16 }} title={saveError} type="error" /> : null}
-      <div className="event-editor-layout">
-        <div className="event-editor-form">
+      <Row align="top" gutter={[24, 0]}>
+        <Col md={13} xs={24}>
           <EventForm
             draft={draft}
             errors={errors}
@@ -80,13 +81,29 @@ export function EventEditor({
               setServerErrors({});
             }}
           />
-        </div>
-        <Divider className="event-editor-divider" />
-        <div className="event-editor-preview">
-          <Typography.Title level={5}>未来几次（{timeZone}）</Typography.Title>
-          <EventPreview draft={draft} timeZone={timeZone} />
-        </div>
-      </div>
+        </Col>
+        <Col
+          md={11}
+          style={
+            screens.md ? { position: "sticky", top: 0, maxHeight: "calc(100vh - 160px)", overflow: "auto" } : undefined
+          }
+          xs={24}
+        >
+          {screens.md ? null : <Divider />}
+          <div
+            style={
+              screens.md
+                ? { paddingInlineStart: token.paddingXS, borderInlineStart: `1px solid ${token.colorBorderSecondary}` }
+                : undefined
+            }
+          >
+            <Typography.Title level={5} styles={{ root: { marginTop: 0 } }}>
+              未来几次（{timeZone}）
+            </Typography.Title>
+            <EventPreview draft={draft} timeZone={timeZone} />
+          </div>
+        </Col>
+      </Row>
     </Drawer>
   );
 }

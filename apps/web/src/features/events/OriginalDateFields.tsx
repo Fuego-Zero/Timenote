@@ -1,12 +1,14 @@
 import { isoDate, LUNAR_MAX_YEAR, LUNAR_MIN_YEAR } from "@timenote/calendar";
 import type { EventInput } from "@timenote/contracts";
-import { Alert, Checkbox, Form, Input, InputNumber, Segmented, Select, Space } from "antd";
-import { useState } from "react";
+import { Alert, Checkbox, Flex, Form, Input, InputNumber, Segmented, Select, Space } from "antd";
+import { type CSSProperties, useState } from "react";
 
 import { dateLabels, dayOptions, lunarMonthOptions, monthOptions } from "./dateFieldOptions.js";
 import { withYear } from "./eventDraft.js";
 import { fieldStatus } from "./fieldStatus.js";
 import { switchCalendarDate } from "./switchCalendarDate.js";
+
+const rowItemStyle: CSSProperties = { flex: "1 1 120px", minWidth: 0 };
 
 export function OriginalDateFields({
   draft,
@@ -89,11 +91,12 @@ export function OriginalDateFields({
               }}
             />
           ) : (
-            <div className="form-row">
+            <Flex wrap gap={8}>
               {lunar && date.year !== null ? (
                 <InputNumber
                   max={LUNAR_MAX_YEAR}
                   min={LUNAR_MIN_YEAR}
+                  style={rowItemStyle}
                   suffix="年"
                   value={date.year}
                   aria-label="农历年"
@@ -102,17 +105,19 @@ export function OriginalDateFields({
               ) : null}
               <Select
                 options={lunar ? lunarMonthOptions : monthOptions}
+                style={rowItemStyle}
                 value={date.month}
                 aria-label="月"
                 onChange={month => setDate({ month })}
               />
               <Select
                 options={dayOptions(lunar, date.month)}
+                style={rowItemStyle}
                 value={date.day}
                 aria-label="日"
                 onChange={day => setDate({ day })}
               />
-            </div>
+            </Flex>
           )}
           {lunar ? (
             <Checkbox checked={date.leapMonth} onChange={event => setDate({ leapMonth: event.target.checked })}>

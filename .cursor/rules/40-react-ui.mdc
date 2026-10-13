@@ -131,7 +131,8 @@ Props 应表达组件契约。
 
 ## 12. 主题色
 
-主题色单源：`apps/web/src/ui/themeTokens.ts`（CSS 镜像：`apps/web/src/style.css` `:root`）。
+主题的唯一来源是 `apps/web/src/ui/AppProviders.tsx` 中 `ConfigProvider` 的 `theme.token` 和 `theme.components`（antd 6.6.4，默认开启 cssVar，前缀为 `ant`）。
 
-- antd `ConfigProvider` 从 `themeTokens` 取值（见 `AppProviders.tsx`）；自定义样式用 CSS 变量 `--color-*`。
-- 禁止在业务组件里散落硬编码主色 hex（如 `#d4380d`）；改色只改 tokens / `:root`。
+- 页面背景由 antd `Layout`（`colorBgLayout`）提供。不在 `html`、`body`、`#root`、`:root` 上设颜色，因为 antd 的 CSS 变量只存在于组件根的 `css-var-*` 类内。
+- 样式优先用组件属性和组件 token；组件代码里需要主题值时，用 `theme.useToken()` 读取。
+- 业务组件不硬编码 hex，不写 `var(--ant-*, #hex)` 形式的兜底，也不覆盖 `.ant-*` 内部类。

@@ -1,4 +1,4 @@
-import { Button, Result, Spin } from "antd";
+import { Button, Layout, Result, Spin } from "antd";
 import { useEffect, useState } from "react";
 
 import { api } from "./api/client.js";
@@ -40,7 +40,13 @@ function Root() {
   }
 
   if (session.state.status === "error") {
-    return <Result extra={<Button onClick={session.reload}>重试</Button>} status="warning" title="无法连接服务" />;
+    return (
+      <Layout style={{ minHeight: "100vh" }}>
+        <Layout.Content>
+          <Result extra={<Button onClick={session.reload}>重试</Button>} status="warning" title="无法连接服务" />
+        </Layout.Content>
+      </Layout>
+    );
   }
 
   if (!session.state.user) {
