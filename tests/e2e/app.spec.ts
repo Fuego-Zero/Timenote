@@ -40,6 +40,10 @@ test("管理员建号，新账号新建农历生日、预览并通过订阅地�
 
   await page.getByRole("tab", { name: "订阅" }).click();
   await page.getByRole("button", { name: "创建订阅地址" }).click();
+  await page
+    .getByRole("dialog", { name: "创建订阅地址" })
+    .getByRole("button", { name: /^创\s?建$/ })
+    .click();
   const url = (await page.locator(".feed-url").innerText()).trim();
   expect(url).toMatch(/^http:\/\/127\.0\.0\.1:4183\/api\/feeds\/[\w-]{43}\.ics$/);
   expect(url).not.toMatch(/1990|小明|alice/);
