@@ -50,7 +50,11 @@ export function normalizeClientSignQuery(url: string): string {
       return a[0] < b[0] ? -1 : 1;
     }
 
-    return a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0;
+    if (a[1] < b[1]) {
+      return -1;
+    }
+
+    return a[1] > b[1] ? 1 : 0;
   });
   return pairs.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join("&");
 }

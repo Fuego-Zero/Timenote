@@ -21,7 +21,7 @@ export async function createApiServer(config: Config, repo: OpenedRepository, op
     requestSign: new RequestSignRegistry(config.signMasterKey),
   };
   await registerSession(ctx);
-  await registerRequestSign(ctx);
+  registerRequestSign(ctx);
   registerSetup(ctx);
   registerAuth(ctx);
   registerUsers(ctx);

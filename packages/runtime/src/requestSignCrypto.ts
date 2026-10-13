@@ -17,7 +17,7 @@ export function signKeyToBase64Url(key: Buffer): string {
 }
 
 export function bodySha256Hex(raw: Buffer | string | undefined): string {
-  const buf = raw === undefined ? Buffer.alloc(0) : typeof raw === "string" ? Buffer.from(raw, "utf8") : raw;
+  const buf = typeof raw === "string" ? Buffer.from(raw, "utf8") : (raw ?? Buffer.alloc(0));
   return createHash("sha256").update(buf).digest("hex");
 }
 
