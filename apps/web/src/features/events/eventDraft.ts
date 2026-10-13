@@ -7,7 +7,15 @@ import {
   type EventKind,
 } from "@timenote/contracts";
 
+import type { EventTagTone } from "./EventTag.js";
+
 export const kindLabels: Record<EventKind, string> = { birthday: "生日", anniversary: "纪念日", event: "普通事件" };
+
+export const kindTagTones: Record<EventKind, EventTagTone> = {
+  birthday: "birthday",
+  anniversary: "anniversary",
+  event: "general",
+};
 
 const defaultPrefixes: Record<EventKind, string> = { birthday: "🎂", anniversary: "💞", event: "" };
 

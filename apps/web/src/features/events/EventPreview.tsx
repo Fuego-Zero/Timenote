@@ -1,8 +1,9 @@
 import { upcomingOccurrences } from "@timenote/calendar";
 import type { EventInput } from "@timenote/contracts";
-import { Alert, Empty, List, Tag, Typography } from "antd";
+import { Alert, Empty, List, Typography } from "antd";
 
 import { draftIssues } from "./eventDraft.js";
+import { EventTag } from "./EventTag.js";
 import { alarmText, rangeText } from "./occurrenceText.js";
 
 const previewCount = 5;
@@ -45,7 +46,9 @@ export function EventPreview({
             <div>
               <Typography.Text type="secondary">{rangeText(occurrence)}</Typography.Text>
               {draft.date.calendar === "lunar" ? (
-                <Tag style={{ marginInlineStart: 8 }}>农历 {occurrence.logicalYear} 年</Tag>
+                <EventTag style={{ marginInlineStart: 8 }} tone="lunar">
+                  农历 {occurrence.logicalYear} 年
+                </EventTag>
               ) : null}
             </div>
             {occurrence.alarms.map(alarm => (
