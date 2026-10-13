@@ -21,7 +21,10 @@ export function rawJsonBodyParser(app: FastifyInstance) {
     try {
       done(null, JSON.parse(buffer.toString("utf8")));
     } catch (error) {
-      done(error instanceof Error ? error : new Error("Invalid JSON"), undefined);
+      // 格式错误的 JSON 属于客户端输入问题：带上 400，由 toApiError 映射为 INVALID_INPUT。
+      const invalid = new Error("Invalid JSON", { cause: error }) as Error & { statusCode: number };
+      invalid.statusCode = 400;
+      done(invalid, undefined);
     }
   });
 }
