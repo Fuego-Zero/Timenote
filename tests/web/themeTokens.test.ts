@@ -1,6 +1,6 @@
+import { theme } from "antd";
 import { expect, it } from "vitest";
 
-import { theme } from "../../apps/web/node_modules/antd/es/index.js";
 import { appTheme } from "../../apps/web/src/ui/AppProviders.js";
 
 it("主题只设定稿 token，派生色由 antd 计算", () => {
