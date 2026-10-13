@@ -13,7 +13,7 @@ function scopeLabel(feed: FeedToken) {
     return "全部";
   }
 
-  const label = `已选 ${feed.eventIds.length}`;
+  const label = `已选 ${feed.events.length}`;
   const title =
     feed.events.length === 0 ? "没有选中事件" : feed.events.map(event => <div key={event.id}>{event.name}</div>);
   return (
@@ -102,7 +102,16 @@ export function FeedsTable({
                   用日历 App 打开
                 </Button>
               </>
-            ) : null}
+            ) : (
+              // 旧订阅没有明文地址，按钮置灰；disabled 按钮不触发鼠标事件，需用 span 承接 Tooltip。
+              <Tooltip title="升级地址时没有保存明文，无法再次显示；轮换后可在当时查看。">
+                <span>
+                  <Button disabled type="link">
+                    复制 HTTPS 地址
+                  </Button>
+                </span>
+              </Tooltip>
+            )}
             <Popconfirm
               description="旧地址会立即失效，需要在设备上用新地址重新订阅。"
               title="轮换地址"
