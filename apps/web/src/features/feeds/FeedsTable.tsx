@@ -1,6 +1,8 @@
 import { type FeedToken, maxQueryLength, type PageQuery, type PageResult } from "@timenote/contracts";
-import { Button, Empty, Input, Popconfirm, Space, Table, type TableColumnsType, Tooltip, Typography } from "antd";
+import { Button, Empty, Input, Space, Table, type TableColumnsType, Tooltip, Typography } from "antd";
 import { useEffect, useState } from "react";
+
+import { type RowAction, RowActions } from "../../ui/RowActions.js";
 
 const searchDebounceMs = 300;
 
@@ -85,52 +87,49 @@ export function FeedsTable({
     {
       key: "actions",
       title: "操作",
-      width: 300,
+      width: 310,
       render: (_value, feed) => {
         const { url } = feed;
-        return (
-          <Space wrap size={0}>
-            <Button type="link" onClick={() => onEdit(feed)}>
-              编辑
-            </Button>
-            {url ? (
-              <>
-                <Button type="link" data-feed-url={url} onClick={() => onCopy(url)}>
-                  复制 HTTPS 地址
-                </Button>
-                <Button href={feed.webcalUrl ?? undefined} type="link">
-                  用日历 App 打开
-                </Button>
-              </>
-            ) : (
-              // 旧订阅没有明文地址，按钮置灰；disabled 按钮不触发鼠标事件，需用 span 承接 Tooltip。
-              <Tooltip title="升级地址时没有保存明文，无法再次显示；轮换后可在当时查看。">
-                <span>
-                  <Button disabled type="link">
-                    复制 HTTPS 地址
-                  </Button>
-                </span>
-              </Tooltip>
-            )}
-            <Popconfirm
-              description="旧地址会立即失效，需要在设备上用新地址重新订阅。"
-              title="轮换地址"
-              onConfirm={() => onRotate(feed.id)}
-            >
-              <Button type="link">轮换</Button>
-            </Popconfirm>
-            <Popconfirm
-              description="撤销后该地址返回 404，设备上的订阅不再更新。"
-              okButtonProps={{ danger: true }}
-              title="撤销地址"
-              onConfirm={() => onRevoke(feed.id)}
-            >
-              <Button danger type="link">
-                撤销
-              </Button>
-            </Popconfirm>
-          </Space>
+        const actions: RowAction[] = [{ key: "edit", label: "编辑", onClick: () => onEdit(feed) }];
+        if (url) {
+          actions.push(
+            { key: "copy", label: "复制地址", onClick: () => onCopy(url) },
+            { key: "open", label: "日历打开", href: feed.webcalUrl ?? undefined }
+          );
+        } else {
+          // 旧订阅没有明文地址：复制置灰并说明原因；也没有可打开的 webcal 地址，故不显示「日历打开」。
+          actions.push({
+            key: "copy",
+            label: "复制地址",
+            disabled: true,
+            disabledReason: "升级地址时没有保存明文，无法再次显示；轮换后可在当时查看。",
+          });
+        }
+
+        actions.push(
+          {
+            key: "rotate",
+            label: "轮换",
+            confirm: {
+              title: "轮换地址",
+              description: "旧地址会立即失效，需要在设备上用新地址重新订阅。",
+              okDanger: false,
+            },
+            onClick: () => onRotate(feed.id),
+          },
+          {
+            key: "revoke",
+            label: "撤销",
+            danger: true,
+            confirm: {
+              title: "撤销地址",
+              description: "撤销后该地址返回 404，设备上的订阅不再更新。",
+              okDanger: true,
+            },
+            onClick: () => onRevoke(feed.id),
+          }
         );
+        return <RowActions actions={actions} />;
       },
     },
   ];
