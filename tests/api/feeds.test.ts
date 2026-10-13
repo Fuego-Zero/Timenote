@@ -1,7 +1,7 @@
 import ICAL from "ical.js";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import type { CalendarEvent, FeedToken, PublicUser } from "../../packages/contracts/src/index.js";
+import type { CalendarEvent, FeedToken, PageResult, PublicUser } from "../../packages/contracts/src/index.js";
 import { eventInput } from "../fixtures.js";
 import { harness, type Harness } from "../helpers.js";
 
@@ -49,8 +49,8 @@ describe("订阅地址", () => {
     );
     db.close();
 
-    const list = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
-    expect(list.json.feeds).toContainEqual(expect.objectContaining({ id, url: null, webcalUrl: null }));
+    const list = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+    expect(list.json.items).toContainEqual(expect.objectContaining({ id, url: null, webcalUrl: null }));
   });
 
   it("列表可以反复取回同一地址，数据库同时保存明文和哈希", async () => {
@@ -60,8 +60,8 @@ describe("订阅地址", () => {
     expect(issued.feed.webcalUrl).toBe(issued.feed.url!.replace("http:", "webcal:"));
     expect(issued.feed.url).toMatch(/^http:\/\/127\.0\.0\.1:8720\/api\/feeds\//);
 
-    const list = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
-    expect(list.json.feeds).toEqual([issued.feed]);
+    const list = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+    expect(list.json.items).toEqual([issued.feed]);
     const stored = h.repo.feedTokens.listFeedTokens(h.repo.users.listUsers()[0]!.id);
     expect(stored).toEqual([expect.objectContaining({ token, name: "iPhone" })]);
     expect(JSON.stringify(stored)).not.toMatch(/tokenHint/);
@@ -127,8 +127,8 @@ describe("订阅地址", () => {
     expect(rotated.json.feed.url).not.toBe(first.feed.url);
     expect((await h.browser().request("GET", first.path)).status).toBe(404);
     expect((await h.browser().request("GET", new URL(rotated.json.feed.url!).pathname)).status).toBe(200);
-    const listed = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
-    expect(listed.json.feeds.find(feed => feed.id === first.feed.id)?.url).toBe(rotated.json.feed.url);
+    const listed = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+    expect(listed.json.items.find(feed => feed.id === first.feed.id)?.url).toBe(rotated.json.feed.url);
 
     expect((await b.request("DELETE", `/api/feed-tokens/${second.feed.id}`)).status).toBe(200);
     expect((await h.browser().request("GET", second.path)).status).toBe(404);
@@ -186,8 +186,8 @@ describe("订阅地址", () => {
     );
     db.close();
 
-    const list = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
-    expect(list.json.feeds.find(feed => feed.id === id)).toMatchObject({
+    const list = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+    expect(list.json.items.find(feed => feed.id === id)).toMatchObject({
       eventScope: "all",
       eventIds: [],
     });
@@ -245,8 +245,8 @@ describe("订阅地址", () => {
     await b.request("DELETE", `/api/events/${mine.json.event.id}`);
     const body = (await h.browser().request("GET", new URL(feed.json.feed.url!).pathname)).body;
     expect(uids(body)).toEqual([]);
-    const listed = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
-    expect(listed.json.feeds.find(item => item.id === feed.json.feed.id)).toMatchObject({
+    const listed = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+    expect(listed.json.items.find(item => item.id === feed.json.feed.id)).toMatchObject({
       eventScope: "selected",
       eventIds: [],
     });

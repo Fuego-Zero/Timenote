@@ -1,13 +1,14 @@
-import type { FeedToken } from "@timenote/contracts";
+import { type FeedToken, pageQuerySchema } from "@timenote/contracts";
 import { Alert, App, Space, Typography } from "antd";
 import { useMemo, useState } from "react";
 
 import { errorMessage } from "../../api/client.js";
+import { useUrlState } from "../../ui/useUrlState.js";
 import { useEvents } from "../events/useEvents.js";
 import { CreateFeedForm } from "./CreateFeedForm.js";
 import { EditFeedModal } from "./EditFeedModal.js";
 import { emptyScopeDraft, type ScopeDraft } from "./FeedScopeFields.js";
-import { FeedTokenList } from "./FeedTokenList.js";
+import { FeedsTable } from "./FeedsTable.js";
 import { useFeedTokens } from "./useFeedTokens.js";
 
 /** 任务 12 由 EventPicker 替换；在此之前订阅表单取最近创建的 100 个事件作为选项。 */
@@ -15,7 +16,8 @@ const feedEventOptionsQuery = { page: 1, pageSize: 100, sort: "createdAt" } as c
 
 export function FeedsPage() {
   const { message } = App.useApp();
-  const feeds = useFeedTokens();
+  const [query, setQuery] = useUrlState(pageQuerySchema);
+  const feeds = useFeedTokens(query);
   const events = useEvents(feedEventOptionsQuery);
   const [editing, setEditing] = useState<FeedToken>();
   const [editDraft, setEditDraft] = useState<ScopeDraft>(emptyScopeDraft);
@@ -45,6 +47,16 @@ export function FeedsPage() {
     }
   }
 
+  async function revoke(id: string) {
+    await feeds.revoke(id);
+    // 撤销当前页最后一条且不在第一页时退回上一页，避免停在空页。
+    if (feeds.page?.items.length === 1 && query.page > 1) {
+      setQuery({ page: query.page - 1 });
+    } else {
+      feeds.reload();
+    }
+  }
+
   function openEdit(feed: FeedToken) {
     setEditing(feed);
     setEditDraft({
@@ -67,23 +79,24 @@ export function FeedsPage() {
       <CreateFeedForm
         eventOptions={eventOptions}
         onCreate={draft =>
-          run(
-            () =>
-              feeds.create({
-                name: draft.name.trim(),
-                eventScope: draft.eventScope,
-                eventIds: draft.eventScope === "selected" ? draft.eventIds : [],
-              }),
-            "订阅地址已创建"
-          )
+          run(async () => {
+            await feeds.create({
+              name: draft.name.trim(),
+              eventScope: draft.eventScope,
+              eventIds: draft.eventScope === "selected" ? draft.eventIds : [],
+            });
+            setQuery({ page: 1 });
+          }, "订阅地址已创建")
         }
       />
-      <FeedTokenList
-        feeds={feeds.feeds ?? []}
-        loading={!feeds.feeds && !feeds.error}
+      <FeedsTable
+        loading={!feeds.page && !feeds.error}
+        page={feeds.page}
+        query={query}
         onCopy={url => void copy(url)}
         onEdit={openEdit}
-        onRevoke={id => void run(() => feeds.revoke(id))}
+        onQueryChange={setQuery}
+        onRevoke={id => void run(() => revoke(id))}
         onRotate={id => void run(() => feeds.rotate(id), "地址已轮换")}
       />
       <EditFeedModal

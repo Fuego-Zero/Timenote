@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, it } from "vitest";
 
-import type { FeedToken } from "../../packages/contracts/src/index.js";
+import type { FeedToken, PageResult } from "../../packages/contracts/src/index.js";
 import { harness, type Harness } from "../helpers.js";
 
 let h: Harness;
@@ -35,6 +35,6 @@ it("lastFetchedAt：拉取后有值，1 小时内重复拉取不写库，304 也
   expect(notModified.statusCode).toBe(304);
   expect(stored().lastFetchedAt).toBe(h.clock.now);
 
-  const listed = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
-  expect(listed.json.feeds[0].lastFetchedAt).toBe(h.clock.now);
+  const listed = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+  expect(listed.json.items[0].lastFetchedAt).toBe(h.clock.now);
 });

@@ -1,25 +1,13 @@
 import type { CalendarEvent, EventInput, EventPageQuery, PageResult } from "@timenote/contracts";
 
+import { apiPath } from "../../api/apiPath.js";
 import { api } from "../../api/client.js";
 import { useApiResource } from "../../api/useApiResource.js";
 
 export type EventListQuery = Omit<EventPageQuery, "ids">;
 
-/** 把列表查询转成 GET /api/events 的查询串，未设置的参数省略。 */
-export function eventsPath(query: Partial<EventListQuery>) {
-  const params = new URLSearchParams();
-  for (const [key, value] of Object.entries(query)) {
-    if (value !== undefined) {
-      params.set(key, String(value));
-    }
-  }
-
-  const text = params.toString();
-  return text ? `/events?${text}` : "/events";
-}
-
 export function useEvents(query: Partial<EventListQuery>) {
-  const resource = useApiResource<PageResult<CalendarEvent>>(eventsPath(query));
+  const resource = useApiResource<PageResult<CalendarEvent>>(apiPath("/events", query));
   return {
     page: resource.data,
     error: resource.error,

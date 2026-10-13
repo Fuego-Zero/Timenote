@@ -100,8 +100,8 @@ describe("事件", () => {
     expect(body).toContain("Alice 的事");
     expect(body).not.toContain("管理员的事");
 
-    const adminFeeds = await admin.request<{ feeds: { id: string }[] }>("GET", "/api/feed-tokens");
-    expect(adminFeeds.json.feeds).toEqual([]);
+    const adminFeeds = await admin.request<PageResult<{ id: string }>>("GET", "/api/feed-tokens");
+    expect(adminFeeds.json.items).toEqual([]);
     expect(h.repo.events.getEvent(mine.json.event.ownerId, id)?.name).toBe("管理员的事");
   });
 });

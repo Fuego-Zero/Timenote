@@ -1,7 +1,7 @@
 import ICAL from "ical.js";
 import { afterEach, beforeEach, expect, it } from "vitest";
 
-import type { CalendarEvent, FeedToken } from "../../packages/contracts/src/index.js";
+import type { CalendarEvent, FeedToken, PageResult } from "../../packages/contracts/src/index.js";
 import { eventInput } from "../fixtures.js";
 import { harness, type Harness } from "../helpers.js";
 
@@ -34,8 +34,8 @@ it("删除事件时同事务从本人订阅 eventIds 移除，其余顺序不变
   const before = uids((await h.app.inject({ method: "GET", url: path })).body);
 
   expect((await b.request("DELETE", `/api/events/${second}`)).status).toBe(200);
-  const listed = await b.request<{ feeds: FeedToken[] }>("GET", "/api/feed-tokens");
-  expect(listed.json.feeds[0].eventIds).toEqual([third, first]);
+  const listed = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+  expect(listed.json.items[0].eventIds).toEqual([third, first]);
   const after = uids((await h.app.inject({ method: "GET", url: path })).body);
   expect(after).toEqual(before.filter(uid => !uid.startsWith(second)));
 
