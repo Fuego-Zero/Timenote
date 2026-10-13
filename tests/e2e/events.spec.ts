@@ -14,6 +14,11 @@ async function importEvents(page: Page, events: { id: string; event: ReturnType<
       JSON.stringify({ format: "timenote-backup", version: 1, exportedAt: new Date().toISOString(), events })
     ),
   });
+  await page
+    .getByRole("dialog")
+    .filter({ hasText: "确认导入" })
+    .getByRole("button", { name: /^导\s?入$/ })
+    .click();
   await expect(page.getByText(`导入完成：新增 ${events.length}`)).toBeVisible();
 }
 

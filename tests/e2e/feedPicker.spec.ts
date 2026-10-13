@@ -38,6 +38,11 @@ test("编辑含 150 个事件的订阅：跨页勾选后保存，再次编辑全
       JSON.stringify({ format: "timenote-backup", version: 1, exportedAt: new Date().toISOString(), events })
     ),
   });
+  await page
+    .getByRole("dialog")
+    .filter({ hasText: "确认导入" })
+    .getByRole("button", { name: /^导\s?入$/ })
+    .click();
   await expect(page.getByText("导入完成：新增 150")).toBeVisible();
 
   await page.getByRole("tab", { name: "订阅" }).click();
