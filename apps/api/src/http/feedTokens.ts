@@ -13,7 +13,7 @@ export function registerFeedTokens(ctx: ApiContext) {
   app.get("/api/feed-tokens", req => {
     const user = requireUser(req);
     const page = repo.feedTokens.listFeedTokensPage(user.id, pageQuerySchema.parse(req.query));
-    return { ...page, items: page.items.map(feed => toFeedToken(config, feed)) };
+    return { ...page, items: page.items.map(feed => toFeedToken(repo, config, feed)) };
   });
 
   app.post("/api/feed-tokens", (req, reply) => {

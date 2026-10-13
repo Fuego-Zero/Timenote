@@ -33,29 +33,29 @@ test("账号列表服务端分页；停用和改角色先确认，操作后停�
   await expect(row).toBeVisible();
 
   // 取消确认时不改动。
-  await row.getByRole("button", { name: "停 用" }).click();
+  await row.getByRole("button", { name: "停用" }).click();
   const disableConfirm = page.locator(".ant-popover").filter({ hasText: "登录与订阅立即失效" });
   await disableConfirm.getByRole("button", { name: /^取\s?消$/ }).click();
   await expect(row.getByText("启用", { exact: true })).toBeVisible();
 
-  await row.getByRole("button", { name: "停 用" }).click();
-  await disableConfirm.getByRole("button", { name: /^确\s?定$/ }).click();
+  await row.getByRole("button", { name: "停用" }).click();
+  await disableConfirm.getByRole("button", { name: /^停\s?用$/ }).click();
   await expect(row.getByText("已停用")).toBeVisible();
   await expect(page).toHaveURL(/page=2/);
   await expect(rows).toHaveCount(1);
 
-  await row.getByRole("button", { name: "设为管理员" }).click();
+  await row.getByRole("button", { name: "设管理员" }).click();
   await page
     .locator(".ant-popover")
     .filter({ hasText: "该账号将可以管理所有账号" })
-    .getByRole("button", { name: /^确\s?定$/ })
+    .getByRole("button", { name: /^确\s?认$/ })
     .click();
   await expect(row.getByText("管理员", { exact: true })).toBeVisible();
   await expect(page).toHaveURL(/page=2/);
   await expect(rows.filter({ hasText: "ops-a" })).toHaveCount(1);
 
   // 清理：删除后本页为空，退回第 1 页。
-  await row.getByRole("button", { name: "删 除" }).click();
+  await row.getByRole("button", { name: "删除" }).click();
   await page
     .locator(".ant-popover")
     .filter({ hasText: "无法恢复" })

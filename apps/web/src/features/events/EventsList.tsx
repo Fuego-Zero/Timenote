@@ -7,23 +7,11 @@ import {
   maxQueryLength,
   type PageResult,
 } from "@timenote/contracts";
-import {
-  App,
-  Button,
-  Empty,
-  Flex,
-  Input,
-  Popconfirm,
-  Select,
-  Space,
-  Table,
-  type TableColumnsType,
-  Tag,
-  Typography,
-} from "antd";
+import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Tag, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 import { errorMessage } from "../../api/client.js";
+import { RowActions } from "../../ui/RowActions.js";
 import { kindLabels } from "./eventDraft.js";
 import { nextOccurrence } from "./nextOccurrence.js";
 import { rangeText } from "./occurrenceText.js";
@@ -125,28 +113,29 @@ export function EventsList({
     {
       key: "actions",
       title: "操作",
+      width: 110,
       render: (_value, event) => (
-        <Space size={0}>
-          <Button type="link" onClick={() => onEdit(event)}>
-            编辑
-          </Button>
-          <Popconfirm
-            description="删除后订阅刷新时会移除对应日程。"
-            okButtonProps={{ danger: true }}
-            okText="删除"
-            title="删除事件"
-            onConfirm={() =>
-              void onRemove(event.id).then(
-                () => message.success("已删除"),
-                (error: unknown) => message.error(errorMessage(error))
-              )
-            }
-          >
-            <Button danger type="link">
-              删除
-            </Button>
-          </Popconfirm>
-        </Space>
+        <RowActions
+          actions={[
+            { key: "edit", label: "编辑", onClick: () => onEdit(event) },
+            {
+              key: "remove",
+              label: "删除",
+              danger: true,
+              confirm: {
+                title: "删除事件",
+                description: "删除后订阅刷新时会移除对应日程。",
+                okText: "删除",
+                okDanger: true,
+              },
+              onClick: () =>
+                void onRemove(event.id).then(
+                  () => message.success("已删除"),
+                  (error: unknown) => message.error(errorMessage(error))
+                ),
+            },
+          ]}
+        />
       ),
     },
   ];
