@@ -1,6 +1,7 @@
 import { eventDateIssues, todayIn } from "@timenote/calendar";
 import {
   type CalendarEvent,
+  defaultMilestoneTemplate,
   defaultTitleTemplates,
   type EventInput,
   eventInputSchema,
@@ -23,12 +24,44 @@ export function newDraft(kind: EventKind, timeZone: string, now = new Date()): E
     durationDays: 1,
     rules: { feb29: "feb28", leapMonth: "regular", missingDay: "lastDay" },
     alarms: [],
+    recurrence: { unit: "year", interval: 1, end: { type: "never" } },
+    gregorianMissingDay: "lastDay",
+    milestones: [],
+    milestoneTemplate: defaultMilestoneTemplate,
   };
 }
 
 export function draftFromEvent(event: CalendarEvent): EventInput {
-  const { kind, name, titleTemplate, titlePrefix, note, date, durationDays, rules, alarms } = event;
-  return { kind, name, titleTemplate, titlePrefix, note, date, durationDays, rules, alarms };
+  const {
+    kind,
+    name,
+    titleTemplate,
+    titlePrefix,
+    note,
+    date,
+    durationDays,
+    rules,
+    alarms,
+    recurrence,
+    gregorianMissingDay,
+    milestones,
+    milestoneTemplate,
+  } = event;
+  return {
+    kind,
+    name,
+    titleTemplate,
+    titlePrefix,
+    note,
+    date,
+    durationDays,
+    rules,
+    alarms,
+    recurrence,
+    gregorianMissingDay,
+    milestones,
+    milestoneTemplate,
+  };
 }
 
 function isDefaultTemplate(template: string) {

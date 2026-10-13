@@ -30,7 +30,7 @@ it("导入预览不写库，计数与实际导入一致（任务 8）", async ()
 
   const file: BackupFile = {
     format: "timenote-backup",
-    version: 1,
+    version: 2,
     exportedAt: new Date(h.clock.now).toISOString(),
     events: [
       { id: uuid(1), event: eventInput({ name: "覆盖已有" }) },

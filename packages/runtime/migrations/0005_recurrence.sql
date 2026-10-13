@@ -1,0 +1,3 @@
+-- 重复规则与里程碑：为已有事件回填默认值（每 1 年、永不结束；公历缺日落月末；无里程碑；默认里程碑模板）。
+-- 只改 payload，不改 revision、updatedAt，订阅内容与 ETag 保持不变；已有这些字段的事件不动。
+UPDATE event SET payload = json_set(payload, '$.recurrence', json('{"unit":"year","interval":1,"end":{"type":"never"}}'), '$.gregorianMissingDay', 'lastDay', '$.milestones', json('[]'), '$.milestoneTemplate', '{{name}}第 {{days}} 天') WHERE json_type(payload, '$.recurrence') IS NULL;

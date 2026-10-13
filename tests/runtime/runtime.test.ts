@@ -27,6 +27,7 @@ describe("迁移", () => {
       { name: "0002_feed_token" },
       { name: "0003_feed_event_ids_cleanup" },
       { name: "0004_list_indexes" },
+      { name: "0005_recurrence" },
     ]);
     expect(db.pragma("journal_mode", { simple: true })).toBe("wal");
     db.close();

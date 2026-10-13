@@ -9,15 +9,43 @@ import { parseEventInput } from "./parseEventInput.js";
 export function exportBackup(repo: OpenedRepository, ownerId: string, now: number): BackupFile {
   return {
     format: "timenote-backup",
-    version: 1,
+    version: 2,
     exportedAt: new Date(now).toISOString(),
     events: repo.events.listEvents(ownerId).map(event => ({ id: event.id, event: editableFields(event) })),
   };
 }
 
 function editableFields(event: CalendarEvent): EventInput {
-  const { kind, name, titleTemplate, titlePrefix, note, date, durationDays, rules, alarms } = event;
-  return { kind, name, titleTemplate, titlePrefix, note, date, durationDays, rules, alarms };
+  const {
+    kind,
+    name,
+    titleTemplate,
+    titlePrefix,
+    note,
+    date,
+    durationDays,
+    rules,
+    alarms,
+    recurrence,
+    gregorianMissingDay,
+    milestones,
+    milestoneTemplate,
+  } = event;
+  return {
+    kind,
+    name,
+    titleTemplate,
+    titlePrefix,
+    note,
+    date,
+    durationDays,
+    rules,
+    alarms,
+    recurrence,
+    gregorianMissingDay,
+    milestones,
+    milestoneTemplate,
+  };
 }
 
 interface ImportItem {

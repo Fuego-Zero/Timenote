@@ -8,13 +8,34 @@ export {
   calendarSystems,
   type EventKind,
   eventKinds,
+  extraBoundPerEvent,
   feb29Policies,
+  gregorianMissingDayPolicies,
   leapMonthPolicies,
   maxAlarms,
   maxDurationDays,
+  maxExtraFeedOccurrences,
+  maxFutureOccurrences,
+  maxInterval,
+  maxMilestoneDays,
+  maxMilestones,
+  maxPastOccurrences,
+  maxRecurrenceCount,
+  minCycleDays,
   missingDayPolicies,
+  recurrenceEndTypes,
+  type RecurrenceUnit,
+  recurrenceUnits,
 } from "./eventEnums.js";
-export { defaultTitleTemplates, templateIssue, templateVariables } from "./titleTemplate.js";
+export {
+  defaultMilestoneTemplate,
+  defaultRecurrenceTemplates,
+  defaultTitleTemplates,
+  templateIssue,
+  type TemplateVariable,
+  templateVariables,
+  usedVariables,
+} from "./titleTemplate.js";
 export {
   alarmSchema,
   type CalendarEvent,
@@ -22,7 +43,13 @@ export {
   eventInputSchema,
   eventRulesSchema,
   eventSchema,
+  isYearlyEveryYear,
+  milestoneVariables,
   originalDateSchema,
+  type Recurrence,
+  recurrenceEndSchema,
+  recurrenceSchema,
+  titleVariables,
 } from "./eventSchema.js";
 
 export const eventSorts = ["createdAt", "nextOccurrence"] as const;

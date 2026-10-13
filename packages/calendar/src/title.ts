@@ -11,7 +11,7 @@ export interface TitleSource {
  * 前缀幂等：渲染结果已以前缀开头时不再重复添加。
  */
 export function renderTitle(source: TitleSource, years: number | null) {
-  const problem = templateIssue(source.titleTemplate);
+  const problem = templateIssue(source.titleTemplate, ["name", "years"]);
   if (problem) {
     throw new Error(problem);
   }

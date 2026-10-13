@@ -35,7 +35,7 @@ test("编辑含 150 个事件的订阅：跨页勾选后保存，再次编辑全
     name: "backup.json",
     mimeType: "application/json",
     buffer: Buffer.from(
-      JSON.stringify({ format: "timenote-backup", version: 1, exportedAt: new Date().toISOString(), events })
+      JSON.stringify({ format: "timenote-backup", version: 2, exportedAt: new Date().toISOString(), events })
     ),
   });
   await page
