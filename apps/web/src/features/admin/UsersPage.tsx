@@ -1,8 +1,9 @@
-import type { PublicUser } from "@timenote/contracts";
+import { pageQuerySchema, type PublicUser } from "@timenote/contracts";
 import { Alert, App, Button, Space, Typography } from "antd";
 import { useState } from "react";
 
 import { errorMessage } from "../../api/client.js";
+import { useUrlState } from "../../ui/useUrlState.js";
 import { ResetPasswordModal } from "./ResetPasswordModal.js";
 import { UserFormModal } from "./UserFormModal.js";
 import { UsersTable } from "./UsersTable.js";
@@ -11,7 +12,8 @@ import { useUsers } from "./useUsers.js";
 /** 管理员后台：账号的创建、停用/启用、角色、重置密码与删除；不展示其他账号的事件和订阅。 */
 export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
   const { message } = App.useApp();
-  const users = useUsers();
+  const [query, setQuery] = useUrlState(pageQuerySchema);
+  const users = useUsers(query);
   const [creating, setCreating] = useState(false);
   const [resetting, setResetting] = useState<PublicUser>();
 
@@ -21,6 +23,16 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
       void message.success(success);
     } catch (error) {
       void message.error(errorMessage(error));
+    }
+  }
+
+  async function remove(id: string) {
+    await users.remove(id);
+    // 删除当前页最后一条且不在第一页时退回上一页，避免停在空页。
+    if (users.page?.items.length === 1 && query.page > 1) {
+      setQuery({ page: query.page - 1 });
+    } else {
+      users.reload();
     }
   }
 
@@ -37,9 +49,11 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
       {users.error ? <Alert showIcon title={errorMessage(users.error)} type="error" /> : null}
       <UsersTable
         currentUserId={currentUser.id}
-        loading={!users.users && !users.error}
-        users={users.users ?? []}
-        onRemove={user => void run(() => users.remove(user.id), "账号已删除")}
+        loading={!users.page && !users.error}
+        page={users.page}
+        query={query}
+        onQueryChange={setQuery}
+        onRemove={user => void run(() => remove(user.id), "账号已删除")}
         onResetPassword={user => setResetting(user)}
         onToggleDisabled={user =>
           void run(
@@ -48,10 +62,7 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
           )
         }
         onToggleRole={user =>
-          void run(
-            () => users.update(user.id, { role: user.role === "admin" ? "user" : "admin" }),
-            "角色已更新"
-          )
+          void run(() => users.update(user.id, { role: user.role === "admin" ? "user" : "admin" }), "角色已更新")
         }
       />
       <UserFormModal
@@ -61,6 +72,7 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
         onSubmit={async input => {
           await users.create(input);
           setCreating(false);
+          setQuery({ page: 1 });
           void message.success("账号已创建");
         }}
       />

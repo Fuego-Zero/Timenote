@@ -1,4 +1,9 @@
-import { createUserInputSchema, resetPasswordInputSchema, updateUserInputSchema } from "@timenote/contracts";
+import {
+  createUserInputSchema,
+  pageQuerySchema,
+  resetPasswordInputSchema,
+  updateUserInputSchema,
+} from "@timenote/contracts";
 import { z } from "zod";
 
 import { createUser, deleteUser, resetPassword, toPublicUser, updateUser } from "../accounts.js";
@@ -12,7 +17,8 @@ export function registerUsers(ctx: ApiContext) {
   const { app, config, repo } = ctx;
   app.get("/api/admin/users", req => {
     requireAdmin(req);
-    return { users: repo.users.listUsers().map(toPublicUser) };
+    const page = repo.users.listUsersPage(pageQuerySchema.parse(req.query));
+    return { ...page, items: page.items.map(toPublicUser) };
   });
 
   app.post("/api/admin/users", async (req, reply) => {
