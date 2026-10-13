@@ -10,7 +10,7 @@
 
 ## 添加订阅
 
-1. 网页「订阅」→ 输入设备名「我的手机」→「创建订阅地址」→「复制 HTTPS 地址」。
+1. 网页「订阅」→「创建订阅地址」→ 在弹窗中填写订阅名称「我的手机」→「创建」→ 在列表中点「复制 HTTPS 地址」。
 2. 按客户端添加订阅：
    - 苹果日历：「日历」App →「日历」→「添加日历」→「添加订阅日历」→ 粘贴地址 → 订阅；或在设备上打开网页，点「用日历 App 打开」（webcal 链接）。参考 [Apple 支持](https://support.apple.com/zh-cn/guide/iphone/iph3d1110d4/ios)。
    - Google 日历：仅电脑网页版支持，「其他日历」旁的 ＋ →「通过网址添加」→ 粘贴 HTTPS 地址。参考 [Google 日历帮助](https://support.google.com/calendar/answer/37100?hl=zh-Hans)。
