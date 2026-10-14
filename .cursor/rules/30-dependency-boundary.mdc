@@ -1,0 +1,97 @@
+---
+description: 通用依赖方向、包边界、第三方 SDK 与公共 API 规则。
+globs:
+  - "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# 依赖边界规则
+
+## 1. 依赖朝稳定方向流动
+
+高层业务不要依赖低层实现细节。
+
+优先：
+
+```text
+入口
+→ 业务
+→ 边界接口
+→ 基础设施实现
+```
+
+而不是业务代码直接散落第三方 SDK。
+
+## 2. 禁止循环依赖
+
+发现循环依赖时，不要通过：
+
+- 动态 require
+- 延迟 import
+- barrel 调整
+
+掩盖问题。
+
+应重新检查职责和依赖方向。
+
+## 3. 第三方 SDK 隔离
+
+以下类型依赖应有明确边界：
+
+- ORM
+- HTTP SDK
+- Cloud SDK
+- Agent SDK
+- 支付
+- Storage
+- Analytics
+
+不要让第三方类型污染整个业务系统。
+
+但不要重新包装第三方的全部 API，只封装当前真正使用的部分。
+
+## 4. Public API
+
+每个 package/module 应有明确公共 API。
+
+消费者不要：
+
+```text
+package/src/internal/foo
+```
+
+deep import 内部实现。
+
+## 5. Barrel
+
+Barrel export 可用于稳定公共 API。
+
+禁止：
+
+- 每层目录都建 index
+- 导出全部内部实现
+- 通过 barrel 形成循环依赖
+- 为了少写 import 路径扩大 public surface
+
+## 6. Cross-module
+
+跨模块通信优先依赖：
+
+- 稳定 contract
+- service public API
+- event（确有异步解耦需求时）
+
+不要直接读写其他模块内部 repository / state。
+
+## 7. 框架边界
+
+Web framework、UI framework、ORM、Agent SDK 等不应决定业务模型。
+
+业务层尽量不依赖：
+
+- Request / Response
+- React component
+- Prisma generated model
+- SDK-specific context
+
+除非该模块本身就是对应边界层。

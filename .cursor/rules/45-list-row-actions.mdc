@@ -1,0 +1,50 @@
+---
+description: 列表（Table）行内操作列的统一规范：RowActions、确认、标红与列宽。
+globs:
+  - "apps/web/src/**/*.tsx"
+alwaysApply: false
+---
+
+# 列表行内操作
+
+## 1. 统一入口
+
+所有 Table 的操作列一律用 `apps/web/src/ui/RowActions.tsx` 渲染，列 `key` 为 `"actions"`，`title` 为 `"操作"`，必须写 `width`。
+
+## 2. 内部写法
+
+- `Space size={0} separator={<Divider orientation="vertical" />}`。
+- 每个操作是 `Button type="link" size="small"`，`style={{ paddingInline: 0 }}`。
+- 外链用 `href`；置灰原因用 `Tooltip` 包一层 `span`。
+- 不要用已弃用的 `split`、`direction` 和 Divider `type`。
+
+## 3. 文案
+
+用 2–4 个字的动词短语，全站同一个动作用同一个词。
+
+## 4. 标红
+
+- 只有不可恢复的操作（删除、撤销）按钮标红（`danger`）；按钮标红的操作必须带确认（类型层面由判别联合强制）。
+- 会让他人失效、会影响外部的操作（轮换、停用/启用、改角色）也要确认，但按钮不标红。
+
+## 5. 确认
+
+- 确认一律用 Popconfirm，写全 `title`、`description`、`okText`。
+- ok 是否标红由 `okDanger` 显式决定：只有删除、撤销为 `true`，其余为 `false`。
+
+## 6. 列宽
+
+- 列宽 = 字数 × 14 + 按钮数 × 2 + (按钮数 − 1) × 17 + 32，然后向上取整到 10。
+- 文案会随状态切换的，按最长的组合算。
+- 最终以 1440 宽度下实测为准；放不下就调宽，不缩字号，不用 `fixed: "right"` 掩盖。
+
+## 7. 自检
+
+- [ ] 用了 RowActions。
+- [ ] 写了 width。
+- [ ] 在 1440 下不折行。
+- [ ] 标红的按钮带确认。
+- [ ] ok 红只给删除、撤销。
+- [ ] 文案 2–4 字。
+- [ ] 没有弃用 API。
+- [ ] 当前登录账号等不能操作的行，置灰时带 Tooltip 说明原因。

@@ -1,0 +1,29 @@
+{
+  "name": "岁时记 Timenote",
+  "short_name": "岁时记",
+  "description": "维护生日、纪念日和跨天事件，用私密 ICS 地址订阅到任意支持订阅的日历（苹果日历、Google 日历、Outlook 等）。",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#d6246e",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  -webkit-text-size-adjust: 100%;
+}
+
+.event-title {
+  white-space: pre-wrap;
+  word-break: break-word;
+}

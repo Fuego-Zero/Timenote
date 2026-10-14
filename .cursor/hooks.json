@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "node .cursor/hooks/afterAgent.mjs"
+      }
+    ],
+    "stop": [
+      {
+        "command": "node .cursor/hooks/afterAgent.mjs",
+        "timeout": 30,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

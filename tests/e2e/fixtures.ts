@@ -1,0 +1,64 @@
+import { expect, type Locator, type Page } from "@playwright/test";
+
+export const adminPassword = "e2e-admin-password";
+
+export async function login(page: Page, username = "admin", password = adminPassword) {
+  await page.goto("/");
+  const setupTitle = page.getByRole("heading", { name: "首次设置管理员" });
+  const loginButton = page.getByRole("button", { name: "登 录" });
+  // 会话与引导状态加载完前只有 Spin；等引导页或登录页任一出现后再分支。
+  await expect(setupTitle.or(loginButton)).toBeVisible();
+  if (await setupTitle.isVisible()) {
+    await page.getByLabel("用户名").fill(username);
+    await page.getByLabel("密码").fill(password);
+    await page.getByRole("button", { name: "创建并进入" }).click();
+    await expect(page.getByRole("tab", { name: "事件" })).toBeVisible();
+    return;
+  }
+
+  await page.getByLabel("用户名").fill(username);
+  await page.getByLabel("密码").fill(password);
+  await loginButton.click();
+  await expect(page.getByRole("tab", { name: "事件" })).toBeVisible();
+}
+
+export async function logout(page: Page, displayName: string) {
+  await page.getByRole("banner").getByRole("button", { name: displayName, exact: true }).click();
+  await page.getByText("退出登录").click();
+  await expect(page.getByRole("button", { name: "登 录" })).toBeVisible();
+}
+
+/** antd Select 使用虚拟列表，靠后的选项不在 DOM 里；用键盘移动高亮项直到命中再回车。 */
+export async function pickOption(page: Page, select: Locator, label: string) {
+  await select.click();
+  await expect(select).toHaveAttribute("aria-expanded", "true");
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    // 月、日下拉会同时留在 DOM 里且选项 id 重复，只读当前可见列表的高亮项。
+    const active = page
+      .locator(".ant-select-dropdown")
+      .filter({ visible: true })
+      .last()
+      .locator(".ant-select-item-option-active");
+    const current = (await active.getAttribute("aria-label")) ?? (await active.getAttribute("title"));
+    if (current === label) {
+      await page.keyboard.press("Enter");
+      await expect(select).toHaveAttribute("aria-expanded", "false");
+      return;
+    }
+
+    await page.keyboard.press("ArrowDown");
+  }
+
+  throw new Error(`下拉框里找不到选项：${label}`);
+}
+
+/** 收集 CSP 违规；页面使用 nonce，任何内联脚本或样式被拦截都应视为失败。 */
+export function watchCsp(page: Page) {
+  const violations: string[] = [];
+  page.on("console", message => {
+    if (message.text().includes("Content Security Policy")) {
+      violations.push(message.text());
+    }
+  });
+  return violations;
+}

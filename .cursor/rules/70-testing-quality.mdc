@@ -1,0 +1,103 @@
+---
+description: 测试、质量门禁、回归与 CI 通用规范。
+globs:
+  - "**/*.{js,jsx,ts,tsx}"
+alwaysApply: false
+---
+
+# Testing / Quality
+
+## 1. 测试关注行为
+
+优先测试：
+
+- 业务规则
+- 公共契约
+- 错误边界
+- 权限
+- 数据转换
+- 集成边界
+
+不要大量测试框架本身已经保证的实现细节。
+
+## 2. Bug Fix
+
+修复 Bug 时优先补一个能复现问题的回归测试。
+
+## 3. Unit / Integration / E2E 分层
+
+### Unit
+- 快
+- 无真实外部依赖
+- 验证纯逻辑和稳定 contract
+
+### Integration
+- 验证数据库、外部 Client、文件、模块边界
+
+### E2E
+- 验证真实用户链路
+
+不要用 mock 集成测试冒充 E2E。
+
+## 4. Mock
+
+只 mock 真正边界：
+
+- 外部 API
+- 时间
+- 随机
+- 文件
+- DB（仅 unit 场景）
+
+不要把被测试业务本身 mock 掉。
+
+## 5. Flaky Test
+
+不接受通过：
+
+- sleep 增大等待
+- 重跑多次
+
+长期掩盖 flaky。
+
+应找出：
+
+- 竞态
+- 状态污染
+- 不稳定外部依赖
+
+## 6. Quality Commands
+
+项目应提供统一命令：
+
+```text
+lint
+format:check
+typecheck
+test
+build
+```
+
+具体工具由项目决定。
+
+## 7. CI
+
+最小 CI：
+
+```text
+install
+→ lint
+→ typecheck
+→ test
+→ build
+```
+
+真实外部 E2E 可单独 pipeline。
+
+## 8. Coverage
+
+Coverage 是信号，不是目标。
+
+不要为了百分比写无业务价值测试。
+
+关键业务路径和错误路径优先。

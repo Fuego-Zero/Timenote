@@ -1,0 +1,10 @@
+---
+description: timemark-docker 只读参考，禁止修改
+alwaysApply: true
+---
+
+# timemark-docker 只读
+
+学习和理解纪念日、生日、农历提醒和日历订阅的产品功能时，参考仓库外的 `D:\Own\timemark-docker`（上游 `WXFffff666/timemark-docker`，固定在提交 `6c14f3e`）。它只说明“做了什么”，不说明“应该怎么做”：实现落在本仓库，以本仓库的 `packages/contracts`、`packages/calendar` 和 `docs/anniversary-rules.md` 为准，不照搬其代码结构、数据模型或已知缺陷。
+
+不要修改 `timemark-docker` 内任何文件，包括代码、配置、依赖和文档。不要在其中加功能、修 bug、改格式、安装依赖或提交。
