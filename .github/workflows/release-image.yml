@@ -58,6 +58,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: 读取版本号
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: 计算镜像标签
         id: tag
         env:
@@ -77,6 +81,7 @@ jobs:
           cache-to: type=gha,mode=max,ignore-error=true
           tags: |
             ${{ env.IMAGE_REPOSITORY }}:latest
+            ${{ env.IMAGE_REPOSITORY }}:${{ steps.version.outputs.version }}
             ${{ env.IMAGE_REPOSITORY }}:${{ github.event.pull_request.merge_commit_sha }}
 
   deploy:
@@ -92,7 +97,18 @@ jobs:
       - name: 检出部署文件
         uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.event.pull_request.merge_commit_sha || inputs.image_sha || github.sha }}
+
+      - name: 读取版本号
+        id: version
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./package.json').version")"
+          if [[ ! "$version" =~ ^[0-9A-Za-z][0-9A-Za-z_.-]*$ ]]; then
+            echo "package.json 的 version 不能作为镜像标签" >&2
+            exit 1
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
 
       - name: 配置 SSH
         env:
@@ -114,7 +130,8 @@ jobs:
           COMPOSE_PROJECT_NAME: ${{ secrets.COMPOSE_PROJECT_NAME }}
           GHCR_USER: ${{ secrets.GHCR_USER }}
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          TIMENOTE_IMAGE: ${{ needs.build.outputs.image || format('{0}:{1}', 'ghcr.io/fuego-zero/timenote', inputs.image_sha) }}
+          GHCR_IMAGE: ${{ needs.build.outputs.image || format('{0}:{1}', 'ghcr.io/fuego-zero/timenote', inputs.image_sha) }}
+          TIMENOTE_VERSION: ${{ steps.version.outputs.version }}
         run: |
           set -euo pipefail
           if [[ ! "$SSH_PORT" =~ ^[0-9]+$ ]]; then
@@ -137,8 +154,12 @@ jobs:
             echo "GHCR_USER 含有不允许的字符" >&2
             exit 1
           fi
-          if [[ ! "$TIMENOTE_IMAGE" =~ ^ghcr\.io/fuego-zero/timenote:[0-9a-f]{40}$ ]]; then
+          if [[ ! "$GHCR_IMAGE" =~ ^ghcr\.io/fuego-zero/timenote:[0-9a-f]{40}$ ]]; then
             echo "镜像标签必须是 ghcr.io/fuego-zero/timenote: 加 40 位 sha" >&2
+            exit 1
+          fi
+          if [[ ! "$TIMENOTE_VERSION" =~ ^[0-9A-Za-z][0-9A-Za-z_.-]*$ ]]; then
+            echo "版本号不能作为镜像标签" >&2
             exit 1
           fi
 
@@ -167,13 +188,14 @@ jobs:
           set -euo pipefail
           cd $(printf '%q' "$DEPLOY_PATH")
           export COMPOSE_PROJECT_NAME=$(printf '%q' "$COMPOSE_PROJECT_NAME")
-          export TIMENOTE_IMAGE=$(printf '%q' "$TIMENOTE_IMAGE")
+          export TIMENOTE_IMAGE=timenote:$(printf '%q' "$TIMENOTE_VERSION")
           test -f .env
           # 容器内 node 用户是 uid 1000。绑定目录必须先交给它，否则写不了数据库。
           mkdir -p data
           chown 1000:1000 data
           chmod 700 data
-          docker compose --project-directory $(printf '%q' "$DEPLOY_PATH") -f /tmp/timenote-compose.yml pull
+          docker pull $(printf '%q' "$GHCR_IMAGE")
+          docker tag $(printf '%q' "$GHCR_IMAGE") "timenote:$(printf '%q' "$TIMENOTE_VERSION")"
           cp /tmp/timenote-compose.yml $(printf '%q' "$DEPLOY_PATH")/compose.yml
           rm -f /tmp/timenote-compose.yml
           docker compose up -d --wait --wait-timeout 180
