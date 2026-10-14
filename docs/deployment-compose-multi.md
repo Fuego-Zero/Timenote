@@ -1,4 +1,4 @@
-# Timenote 多容器 Compose 部署方案（草案）
+# 岁时记 Timenote 多容器 Compose 部署方案（草案）
 
 > 状态：**仅方案，未改** `compose.yml` / `Dockerfile` / 应用代码。  
 > **口径（覆盖此前「宿主机 Nginx 进方案主路径」）**：

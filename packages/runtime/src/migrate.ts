@@ -25,7 +25,7 @@ export function migrate(path: string) {
       .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
       .all() as { name: string }[];
     if (existingTables.length && !existingTables.some(row => row.name === "schema_migration")) {
-      throw new Error("数据库存在未登记的表，拒绝自动迁移；请确认 SQLITE_PATH 指向 Timenote 数据库");
+      throw new Error("数据库存在未登记的表，拒绝自动迁移；请确认 SQLITE_PATH 指向岁时记（Timenote）数据库");
     }
 
     db.exec(

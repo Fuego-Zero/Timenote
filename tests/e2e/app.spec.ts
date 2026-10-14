@@ -5,8 +5,8 @@ import { login, logout, pickOption, watchCsp } from "./fixtures.js";
 test("管理员建号，新账号新建农历生日、预览并通过订阅地址拿到 ICS", async ({ page, request }) => {
   const violations = watchCsp(page);
   await login(page);
-  await expect(page).toHaveTitle("Timenote 纪念日");
-  await expect(page.getByRole("banner")).toContainText("Timenote 纪念日");
+  await expect(page).toHaveTitle("岁时记 Timenote");
+  await expect(page.getByRole("banner")).toContainText("岁时记 Timenote");
 
   await page.getByRole("tab", { name: "账号管理" }).click();
   await page.getByRole("button", { name: "新建账号" }).click();

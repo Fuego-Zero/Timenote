@@ -20,7 +20,7 @@ export async function readBackupFile(file: File): Promise<BackupFile> {
 
   const parsed = backupFileSchema.safeParse(raw);
   if (!parsed.success) {
-    throw new BackupImportError("文件不是有效的 Timenote 备份");
+    throw new BackupImportError("文件不是有效的岁时记（Timenote）备份");
   }
 
   return parsed.data;
