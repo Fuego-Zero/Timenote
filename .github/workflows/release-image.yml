@@ -1,0 +1,181 @@
+# PR 合并进 main 之后编译镜像、推到 GHCR，再 SSH 到搬瓦工拉起容器。
+# 直接推送 main 或其他分支不会发布。回滚只在 main 上手动指定已发布的 sha。
+# 服务器上不克隆仓库。密钥见 docs/deployment.md 的「发布」。
+
+name: release-image
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      image_sha:
+        description: 回滚到已发布镜像的 40 位提交 sha
+        required: true
+        type: string
+
+concurrency:
+  group: release-image
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE_REPOSITORY: ghcr.io/fuego-zero/timenote
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.tag.outputs.image }}
+    steps:
+      - name: 确认合并提交
+        env:
+          RELEASE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "缺少 merge_commit_sha。合并 main 时请使用 Merge commit 或 Squash and merge。" >&2
+            exit 1
+          fi
+
+      - name: 检出合并后的 main
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+
+      - name: 准备 Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: 登录 GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 计算镜像标签
+        id: tag
+        env:
+          RELEASE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: echo "image=${IMAGE_REPOSITORY}:${RELEASE_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: 构建并推送镜像
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64
+          # 关闭 provenance，避免 GHCR 额外的证明权限；发布只依赖 packages:write。
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ${{ env.IMAGE_REPOSITORY }}:latest
+            ${{ env.IMAGE_REPOSITORY }}:${{ github.event.pull_request.merge_commit_sha }}
+
+  deploy:
+    needs: build
+    if: >
+      always() &&
+      (
+        (github.event.pull_request.merged == true && needs.build.result == 'success') ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && needs.build.result == 'skipped')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出部署文件
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha || github.sha }}
+
+      - name: 配置 SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" | tr -d '\r' > "$HOME/.ssh/timenote_deploy"
+          chmod 600 "$HOME/.ssh/timenote_deploy"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" | tr -d '\r' > "$HOME/.ssh/known_hosts"
+
+      - name: 备份、拉取并启动
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_PORT: ${{ secrets.SSH_PORT }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          COMPOSE_PROJECT_NAME: ${{ secrets.COMPOSE_PROJECT_NAME }}
+          GHCR_USER: ${{ secrets.GHCR_USER }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          TIMENOTE_IMAGE: ${{ needs.build.outputs.image || format('{0}:{1}', 'ghcr.io/fuego-zero/timenote', inputs.image_sha) }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$SSH_PORT" =~ ^[0-9]+$ ]]; then
+            echo "SSH_PORT 必须是端口号" >&2
+            exit 1
+          fi
+          if [[ ! "$SSH_USER" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "SSH_USER 含有不允许的字符" >&2
+            exit 1
+          fi
+          if [[ ! "$DEPLOY_PATH" =~ ^/[A-Za-z0-9._/-]+$ ]]; then
+            echo "DEPLOY_PATH 必须是不含空格的绝对路径" >&2
+            exit 1
+          fi
+          if [[ ! "$COMPOSE_PROJECT_NAME" =~ ^[A-Za-z0-9_-]+$ ]]; then
+            echo "COMPOSE_PROJECT_NAME 含有不允许的字符" >&2
+            exit 1
+          fi
+          if [[ ! "$GHCR_USER" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "GHCR_USER 含有不允许的字符" >&2
+            exit 1
+          fi
+          if [[ ! "$TIMENOTE_IMAGE" =~ ^ghcr\.io/fuego-zero/timenote:[0-9a-f]{40}$ ]]; then
+            echo "镜像标签必须是 ghcr.io/fuego-zero/timenote: 加 40 位 sha" >&2
+            exit 1
+          fi
+
+          remote="${SSH_USER}@${SSH_HOST}"
+          ssh_opts=(-p "$SSH_PORT" -i "$HOME/.ssh/timenote_deploy" -o UserKnownHostsFile="$HOME/.ssh/known_hosts")
+          stamp="$(date -u +%Y%m%d%H%M%S)"
+
+          # 首次部署没有正在运行的容器，跳过备份。
+          ssh "${ssh_opts[@]}" "$remote" "bash -s" <<EOF
+          set -euo pipefail
+          cd $(printf '%q' "$DEPLOY_PATH")
+          export COMPOSE_PROJECT_NAME=$(printf '%q' "$COMPOSE_PROJECT_NAME")
+          if [ -f compose.yml ] && [ -n "\$(docker compose ps --status running -q app)" ]; then
+            docker compose exec -T -e SQLITE_BACKUP_PATH=/data/backup-${stamp}.sqlite app node --import tsx scripts/backup.ts
+          fi
+          EOF
+
+          # scp 的端口是大写 -P，不能复用 ssh 的 -p。先放到 /tmp，拉取成功后再覆盖正式 Compose。
+          scp -P "$SSH_PORT" -i "$HOME/.ssh/timenote_deploy" -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            deploy/compose.yml "$remote:/tmp/timenote-compose.yml"
+
+          printf '%s\n' "$GHCR_TOKEN" | ssh "${ssh_opts[@]}" "$remote" \
+            "docker login ghcr.io -u $(printf '%q' "$GHCR_USER") --password-stdin"
+
+          ssh "${ssh_opts[@]}" "$remote" "bash -s" <<EOF
+          set -euo pipefail
+          cd $(printf '%q' "$DEPLOY_PATH")
+          export COMPOSE_PROJECT_NAME=$(printf '%q' "$COMPOSE_PROJECT_NAME")
+          export TIMENOTE_IMAGE=$(printf '%q' "$TIMENOTE_IMAGE")
+          test -f .env
+          # 容器内 node 用户是 uid 1000。绑定目录必须先交给它，否则写不了数据库。
+          mkdir -p data
+          chown 1000:1000 data
+          chmod 700 data
+          docker compose --project-directory $(printf '%q' "$DEPLOY_PATH") -f /tmp/timenote-compose.yml pull
+          cp /tmp/timenote-compose.yml $(printf '%q' "$DEPLOY_PATH")/compose.yml
+          rm -f /tmp/timenote-compose.yml
+          docker compose up -d --wait --wait-timeout 180
+          docker compose ps
+          docker logout ghcr.io || true
+          EOF

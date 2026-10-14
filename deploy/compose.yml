@@ -1,0 +1,32 @@
+# 正式发布用的 Compose。GitHub Actions 会把它上传到服务器的 DEPLOY_PATH。
+# 镜像标签由发布脚本注入 TIMENOTE_IMAGE。这里不写 build，服务器上没有源码。
+# 不要在这里写 name：容器项目名由 COMPOSE_PROJECT_NAME 指定。
+# 数据库和日志在部署目录的 ./data，对应宿主机 $DEPLOY_PATH/data。
+
+services:
+  app:
+    image: ${TIMENOTE_IMAGE:?未设置 TIMENOTE_IMAGE}
+    env_file:
+      - .env
+
+    environment:
+      NODE_ENV: production
+      SQLITE_PATH: /data/timenote.sqlite
+      LOG_DIR: /data/logs
+      WEB_BIND_HOST: 0.0.0.0
+      WEB_PORT: 8720
+      API_PORT: 8721
+
+    # 只绑定本机回环；公网访问由同机的 HTTPS 反向代理转发到 127.0.0.1:8720。
+    ports:
+      - "127.0.0.1:8720:8720"
+
+    volumes:
+      - ./data:/data
+
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 20s
+
+    security_opt:
+      - no-new-privileges:true

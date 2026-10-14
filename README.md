@@ -59,12 +59,7 @@ pnpm verify       # 以上全部，并在 .tmp/verification-results/latest 保�
 
 ## 部署
 
-单实例 Docker + 命名卷持久化；Compose 暴露端口，**HTTPS / Nginx / 证书由部署方自理**（示例见 [deploy/nginx.example.conf](deploy/nginx.example.conf)）。详见[部署说明](docs/deployment.md)与[安全说明](docs/security.md)。
-
-```sh
-cp .env.example .env   # 改为 production、https 的 WEB_ORIGIN 和强随机管理员密码
-docker compose up -d --build
-```
+单实例 Docker + 命名卷持久化。发布由 GitHub Actions 完成：Pull Request 合并进 `main` 后编译镜像并推到 `ghcr.io/fuego-zero/timenote`，再 SSH 到服务器拉取启动。服务器上不克隆仓库。HTTPS / 证书由部署方自理（示例见 [deploy/nginx.example.conf](deploy/nginx.example.conf)）。密钥、首次切换和回滚见[部署说明](docs/deployment.md)，安全约束见[安全说明](docs/security.md)。
 
 ## AI 工程
 
