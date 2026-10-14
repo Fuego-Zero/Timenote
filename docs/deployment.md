@@ -98,7 +98,7 @@ docker compose start app
 
 ## 发布
 
-正式发布不在服务器上拉取仓库或构建镜像。Pull Request 合并进 `main` 之后，[`.github/workflows/release-image.yml`](../.github/workflows/release-image.yml) 才在 GitHub Actions 中编译 `linux/amd64` 镜像，推到 `ghcr.io/fuego-zero/timenote`（同时打 `latest` 和合并提交的 40 位 sha），再 SSH 到服务器：先做 SQLite 备份，拉取镜像，成功后才用 [`deploy/compose.yml`](../deploy/compose.yml) 替换目录里的 Compose 并 `up`。直接推送到 `main` 或其他分支不会发布。拉取失败时，服务器上原来的 Compose 和正在运行的容器保持不动。镜像里包含应用源码，包保持 Private。合并请使用 Merge commit 或 Squash and merge，这样镜像标签才是 `main` 上的那次提交。
+正式发布不在服务器上拉取仓库或构建镜像。Pull Request 合并进 `main` 之后，[`.github/workflows/release-image.yml`](../.github/workflows/release-image.yml) 才在 GitHub Actions 中编译 `linux/amd64` 镜像，推到 `ghcr.io/fuego-zero/timenote`（同时打 `latest`、`package.json` 的 `version` 和合并提交的 40 位 sha），再 SSH 到服务器：先做 SQLite 备份，按 sha 拉取镜像，在本地标成 `timenote:{版本号}` 后才用 [`deploy/compose.yml`](../deploy/compose.yml) 替换目录里的 Compose 并 `up`。直接推送到 `main` 或其他分支不会发布。拉取失败时，服务器上原来的 Compose 和正在运行的容器保持不动。镜像里包含应用源码，包保持 Private。合并请使用 Merge commit 或 Squash and merge，这样镜像标签才是 `main` 上的那次提交。要更换 `docker ps` 里的版本号，修改仓库根目录 `package.json` 的 `version` 后再合并。
 
 服务器目录里放 `.env` 和由 Actions 上传的 Compose。数据库与日志在该目录的 `data/` 子目录（容器内仍是 `/data`），不使用 Docker 命名卷。`DEPLOY_PATH` 填这个目录的绝对路径。Actions 用密钥 `COMPOSE_PROJECT_NAME` 固定项目名，不要在 `deploy/compose.yml` 里写 `name`。目录里还没有正在运行的容器时，发布会跳过 SQLite 备份。
 

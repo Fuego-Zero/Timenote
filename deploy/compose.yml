@@ -1,11 +1,12 @@
 # 正式发布用的 Compose。GitHub Actions 会把它上传到服务器的 DEPLOY_PATH。
-# 镜像标签由发布脚本注入 TIMENOTE_IMAGE。这里不写 build，服务器上没有源码。
+# 镜像标签由发布脚本注入。服务器上显示为 timenote:{版本号}，版本号来自仓库 package.json 的 version。
 # 不要在这里写 name：容器项目名由 COMPOSE_PROJECT_NAME 指定。
 # 数据库和日志在部署目录的 ./data，对应宿主机 $DEPLOY_PATH/data。
 
 services:
   app:
     image: ${TIMENOTE_IMAGE:?未设置 TIMENOTE_IMAGE}
+    container_name: timenote
     env_file:
       - .env
 
