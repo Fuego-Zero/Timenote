@@ -9,37 +9,17 @@ export function AccountModal({
   open,
   onClose,
   onUserChange,
-  forcePasswordChange = false,
 }: {
   user: PublicUser;
   open: boolean;
   onClose: () => void;
   onUserChange: (user: PublicUser) => void;
-  forcePasswordChange?: boolean;
 }) {
   return (
-    <Modal
-      destroyOnHidden
-      closable={!forcePasswordChange}
-      footer={null}
-      keyboard={!forcePasswordChange}
-      maskClosable={!forcePasswordChange}
-      open={open}
-      title={forcePasswordChange ? "请先修改初始密码" : "账号设置"}
-      onCancel={forcePasswordChange ? undefined : onClose}
-    >
-      {forcePasswordChange ? null : (
-        <>
-          <ProfileForm user={user} onUserChange={onUserChange} />
-          <Divider />
-        </>
-      )}
-      <ChangePasswordForm
-        forcePasswordChange={forcePasswordChange}
-        user={user}
-        onDone={onClose}
-        onUserChange={onUserChange}
-      />
+    <Modal destroyOnHidden footer={null} open={open} title="账号设置" onCancel={onClose}>
+      <ProfileForm user={user} onUserChange={onUserChange} />
+      <Divider />
+      <ChangePasswordForm />
     </Modal>
   );
 }

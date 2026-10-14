@@ -1,4 +1,3 @@
-import type { PublicUser } from "@timenote/contracts";
 import { App, Button, Form, Input } from "antd";
 import { useState } from "react";
 
@@ -9,17 +8,7 @@ interface PasswordValues {
   newPassword: string;
 }
 
-export function ChangePasswordForm({
-  user,
-  onUserChange,
-  forcePasswordChange = false,
-  onDone,
-}: {
-  user: PublicUser;
-  onUserChange: (user: PublicUser) => void;
-  forcePasswordChange?: boolean;
-  onDone?: () => void;
-}) {
+export function ChangePasswordForm() {
   const { message } = App.useApp();
   const [form] = Form.useForm<PasswordValues>();
   const [saving, setSaving] = useState(false);
@@ -29,11 +18,7 @@ export function ChangePasswordForm({
     try {
       await api("/auth/password", "POST", values);
       form.resetFields();
-      onUserChange({ ...user, mustChangePassword: false });
       void message.success("密码已修改，其他设备需要重新登录");
-      if (forcePasswordChange) {
-        onDone?.();
-      }
     } catch (error) {
       if (error instanceof ApiRequestError && error.fields.currentPassword) {
         form.setFields([{ name: "currentPassword", errors: [error.fields.currentPassword] }]);

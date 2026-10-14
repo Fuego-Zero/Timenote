@@ -30,8 +30,6 @@ export const publicUserSchema = z.object({
   role: z.enum(roles),
   disabled: z.boolean(),
   timeZone: z.string(),
-  /** 为 true 时首次登录须改密，改密后清除。 */
-  mustChangePassword: z.boolean().default(false),
   createdAt: z.int(),
   updatedAt: z.int(),
 });

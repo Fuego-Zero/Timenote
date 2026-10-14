@@ -4,7 +4,6 @@ import { z } from "zod";
 /** 数据库 payload 的运行时 Schema；读出时校验，防止脏数据进入业务逻辑。 */
 export const storedUserSchema = publicUserSchema.extend({
   passwordHash: z.string().startsWith("scrypt$"),
-  mustChangePassword: z.boolean().default(false),
 });
 export type StoredUser = z.infer<typeof storedUserSchema>;
 

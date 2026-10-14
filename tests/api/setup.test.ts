@@ -60,7 +60,7 @@ describe("首次引导 setup", () => {
       displayName: "主人",
     });
     expect(created.status).toBe(200);
-    expect(created.json.user).toMatchObject({ username: "owner", role: "admin", mustChangePassword: false });
+    expect(created.json.user).toMatchObject({ username: "owner", role: "admin" });
     expect(String(created.headers["set-cookie"])).toMatch(/timenote\.session=/);
     expect((await b.request("GET", "/api/events")).status).toBe(200);
     expect((await b.request("GET", "/api/setup")).json).toMatchObject({ needed: false });

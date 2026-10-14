@@ -9,7 +9,6 @@ export function toPublicUser(user: StoredUser): PublicUser {
     role: user.role,
     disabled: user.disabled,
     timeZone: user.timeZone,
-    mustChangePassword: Boolean(user.mustChangePassword),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

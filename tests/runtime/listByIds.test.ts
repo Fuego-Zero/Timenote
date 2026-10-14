@@ -19,7 +19,6 @@ it("listEventsByIds 不截断：json_each 传参，超过 SQLite 变量上限的
     role: "user",
     disabled: false,
     timeZone: "Asia/Shanghai",
-    mustChangePassword: false,
     createdAt: 1,
     updatedAt: 1,
     passwordHash: "scrypt$test",
