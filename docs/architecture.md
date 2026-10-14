@@ -20,7 +20,7 @@ apps/web  Node HTTP 服务  :8720（WEB_BIND_HOST）
                          packages/runtime  SQLite（WAL，单文件）
 ```
 
-`scripts/dev.ts` 在同一进程内依次执行：读取 `.env` → 校验配置 → 迁移 → 打开 Repository → 按需创建首个管理员 → 启动 API → 启动 Web。`scripts/start.ts` 只是在检查 `apps/web/dist` 后以 `--built` 复用同一入口。SQLite 只允许单实例写入，不要同时运行多个进程指向同一数据库。
+`scripts/dev.ts` 在同一进程内依次执行：读取 `.env` → 校验配置 → 迁移 → 打开 Repository → 启动 API → 启动 Web（启动链不再按需创建首个管理员；空库首管仅经 Web 首次引导）。`scripts/start.ts` 只是在检查 `apps/web/dist` 后以 `--built` 复用同一入口。SQLite 只允许单实例写入，不要同时运行多个进程指向同一数据库。
 
 Web 反代只转发白名单请求头（`content-type`、`cookie`、`origin`、`sec-fetch-site`、`if-none-match`、`user-agent`），用套接字地址覆盖 `x-forwarded-for`，并只回传白名单响应头和 `set-cookie`。API 只信任来自 `127.0.0.1` 的这一跳。
 
