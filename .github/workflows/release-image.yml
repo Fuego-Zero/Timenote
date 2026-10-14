@@ -73,7 +73,8 @@ jobs:
           # 关闭 provenance，避免 GHCR 额外的证明权限；发布只依赖 packages:write。
           provenance: false
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # 镜像层很大，写入 Actions Cache 可能失败。忽略该错误，避免已推送的镜像被当成构建失败。
+          cache-to: type=gha,mode=max,ignore-error=true
           tags: |
             ${{ env.IMAGE_REPOSITORY }}:latest
             ${{ env.IMAGE_REPOSITORY }}:${{ github.event.pull_request.merge_commit_sha }}
