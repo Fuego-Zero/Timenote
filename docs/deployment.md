@@ -100,7 +100,7 @@ docker compose start app
 
 正式发布不在服务器上拉取仓库或构建镜像。Pull Request 合并进 `main` 之后，[`.github/workflows/release-image.yml`](../.github/workflows/release-image.yml) 才在 GitHub Actions 中编译 `linux/amd64` 镜像，推到 `ghcr.io/fuego-zero/timenote`（同时打 `latest` 和合并提交的 40 位 sha），再 SSH 到服务器：先做 SQLite 备份，拉取镜像，成功后才用 [`deploy/compose.yml`](../deploy/compose.yml) 替换目录里的 Compose 并 `up`。直接推送到 `main` 或其他分支不会发布。拉取失败时，服务器上原来的 Compose 和正在运行的容器保持不动。镜像里包含应用源码，包保持 Private。合并请使用 Merge commit 或 Squash and merge，这样镜像标签才是 `main` 上的那次提交。
 
-服务器目录里只需要已有的 `.env` 和这份 Compose。`DEPLOY_PATH` 使用当前正在运行 Compose 的目录，这样数据卷还挂在原来的项目上。Actions 用密钥 `COMPOSE_PROJECT_NAME` 固定项目名，不要在 `deploy/compose.yml` 里写 `name`。
+服务器目录里放 `.env` 和由 Actions 上传的 Compose。数据库与日志在该目录的 `data/` 子目录（容器内仍是 `/data`），不使用 Docker 命名卷。`DEPLOY_PATH` 填这个目录的绝对路径。Actions 用密钥 `COMPOSE_PROJECT_NAME` 固定项目名，不要在 `deploy/compose.yml` 里写 `name`。目录里还没有正在运行的容器时，发布会跳过 SQLite 备份。
 
 仓库 Settings → Actions → General → Workflow permissions 选 **Read and write permissions**，否则 `GITHUB_TOKEN` 不能推送镜像。然后在 Settings → Secrets and variables → Actions 添加：
 
@@ -111,14 +111,14 @@ docker compose start app
 | `SSH_USER` | 能直接运行 Docker 的用户，通常是 `root` |
 | `SSH_PRIVATE_KEY` | 专用部署私钥全文（含 BEGIN/END 行） |
 | `SSH_KNOWN_HOSTS` | `ssh-keyscan -p <端口> <IP>` 的主机密钥行 |
-| `DEPLOY_PATH` | 现有 Compose 目录的绝对路径 |
-| `COMPOSE_PROJECT_NAME` | 服务器上 `docker compose ls` 的 NAME |
+| `DEPLOY_PATH` | 服务器上的部署目录绝对路径，例如 `/data/Timenote` |
+| `COMPOSE_PROJECT_NAME` | Compose 项目名，例如 `timenote` |
 | `GHCR_USER` | GitHub 用户名 |
 | `GHCR_TOKEN` | 只读 Packages 的 Personal Access Token |
 
-`GHCR_TOKEN` 用 Fine-grained token，只授权本仓库，权限 Packages: Read。镜像是私有的，服务器每次发布用它登录 GHCR，成功后会 `docker logout`。
+`GHCR_TOKEN` 用 classic token，只勾选 `read:packages`。镜像是私有的，服务器每次发布用它登录 GHCR，成功后会 `docker logout`。
 
-日常发布：开 Pull Request 合入 `main`，合并成功后等 Actions 的 `release-image` 成功。未合并就关闭的 PR 不会发布。容器启动时执行未应用的迁移；校验和不匹配或库里有未登记的表时拒绝启动。回滚：在 `main` 分支上手动运行该工作流，`image_sha` 填已发布过的 40 位 sha。迁移已经写入数据库时，用升级前的 SQLite 备份恢复，不能只换旧镜像。备份文件留在卷内 `/data/backup-<UTC时间>.sqlite`。
+日常发布：开 Pull Request 合入 `main`，合并成功后等 Actions 的 `release-image` 成功。未合并就关闭的 PR 不会发布。容器启动时执行未应用的迁移；校验和不匹配或库里有未登记的表时拒绝启动。回滚：在 `main` 分支上手动运行该工作流，`image_sha` 填已发布过的 40 位 sha。迁移已经写入数据库时，用升级前的 SQLite 备份恢复，不能只换旧镜像。备份文件留在部署目录的 `data/backup-<UTC时间>.sqlite`。
 
 有源码的机器仍可用仓库根目录的 `compose.yml` 本地构建：`docker compose up -d --build`。这不是搬瓦工上的发布路径。
 

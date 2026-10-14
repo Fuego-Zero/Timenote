@@ -1,6 +1,7 @@
 # 正式发布用的 Compose。GitHub Actions 会把它上传到服务器的 DEPLOY_PATH。
 # 镜像标签由发布脚本注入 TIMENOTE_IMAGE。这里不写 build，服务器上没有源码。
-# 不要在这里写 name：项目名必须与现有数据卷一致，由 COMPOSE_PROJECT_NAME 指定。
+# 不要在这里写 name：容器项目名由 COMPOSE_PROJECT_NAME 指定。
+# 数据库和日志在部署目录的 ./data，对应宿主机 $DEPLOY_PATH/data。
 
 services:
   app:
@@ -21,7 +22,7 @@ services:
       - "127.0.0.1:8720:8720"
 
     volumes:
-      - timenote_data:/data
+      - ./data:/data
 
     restart: unless-stopped
     init: true
@@ -29,6 +30,3 @@ services:
 
     security_opt:
       - no-new-privileges:true
-
-volumes:
-  timenote_data:
