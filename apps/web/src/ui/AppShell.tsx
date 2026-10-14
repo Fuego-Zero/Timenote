@@ -23,7 +23,6 @@ export function AppShell({
 }) {
   const { token } = theme.useToken();
   const [accountOpen, setAccountOpen] = useState(false);
-  const forcePasswordChange = Boolean(user.mustChangePassword);
   const [{ tab }, setTab] = useUrlState(tabSchema);
   const items = [
     { key: "events", label: "事件", children: <EventsPage user={user} /> },
@@ -77,13 +76,7 @@ export function AppShell({
           }}
         />
       </Layout.Content>
-      <AccountModal
-        forcePasswordChange={forcePasswordChange}
-        open={accountOpen || forcePasswordChange}
-        user={user}
-        onClose={() => setAccountOpen(false)}
-        onUserChange={onUserChange}
-      />
+      <AccountModal open={accountOpen} user={user} onClose={() => setAccountOpen(false)} onUserChange={onUserChange} />
     </Layout>
   );
 }

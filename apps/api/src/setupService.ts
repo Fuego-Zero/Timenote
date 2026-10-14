@@ -44,7 +44,6 @@ export async function createInitialAdmin(
         role: "admin",
         disabled: false,
         timeZone: config.defaultTimeZone,
-        mustChangePassword: false,
         createdAt: now,
         updatedAt: now,
         passwordHash,

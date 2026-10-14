@@ -23,7 +23,6 @@ function user(id: string, username: string, createdAt: number, displayName = "")
     role: "user" as const,
     disabled: false,
     timeZone: "Asia/Shanghai",
-    mustChangePassword: false,
     createdAt,
     updatedAt: createdAt,
     passwordHash: "scrypt$test",

@@ -43,7 +43,7 @@ export async function changeOwnPassword(
 
   const passwordHash = await hashPassword(input.newPassword);
   repo.transaction(() => {
-    repo.users.putUser({ ...user, passwordHash, mustChangePassword: false, updatedAt: now });
+    repo.users.putUser({ ...user, passwordHash, updatedAt: now });
     // 改密后其他设备上的登录全部失效，只保留当前会话。
     repo.sessions.removeUserSessions(user.id, keepSessionId);
   });
