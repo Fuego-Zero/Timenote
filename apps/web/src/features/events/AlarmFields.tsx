@@ -1,5 +1,6 @@
 import { type EventInput, maxAlarms } from "@timenote/contracts";
-import { Button, Flex, Form, Input, InputNumber, Select, Space, Switch } from "antd";
+import { Button, Flex, Form, InputNumber, Select, Space, Switch, TimePicker } from "antd";
+import dayjs from "dayjs";
 import type { CSSProperties } from "react";
 
 import { fieldStatus } from "./fieldStatus.js";
@@ -48,12 +49,17 @@ function AlarmRow({
           onChange={value => onChange({ ...alarm, daysBefore: value ?? 0 })}
         />
       )}
-      <Input
+      <TimePicker
+        allowClear={false}
+        format="HH:mm"
         style={rowItemStyle}
-        type="time"
-        value={alarm.time}
+        value={dayjs(alarm.time, "HH:mm")}
         aria-label="提醒时刻"
-        onChange={event => onChange({ ...alarm, time: event.target.value || alarm.time })}
+        onChange={value => {
+          if (value) {
+            onChange({ ...alarm, time: value.format("HH:mm") });
+          }
+        }}
       />
       <Button style={rowItemStyle} onClick={onRemove}>
         删除

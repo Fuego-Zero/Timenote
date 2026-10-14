@@ -1,6 +1,7 @@
 import { addDays, daysBetween, isoDate } from "@timenote/calendar";
 import { type EventInput, maxDurationDays, minCycleDays } from "@timenote/contracts";
-import { Form, Input, InputNumber, Select } from "antd";
+import { DatePicker, Form, InputNumber, Select } from "antd";
+import dayjs from "dayjs";
 
 import { fieldStatus } from "./fieldStatus.js";
 
@@ -27,15 +28,16 @@ export function ScheduleFields({
     <>
       {draft.kind === "event" && start ? (
         <Form.Item extra={`共 ${draft.durationDays} 天`} label="最后一天" {...fieldStatus(errors, "durationDays")}>
-          <Input
-            min={start}
-            type="date"
-            value={addDays(start, draft.durationDays - 1)}
+          <DatePicker
+            allowClear={false}
+            disabledDate={current => current.isBefore(dayjs(start), "day")}
+            format="YYYY-MM-DD"
+            value={dayjs(addDays(start, draft.durationDays - 1))}
             aria-label="最后一天"
-            onChange={event => {
-              if (event.target.value) {
-                // 结束早于开始时保留无效天数交给统一校验提示，而不是静默改正。
-                onChange({ ...draft, durationDays: daysBetween(start, event.target.value) + 1 });
+            onChange={value => {
+              if (value) {
+                // 结束日早于开始时算出无效天数，交给统一校验提示，而不是静默纠正
+                onChange({ ...draft, durationDays: daysBetween(start, value.format("YYYY-MM-DD")) + 1 });
               }
             }}
           />
