@@ -1,6 +1,6 @@
 {
-  "name": "Timenote 纪念日",
-  "short_name": "Timenote",
+  "name": "岁时记 Timenote",
+  "short_name": "岁时记",
   "description": "维护生日、纪念日和跨天事件，用私密 ICS 地址订阅到任意支持订阅的日历（苹果日历、Google 日历、Outlook 等）。",
   "start_url": "/",
   "display": "standalone",
