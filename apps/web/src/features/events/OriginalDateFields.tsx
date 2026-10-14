@@ -1,6 +1,7 @@
 import { isoDate, LUNAR_MAX_YEAR, LUNAR_MIN_YEAR } from "@timenote/calendar";
 import type { EventInput } from "@timenote/contracts";
-import { Alert, Checkbox, Flex, Form, Input, InputNumber, Segmented, Select, Space } from "antd";
+import { Alert, Checkbox, DatePicker, Flex, Form, InputNumber, Segmented, Select, Space } from "antd";
+import dayjs from "dayjs";
 import { type CSSProperties, useState } from "react";
 
 import { dateLabels, dayOptions, lunarMonthOptions, monthOptions } from "./dateFieldOptions.js";
@@ -79,14 +80,14 @@ export function OriginalDateFields({
             </Checkbox>
           ) : null}
           {!lunar && date.year !== null ? (
-            <Input
-              type="date"
-              value={isoDate(date.year, date.month, date.day)}
+            <DatePicker
+              allowClear={false}
+              format="YYYY-MM-DD"
+              value={dayjs(isoDate(date.year, date.month, date.day))}
               aria-label="日期"
-              onChange={event => {
-                const [year, month, day] = event.target.value.split("-").map(Number);
-                if (year && month && day) {
-                  setDate({ year, month, day });
+              onChange={value => {
+                if (value) {
+                  setDate({ year: value.year(), month: value.month() + 1, day: value.date() });
                 }
               }}
             />
