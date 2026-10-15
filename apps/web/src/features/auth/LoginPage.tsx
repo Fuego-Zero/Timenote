@@ -93,9 +93,7 @@ export function LoginPage({
               <>
                 <Typography.Title level={3}>岁时记 Timenote</Typography.Title>
                 <Typography.Paragraph type="secondary">
-                  {publicRegisterEnabled
-                    ? "欢迎使用岁时记。已有账号可直接登录；也可注册，提交后需管理员启用才能登录。"
-                    : "欢迎使用岁时记。请使用管理员为你创建的账号登录。"}
+                  欢迎使用岁时记。记录生日与纪念日，并订阅到你的日历。
                 </Typography.Paragraph>
                 {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
                 <Form<LoginValues>
