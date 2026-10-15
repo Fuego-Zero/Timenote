@@ -330,3 +330,125 @@ describe("最后登录时间", () => {
     expect(parsed.lastLoginAt).toBeNull();
   });
 });
+
+describe("公开注册", () => {
+  it("默认关闭：注册返回 FORBIDDEN；开启后创建停用账号且不建会话", async () => {
+    const off = await h.browser().request("POST", "/api/auth/register", {
+      username: "newbie",
+      password: "newbie-password",
+    });
+    expect(off.status).toBe(403);
+    expect(off.json).toMatchObject({ code: "FORBIDDEN" });
+    expect(h.repo.users.getUserByUsername("newbie")).toBeUndefined();
+
+    const on = await harness({ PUBLIC_REGISTER_ENABLED: "true" });
+    try {
+      const session = await on.browser().request<{ publicRegisterEnabled?: boolean }>("GET", "/api/auth/session");
+      expect(session.json.publicRegisterEnabled).toBe(true);
+
+      const registered = await on.browser().request("POST", "/api/auth/register", {
+        username: "newbie",
+        password: "newbie-password",
+        displayName: "新人",
+      });
+      expect(registered.status).toBe(200);
+      expect(registered.json).toEqual({ success: true });
+      expect(registered.headers["set-cookie"]).toBeUndefined();
+
+      const stored = on.repo.users.getUserByUsername("newbie");
+      expect(stored).toMatchObject({ role: "user", disabled: true, displayName: "新人" });
+
+      const login = await on.browser().request("POST", "/api/auth/login", {
+        username: "newbie",
+        password: "newbie-password",
+      });
+      expect(login.status).toBe(401);
+      expect(login.json).toMatchObject({ code: "INVALID_CREDENTIALS" });
+    } finally {
+      await on.close();
+    }
+  });
+
+  it("未完成 setup 时即使开关开启也拒绝注册；不替代 setup/admin", async () => {
+    const empty = await harness({ PUBLIC_REGISTER_ENABLED: "true" }, { seedAdmin: false });
+    try {
+      const res = await empty.browser().request("POST", "/api/auth/register", {
+        username: "early",
+        password: "early-password",
+      });
+      expect(res.status).toBe(403);
+      expect(empty.repo.users.listUsers()).toHaveLength(0);
+
+      const setup = await empty.browser().request("POST", "/api/setup/admin", {
+        username: "owner",
+        password: "owner-password-1",
+      });
+      expect(setup.status).toBe(200);
+    } finally {
+      await empty.close();
+    }
+  });
+
+  it("注册超限返回 RATE_LIMITED", async () => {
+    const limited = await harness(
+      {
+        NODE_ENV: "development",
+        DEV_AUTH_BYPASS: "0",
+        PUBLIC_REGISTER_ENABLED: "true",
+        REGISTER_RATE_LIMIT: "1",
+      },
+      { seedAdmin: false }
+    );
+    try {
+      // 先建管理员（setup 走 loginLimit，不受 register 桶影响）
+      const setup = await limited.browser().request("POST", "/api/setup/admin", {
+        username: "owner",
+        password: "owner-password-1",
+      });
+      expect(setup.status).toBe(200);
+      await limited.browser().request("POST", "/api/auth/logout");
+
+      const first = await limited.browser().request("POST", "/api/auth/register", {
+        username: "rateone",
+        password: "rateone-password",
+      });
+      expect(first.status).toBe(200);
+      const second = await limited.browser().request("POST", "/api/auth/register", {
+        username: "ratetwo",
+        password: "ratetwo-password",
+      });
+      expect(second.status).toBe(429);
+      expect(second.json).toMatchObject({ code: "RATE_LIMITED" });
+    } finally {
+      await limited.close();
+    }
+  });
+
+  it("用户名占用返回 USERNAME_TAKEN；缺 SIGN 返回 SIGN_INVALID", async () => {
+    const on = await harness({ PUBLIC_REGISTER_ENABLED: "true" });
+    try {
+      const b = on.browser();
+      await b.request("POST", "/api/auth/register", {
+        username: "dupuser",
+        password: "dupuser-password",
+      });
+      const dup = await b.request("POST", "/api/auth/register", {
+        username: "dupuser",
+        password: "dupuser-password-2",
+      });
+      expect(dup.status).toBe(409);
+      expect(dup.json).toMatchObject({ code: "USERNAME_TAKEN" });
+
+      const unsigned = await on.app.inject({
+        method: "POST",
+        url: "/api/auth/register",
+        headers: { origin: "http://127.0.0.1:8720", "content-type": "application/json" },
+        payload: JSON.stringify({ username: "unsigned1", password: "unsigned-password" }),
+      });
+      expect(unsigned.statusCode).toBe(403);
+      expect(unsigned.json()).toMatchObject({ code: "SIGN_INVALID" });
+    } finally {
+      await on.close();
+    }
+  });
+});

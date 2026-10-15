@@ -28,9 +28,9 @@ function scopeLabel(feed: FeedToken) {
 /** 有明文 webcal 时在行展开区展示二维码，避免挤进操作列。 */
 function WebcalQrPanel({ webcalUrl }: { webcalUrl: string }) {
   return (
-    <Flex align="flex-start" gap="middle" wrap>
+    <Flex wrap align="flex-start" gap="middle">
       <QRCode size={120} type="svg" value={webcalUrl} />
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 0, maxWidth: 420 }}>
+      <Typography.Paragraph style={{ marginBottom: 0, maxWidth: 420 }} type="secondary">
         扫码得到与「复制 webcal」相同的地址，由系统日历处理（适用于 Apple 日历）。Google / Android
         不保证扫码即订，请改用「复制地址」取得 HTTPS 后手动添加。
       </Typography.Paragraph>

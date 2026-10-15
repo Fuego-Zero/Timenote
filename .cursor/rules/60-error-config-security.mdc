@@ -130,7 +130,7 @@ user-controlled filename
 
 详细说明见 `docs/security.md`。实现时至少遵守：
 
-- 不开放公开注册；账号由管理员经服务端接口创建；管理能力服务端校验（如 `requireAdmin`），不依赖前端隐藏。
+- 默认可选关闭的公开注册（`PUBLIC_REGISTER_ENABLED` 默认 false）；开启时新号默认停用，须管理员启用。关闭或未完成首次引导时注册接口拒绝。管理员仍可经服务端接口创建账号（默认启用）。管理能力服务端校验（如 `requireAdmin`），不依赖前端隐藏。
 - 写请求（POST/PUT/PATCH/DELETE）校验 `Origin` 与 `WEB_ORIGIN` 一致；拒绝跨站。
 - 订阅 URL 中的 token 视为 secret：日志脱敏；不存在 / 已撤销等返回同形响应，不暴露区别。
 - 不提供无鉴权管理接口、调试后门或绕过鉴权重置管理员的开关。

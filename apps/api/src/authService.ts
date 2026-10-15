@@ -1,6 +1,9 @@
-import type { ChangePasswordInput, UpdateProfileInput } from "@timenote/contracts";
+import { randomUUID } from "node:crypto";
+
+import type { ChangePasswordInput, RegisterInput, UpdateProfileInput } from "@timenote/contracts";
 import {
   BusinessError,
+  type Config,
   dummyPasswordHash,
   hashPassword,
   type OpenedRepository,
@@ -52,5 +55,45 @@ export async function changeOwnPassword(
     repo.users.putUser({ ...user, passwordHash, updatedAt: now });
     // 改密后其他设备上的登录全部失效，只保留当前会话。
     repo.sessions.removeUserSessions(user.id, keepSessionId);
+  });
+}
+
+/** 公开自助注册：默认停用、不建会话；开关关闭或未完成 setup 时拒绝。 */
+export async function registerPublicUser(
+  repo: OpenedRepository,
+  config: Config,
+  input: RegisterInput,
+  now: number
+): Promise<void> {
+  if (!config.publicRegisterEnabled) {
+    throw new BusinessError("FORBIDDEN");
+  }
+
+  // 未完成首次引导（无启用管理员）时不允许自助注册，避免替代 setup/admin。
+  const hasAdmin = repo.users.listUsers().some(user => user.role === "admin" && !user.disabled);
+  if (!hasAdmin) {
+    throw new BusinessError("FORBIDDEN");
+  }
+
+  const passwordHash = await hashPassword(input.password);
+  const displayName = input.displayName?.trim() ?? "";
+  const user: StoredUser = {
+    id: randomUUID(),
+    username: input.username,
+    displayName,
+    role: "user",
+    disabled: true,
+    timeZone: config.defaultTimeZone,
+    createdAt: now,
+    updatedAt: now,
+    lastLoginAt: null,
+    passwordHash,
+  };
+  repo.transaction(() => {
+    if (repo.users.getUserByUsername(user.username)) {
+      throw new BusinessError("USERNAME_TAKEN", { fields: { username: "用户名已被使用" } });
+    }
+
+    repo.users.putUser(user);
   });
 }

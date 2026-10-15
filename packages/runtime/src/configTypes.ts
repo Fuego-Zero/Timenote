@@ -15,6 +15,10 @@ export interface Config {
   feedPastYears: number;
   loginLimit: number;
   logSink?: LogSink;
+  /** 是否开放公开自助注册；默认 false。 */
+  publicRegisterEnabled: boolean;
+  /** 公开注册每分钟每来源上限；默认 ≤ loginLimit。 */
+  registerLimit: number;
   sessionTtlSeconds: number;
   /** 请求完整性 MAC 的 HKDF 主密钥（≥32 字节）。 */
   signMasterKey: Buffer;

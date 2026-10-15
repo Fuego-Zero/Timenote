@@ -10,13 +10,7 @@ interface ProfileValues {
   timeZone: string;
 }
 
-export function ProfileForm({
-  user,
-  onUserChange,
-}: {
-  user: PublicUser;
-  onUserChange: (user: PublicUser) => void;
-}) {
+export function ProfileForm({ user, onUserChange }: { user: PublicUser; onUserChange: (user: PublicUser) => void }) {
   const { message } = App.useApp();
   const [form] = Form.useForm<ProfileValues>();
   const [saving, setSaving] = useState(false);

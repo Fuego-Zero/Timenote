@@ -78,7 +78,7 @@ export function FeedFormModal({
     >
       <Form layout="vertical">
         {error ? <Alert showIcon style={{ marginBottom: 16 }} title={errorMessage(error)} type="error" /> : null}
-        <Form.Item label="设备名称" extra="仅网页列表备注，不会写入日历名称。">
+        <Form.Item extra="仅网页列表备注，不会写入日历名称。" label="设备名称">
           <Input
             maxLength={30}
             placeholder="如 iPhone、工作电脑"
@@ -87,7 +87,7 @@ export function FeedFormModal({
             onChange={event => setDraft(current => ({ ...current, name: event.target.value }))}
           />
         </Form.Item>
-        <Form.Item label="日历显示名" extra={`日历中将显示：${previewName}`}>
+        <Form.Item extra={`日历中将显示：${previewName}`} label="日历显示名">
           <Input
             maxLength={40}
             placeholder={`默认：${defaultCalendarName(user)}`}

@@ -32,6 +32,15 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
   }
 
   const webBindHost = textEnv(env, "WEB_BIND_HOST", "127.0.0.1");
+  let publicRegisterEnabled = false;
+  if (env.PUBLIC_REGISTER_ENABLED === "true") {
+    publicRegisterEnabled = true;
+  } else if (env.PUBLIC_REGISTER_ENABLED === "false" || !env.PUBLIC_REGISTER_ENABLED?.trim()) {
+    publicRegisterEnabled = false;
+  } else if (env.PUBLIC_REGISTER_ENABLED) {
+    throw new Error("PUBLIC_REGISTER_ENABLED 只能是 true 或 false");
+  }
+
   // 仅 development 开启；未设置 DEV_AUTH_BYPASS 视为开启，设为 0 关闭。production/test 一律关闭。
   const devAuthBypass = nodeEnv === "development" && env.DEV_AUTH_BYPASS !== "0";
   return {
@@ -47,6 +56,8 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
     sessionTtlSeconds: integerEnv(env, "SESSION_TTL_SECONDS", defaultSessionTtlSeconds, 300, 365 * 24 * 60 * 60),
     signMasterKey: signMasterKeyEnv(env, production),
     loginLimit: integerEnv(env, "LOGIN_RATE_LIMIT", 10, 1, 1000),
+    registerLimit: integerEnv(env, "REGISTER_RATE_LIMIT", 5, 1, 1000),
+    publicRegisterEnabled,
     bodyLimit: integerEnv(env, "REQUEST_BODY_LIMIT", 1024 * 1024, 1024, 16 * 1024 * 1024),
     defaultTimeZone,
     feedPastYears: integerEnv(env, "FEED_WINDOW_PAST_YEARS", 1, 0, 10),

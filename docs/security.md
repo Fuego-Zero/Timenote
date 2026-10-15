@@ -2,7 +2,8 @@
 
 ## 账号与会话
 
-- 不开放注册。首个管理员只经首次引导创建：空库时 `GET /api/setup` 返回 `needed: true`，`POST /api/setup/admin` 创建并建立会话。不使用环境变量种子管理员。生产环境引导创建要求强密码（≥16 位且至少三类字符，避开常见弱口令）。后续账号只能由管理员在后台创建。所有管理接口在服务端 `requireAdmin` 校验，不依赖前端隐藏。
+- 默认可选关闭的公开注册（`PUBLIC_REGISTER_ENABLED`，默认 `false`）。关闭时 `POST /api/auth/register` 返回 `FORBIDDEN`，登录页不展示注册入口。开启后允许自助注册：新号 `role=user`、**默认停用**（`disabled: true`），不创建会话、不写 Cookie；须管理员在账号管理启用后方可登录。未启用/停用与错密登录返回同一提示，不暴露账号状态。
+- 首个管理员只经首次引导创建：空库时 `GET /api/setup` 返回 `needed: true`，`POST /api/setup/admin` 创建并建立会话。不使用环境变量种子管理员。生产环境引导创建要求强密码（≥16 位且至少三类字符，避开常见弱口令）。公开注册**不替代**首次引导。管理员后台新建账号仍默认启用。所有管理接口在服务端 `requireAdmin` 校验，不依赖前端隐藏。
 - 密码用 scrypt（N=2^15、r=8、p=1、16 字节随机盐）哈希，存为 `scrypt$N$r$p$salt$hash`；数据库约束禁止出现明文 `password` 字段。
 - 登录时账号不存在、已停用、密码错误返回同一提示；账号不存在时也对占位哈希做一次校验，避免用响应时间探测用户名。
 - 用户 payload 含 `lastLoginAt`（epoch ms，可 null）：仅在 `POST /api/auth/login` 与 `POST /api/setup/admin` 鉴权成功后由 `recordLogin` 写入；会话活跃续期、登出、改密、密码错误或账号停用均不更新。管理员 `GET /api/admin/users` 列表可见该字段。
@@ -19,7 +20,7 @@
 ### 范围
 
 - 需登录的 `/api/*`（读+写）强制 SIGN。
-- `POST /api/auth/login`、`POST /api/setup/admin` **必须**使用匿名短时 signKey。
+- `POST /api/auth/login`、`POST /api/auth/register`、`POST /api/setup/admin` **必须**使用匿名短时 signKey。
 - 仅 `GET /api/auth/session`、`GET /api/setup`（及同类只读探测）可不签或只校 Origin。
 - `/health`、`/api/feeds/*` 不签（feed 仍只凭 URL token）。
 
@@ -36,7 +37,7 @@
 ### 匿名 key
 
 - `GET /api/auth/session`（未登录）与 `GET /api/setup`（`needed: true`）可下发 `{ anonKeyId, signKey, expiresAt }`。
-- 有效期约 5 分钟；进程内登记，超过存活上限拒发（限流）。login/setup 请求头须带 `x-timenote-anon-id`。
+- 有效期约 5 分钟；进程内登记，超过存活上限拒发（限流）。login/register/setup 请求头须带 `x-timenote-anon-id`。
 
 ### 会话 key
 
@@ -87,7 +88,7 @@
 
 ## 限流
 
-- 全局每个来源地址每分钟 120 次请求，登录接口每分钟 `LOGIN_RATE_LIMIT` 次。
+- 全局每个来源地址每分钟 120 次请求；登录接口每分钟 `LOGIN_RATE_LIMIT` 次（默认 10）；公开注册接口每分钟 `REGISTER_RATE_LIMIT` 次（默认 5，建议 ≤ 登录桶）。
 - 已知限制：来源地址取 Web 反代看到的上一跳。部署在反向代理或 Docker 端口映射之后时，所有客户端会共用同一个来源地址，登录限流变为全站共享——遭遇撞库时可能短时间内阻止正常登录。家庭规模使用可以接受；需要按真实客户端限流时，应在反向代理层做限流。
 
 ## 运维边界

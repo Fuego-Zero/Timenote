@@ -71,11 +71,11 @@ export function FeedsPage({ user }: { user: PublicUser }) {
           创建订阅地址
         </Button>
       </Flex>
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+      <Typography.Paragraph style={{ marginBottom: 0 }} type="secondary">
         为每台设备创建一个私密订阅地址。地址等同密码，会保留在这里，可以随时复制；泄露时可轮换，旧地址立即失效。修改、添加或删除事件不会改地址。局域网或纯
         HTTP 环境下，webcal 链接可能无法被系统日历正确打开。
       </Typography.Paragraph>
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+      <Typography.Paragraph style={{ marginBottom: 0 }} type="secondary">
         <Typography.Text strong>苹果：</Typography.Text>
         本机可点「日历打开」；分享给 iPhone / iPad 时复制 webcal 发给对方，用 Safari
         或「日历」打开以添加订阅；也可展开行后扫描页上的 webcal 二维码（适用于 Apple 日历）。
