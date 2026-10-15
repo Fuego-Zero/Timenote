@@ -25,6 +25,7 @@ export function registerAuth(ctx: ApiContext) {
         user: toPublicUser(req.user),
         signKey: issueSessionSignKey(ctx, req.sessionId, req.user.id),
         publicRegisterEnabled: config.publicRegisterEnabled,
+        registerDefaultDisabled: config.registerDefaultDisabled,
       };
     }
 
@@ -32,6 +33,7 @@ export function registerAuth(ctx: ApiContext) {
       user: null,
       anonSign: ctx.requestSign.issueAnon(ctx.now()),
       publicRegisterEnabled: config.publicRegisterEnabled,
+      registerDefaultDisabled: config.registerDefaultDisabled,
     };
   });
 

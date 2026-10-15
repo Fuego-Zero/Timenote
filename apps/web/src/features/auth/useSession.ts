@@ -5,8 +5,24 @@ import { api, authExpiredEvent, clearRequestSign } from "../../api/client.js";
 
 type SessionState =
   | { status: "loading" }
-  | { status: "ready"; user: PublicUser | null; publicRegisterEnabled: boolean }
+  | {
+      status: "ready";
+      user: PublicUser | null;
+      publicRegisterEnabled: boolean;
+      registerDefaultDisabled: boolean;
+    }
   | { status: "error" };
+
+function keptRegisterFlags(prev: SessionState) {
+  if (prev.status === "ready") {
+    return {
+      publicRegisterEnabled: prev.publicRegisterEnabled,
+      registerDefaultDisabled: prev.registerDefaultDisabled,
+    };
+  }
+
+  return { publicRegisterEnabled: false, registerDefaultDisabled: true };
+}
 
 export function useSession() {
   const [state, setState] = useState<SessionState>({ status: "loading" });
@@ -14,13 +30,16 @@ export function useSession() {
 
   useEffect(() => {
     let active = true;
-    api<{ user: PublicUser | null; publicRegisterEnabled?: boolean }>("/auth/session").then(
+    api<{ user: PublicUser | null; publicRegisterEnabled?: boolean; registerDefaultDisabled?: boolean }>(
+      "/auth/session"
+    ).then(
       data => {
         if (active) {
           setState({
             status: "ready",
             user: data.user,
             publicRegisterEnabled: data.publicRegisterEnabled === true,
+            registerDefaultDisabled: data.registerDefaultDisabled !== false,
           });
         }
       },
@@ -38,11 +57,7 @@ export function useSession() {
   useEffect(() => {
     const expire = () => {
       clearRequestSign();
-      setState(prev =>
-        prev.status === "ready"
-          ? { status: "ready", user: null, publicRegisterEnabled: prev.publicRegisterEnabled }
-          : { status: "ready", user: null, publicRegisterEnabled: false }
-      );
+      setState(prev => ({ status: "ready", user: null, ...keptRegisterFlags(prev) }));
     };
 
     window.addEventListener(authExpiredEvent, expire);
@@ -57,7 +72,7 @@ export function useSession() {
     setState(prev => ({
       status: "ready",
       user,
-      publicRegisterEnabled: prev.status === "ready" ? prev.publicRegisterEnabled : false,
+      ...keptRegisterFlags(prev),
     }));
   }, []);
   const logout = useCallback(async () => {
@@ -66,7 +81,7 @@ export function useSession() {
     setState(prev => ({
       status: "ready",
       user: null,
-      publicRegisterEnabled: prev.status === "ready" ? prev.publicRegisterEnabled : false,
+      ...keptRegisterFlags(prev),
     }));
   }, []);
 

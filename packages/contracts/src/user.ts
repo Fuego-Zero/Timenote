@@ -66,6 +66,8 @@ export const sessionResponseSchema = z.object({
   anonSign: anonSignSchema.optional(),
   /** 是否开放公开自助注册（部署开关；默认 false）。 */
   publicRegisterEnabled: z.boolean().optional(),
+  /** 公开注册新账号是否默认停用（部署开关；默认 true）。 */
+  registerDefaultDisabled: z.boolean().optional(),
 });
 
 export const registerInputSchema = z.object({

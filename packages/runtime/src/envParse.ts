@@ -19,6 +19,24 @@ export function textEnv(env: NodeJS.Dict<string>, name: string, fallback: string
   return value;
 }
 
+/** 未设置或仅含空白时使用默认值；只接受 true / false。 */
+export function booleanEnv(env: NodeJS.Dict<string>, name: string, fallback: boolean) {
+  const raw = env[name]?.trim();
+  if (!raw) {
+    return fallback;
+  }
+
+  if (raw === "true") {
+    return true;
+  }
+
+  if (raw === "false") {
+    return false;
+  }
+
+  throw new Error(`${name} 只能是 true 或 false`);
+}
+
 export function integerEnv(env: NodeJS.Dict<string>, name: string, fallback: number, min: number, max: number) {
   const raw = env[name];
   if (raw === undefined || raw === "") {

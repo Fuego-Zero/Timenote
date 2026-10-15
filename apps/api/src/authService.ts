@@ -58,7 +58,7 @@ export async function changeOwnPassword(
   });
 }
 
-/** 公开自助注册：默认停用、不建会话；开关关闭或未完成 setup 时拒绝。 */
+/** 公开自助注册：停用与否由配置决定，不建会话；开关关闭或未完成 setup 时拒绝。 */
 export async function registerPublicUser(
   repo: OpenedRepository,
   config: Config,
@@ -82,7 +82,7 @@ export async function registerPublicUser(
     username: input.username,
     displayName,
     role: "user",
-    disabled: true,
+    disabled: config.registerDefaultDisabled,
     timeZone: config.defaultTimeZone,
     createdAt: now,
     updatedAt: now,

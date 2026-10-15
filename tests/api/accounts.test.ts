@@ -372,8 +372,12 @@ describe("公开注册", () => {
 
     const on = await harness({ PUBLIC_REGISTER_ENABLED: "true" });
     try {
-      const session = await on.browser().request<{ publicRegisterEnabled?: boolean }>("GET", "/api/auth/session");
+      const session = await on.browser().request<{
+        publicRegisterEnabled?: boolean;
+        registerDefaultDisabled?: boolean;
+      }>("GET", "/api/auth/session");
       expect(session.json.publicRegisterEnabled).toBe(true);
+      expect(session.json.registerDefaultDisabled).toBe(true);
 
       const registered = await on.browser().request("POST", "/api/auth/register", {
         username: "newbie",
@@ -393,6 +397,30 @@ describe("公开注册", () => {
       });
       expect(login.status).toBe(401);
       expect(login.json).toMatchObject({ code: "INVALID_CREDENTIALS" });
+    } finally {
+      await on.close();
+    }
+  });
+
+  it("REGISTER_DEFAULT_DISABLED=false 时新账号启用且可登录，仍不建会话", async () => {
+    const on = await harness({ PUBLIC_REGISTER_ENABLED: "true", REGISTER_DEFAULT_DISABLED: "false" });
+    try {
+      const session = await on.browser().request<{ registerDefaultDisabled?: boolean }>("GET", "/api/auth/session");
+      expect(session.json.registerDefaultDisabled).toBe(false);
+
+      const registered = await on.browser().request("POST", "/api/auth/register", {
+        username: "ready",
+        password: "ready-password",
+      });
+      expect(registered.status).toBe(200);
+      expect(registered.headers["set-cookie"]).toBeUndefined();
+      expect(on.repo.users.getUserByUsername("ready")).toMatchObject({ role: "user", disabled: false });
+
+      const login = await on.browser().request("POST", "/api/auth/login", {
+        username: "ready",
+        password: "ready-password",
+      });
+      expect(login.status).toBe(200);
     } finally {
       await on.close();
     }
