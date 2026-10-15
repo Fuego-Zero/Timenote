@@ -1,6 +1,7 @@
 import type { PublicUser } from "@timenote/contracts";
 import { Alert, Button, Card, Flex, Form, Input, Layout, theme, Typography } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { api, errorMessage } from "../../api/client.js";
 
@@ -10,6 +11,7 @@ interface LoginValues {
 }
 
 export function LoginPage({ onLogin }: { onLogin: (user: PublicUser) => void }) {
+  const { t } = useTranslation(["auth", "common"]);
   const { token } = theme.useToken();
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
@@ -32,18 +34,26 @@ export function LoginPage({ onLogin }: { onLogin: (user: PublicUser) => void }) 
       <Layout.Content>
         <Flex align="center" justify="center" style={{ minHeight: "100vh", padding: token.padding }}>
           <Card style={{ maxWidth: 380, width: "100%" }}>
-            <Typography.Title level={3}>岁时记 Timenote</Typography.Title>
-            <Typography.Paragraph type="secondary">账号由管理员创建，请使用分配的用户名登录。</Typography.Paragraph>
+            <Typography.Title level={3}>{t("common:brand")}</Typography.Title>
+            <Typography.Paragraph type="secondary">{t("login.hint")}</Typography.Paragraph>
             {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
             <Form<LoginValues> layout="vertical" requiredMark={false} onFinish={values => void submit(values)}>
-              <Form.Item label="用户名" name="username" rules={[{ required: true, message: "请输入用户名" }]}>
+              <Form.Item
+                label={t("login.username")}
+                name="username"
+                rules={[{ required: true, message: t("login.usernameRequired") }]}
+              >
                 <Input autoCapitalize="none" autoComplete="username" />
               </Form.Item>
-              <Form.Item label="密码" name="password" rules={[{ required: true, message: "请输入密码" }]}>
+              <Form.Item
+                label={t("login.password")}
+                name="password"
+                rules={[{ required: true, message: t("login.passwordRequired") }]}
+              >
                 <Input.Password autoComplete="current-password" />
               </Form.Item>
               <Button block htmlType="submit" loading={submitting} type="primary">
-                登录
+                {t("login.submit")}
               </Button>
             </Form>
           </Card>

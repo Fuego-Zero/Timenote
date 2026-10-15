@@ -1,0 +1,182 @@
+{
+  "pageTitle": "My events",
+  "newEvent": "New event",
+  "editEvent": "Edit event",
+  "saved": "Saved. The feed URL is unchanged; calendars update on refresh.",
+  "deleted": "Deleted",
+  "past": "Past",
+  "columnEvent": "Event",
+  "calendar": "Calendar",
+  "reminder": "Reminder",
+  "hasAlarm": "Has reminder",
+  "noAlarm": "No reminder",
+  "gregorian": "Gregorian",
+  "lunar": "Lunar",
+  "daysTag": "{{count}} days",
+  "deleteConfirmTitle": "Delete event",
+  "deleteConfirmDesc": "After deletion, the schedule is removed when feeds refresh.",
+  "sortCreated": "Recently created",
+  "sortNext": "Next occurrence",
+  "withinDays": "Within {{count}} days",
+  "noTimeLimit": "Any time",
+  "emptyFiltered": "No matching events",
+  "empty": "No events yet. Click New to add a birthday or anniversary.",
+  "searchAria": "Search events",
+  "sortAria": "Sort",
+  "nextWithinAria": "Occurrence window",
+  "kind": {
+    "birthday": "Birthday",
+    "anniversary": "Anniversary",
+    "event": "General event"
+  },
+  "form": {
+    "kind": "Type",
+    "personName": "Name",
+    "name": "Title",
+    "nameAria": "Title",
+    "note": "Notes",
+    "noteAria": "Notes",
+    "lunarYearOnlyReset": "Lunar dates or unknown years can only repeat yearly; reset to every year."
+  },
+  "preview": {
+    "title": "Upcoming ({{timeZone}})",
+    "incomplete": "Preview appears when the form is complete and valid",
+    "cannotCompute": "Unable to compute occurrences",
+    "none": "No upcoming occurrences match the rules",
+    "lunarYear": "Lunar year {{year}}",
+    "alarmPrefix": "Reminder: {{text}}",
+    "aria": "Occurrence preview"
+  },
+  "titleFields": {
+    "template": "Title template",
+    "templateAria": "Title template",
+    "yearsHint": "{{years}} (age or anniversary count)",
+    "countHint": "{{count}} (occurrence number)",
+    "available": "Available: {{vars}}",
+    "and": " and ",
+    "prefix": "Title prefix",
+    "prefixExtra": "Optional emoji or short text; skipped if already present",
+    "prefixAria": "Title prefix",
+    "noPrefix": "None"
+  },
+  "schedule": {
+    "lastDay": "Last day",
+    "lastDayAria": "Last day",
+    "totalDays": "{{count}} days total",
+    "duration": "Duration (days)",
+    "durationAria": "Duration in days",
+    "daySuffix": "days",
+    "feb29": "Feb 29 in non-leap years",
+    "feb28": "Use Feb 28",
+    "mar1": "Use Mar 1",
+    "skipYear": "Skip that year",
+    "noLeapMonth": "Years without that leap month",
+    "useRegularMonth": "Use the regular month of the same name",
+    "shortMonth": "Months with only 29 days",
+    "useLastDay": "Use the last day of that month"
+  },
+  "originalDate": {
+    "basis": "Repeat by",
+    "yearUnknown": "Year unknown (remember the annual date only; hide age/anniversary count)",
+    "dateAria": "Date",
+    "yearSuffix": "",
+    "lunarYearAria": "Lunar year",
+    "monthAria": "Month",
+    "dayAria": "Day",
+    "leapMonth": "Leap month",
+    "monthLabel": "{{n}}",
+    "dayLabel": "{{n}}",
+    "labels": {
+      "birthday": "Date of birth",
+      "anniversary": "First date",
+      "event": "Start date"
+    }
+  },
+  "alarm": {
+    "label": "Calendar reminders",
+    "extra": "Local time in the account time zone; multi-day events remind before the start day only",
+    "on": "On",
+    "off": "Off",
+    "switchAria": "Enable reminders",
+    "daysAria": "Days before",
+    "customAria": "Custom days before",
+    "timeAria": "Reminder time",
+    "remove": "Remove",
+    "add": "Add another reminder",
+    "sameDay": "Same day",
+    "daysBefore": "{{count}} day(s) before",
+    "customDays": "Custom days",
+    "prefix": "",
+    "suffix": "days before"
+  },
+  "recurrence": {
+    "label": "Repeat",
+    "aria": "Repeat",
+    "yearly": "Every year",
+    "monthly": "Every month",
+    "weekly": "Every week",
+    "custom": "Custom",
+    "everyPrefix": "Every",
+    "intervalAria": "Interval",
+    "unitAria": "Interval unit",
+    "lunarYearOnly": "Lunar dates can only repeat yearly",
+    "yearUnknownOnly": "Unknown years can only repeat every year",
+    "missingDay": "When the month has no such day",
+    "missingDayAria": "Missing day in month",
+    "useMonthLast": "Use the last day of the month",
+    "skipOnce": "Skip that occurrence",
+    "end": "Ends",
+    "never": "Never",
+    "countCycles": "After N cycles",
+    "until": "On date",
+    "countPrefix": "",
+    "countSuffix": "cycles",
+    "countAria": "Cycle count",
+    "untilAria": "End date",
+    "milestones": "Milestones",
+    "milestonesYearUnknown": "Milestones require a known year",
+    "milestonesExtra": "Day N is counted from the start day (day 0). Up to {{max}}.",
+    "milestoneDays": "{{count}} days",
+    "milestonePlaceholder": "Type other day counts and press Enter",
+    "milestoneCustomAria": "Custom milestone days",
+    "milestoneTemplate": "Milestone title template",
+    "milestoneTemplateExtra": "Available: {{name}} and {{days}} (day number)",
+    "milestoneTemplateAria": "Milestone title template",
+    "units": {
+      "day": "days",
+      "week": "weeks",
+      "month": "months",
+      "year": "years"
+    }
+  },
+  "occurrence": {
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "date": "{{year}}-{{month}}-{{day}} {{weekday}}",
+    "range": "{{start}} – {{end}}"
+  },
+  "summary": {
+    "everyOne": {
+      "day": "Daily",
+      "week": "Weekly",
+      "month": "Monthly",
+      "year": "Yearly"
+    },
+    "everyN": {
+      "day": "days",
+      "week": "weeks",
+      "month": "months",
+      "year": "years"
+    },
+    "everyInterval": "Every {{interval}} {{unit}}",
+    "withCount": "{{every}} · {{count}} cycles",
+    "withUntil": "{{every}} · until {{until}}",
+    "milestones": "+{{count}} milestones"
+  },
+  "switchCalendar": {
+    "converted": "Converted Gregorian {{solar}} to lunar {{year}} {{lunar}}. Please verify.",
+    "failed": "Unable to convert"
+  },
+  "draft": {
+    "dateOutOfRange": "Date is out of supported range"
+  }
+}

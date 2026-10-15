@@ -1,5 +1,6 @@
 import { type EventInput, eventKinds } from "@timenote/contracts";
 import { App, Form, Input, Segmented } from "antd";
+import { useTranslation } from "react-i18next";
 
 import { AlarmFields } from "./AlarmFields.js";
 import { kindLabels, normalizeRecurrence, withKind } from "./eventDraft.js";
@@ -20,12 +21,14 @@ export function EventForm({
   timeZone: string;
   onChange: (draft: EventInput) => void;
 }) {
+  const { t } = useTranslation("events");
   const { message } = App.useApp();
+  const labels = kindLabels();
   // 改成农历或年份未知时，纪念日原来的按天/周/月规则自动改回每年并提示。
   const change = (next: EventInput) => {
     const result = normalizeRecurrence(next);
     if (result.reset) {
-      void message.info("农历或年份未知时只能按年重复，已改回每年");
+      void message.info(t("form.lunarYearOnlyReset"));
     }
 
     onChange(result.draft);
@@ -33,19 +36,23 @@ export function EventForm({
 
   return (
     <Form component="div" layout="vertical">
-      <Form.Item label="类型">
+      <Form.Item label={t("form.kind")}>
         <Segmented
           block
-          options={eventKinds.map(kind => ({ label: kindLabels[kind], value: kind }))}
+          options={eventKinds.map(kind => ({ label: labels[kind], value: kind }))}
           value={draft.kind}
           onChange={kind => onChange(withKind(draft, kind, timeZone))}
         />
       </Form.Item>
-      <Form.Item required label={draft.kind === "birthday" ? "姓名" : "名称"} {...fieldStatus(errors, "name")}>
+      <Form.Item
+        required
+        label={draft.kind === "birthday" ? t("form.personName") : t("form.name")}
+        {...fieldStatus(errors, "name")}
+      >
         <Input
           maxLength={60}
           value={draft.name}
-          aria-label="名称"
+          aria-label={t("form.nameAria")}
           onChange={event => onChange({ ...draft, name: event.target.value })}
         />
       </Form.Item>
@@ -54,12 +61,12 @@ export function EventForm({
       <ScheduleFields draft={draft} errors={errors} onChange={change} />
       <TitleFields draft={draft} errors={errors} onChange={change} />
       <AlarmFields draft={draft} errors={errors} onChange={change} />
-      <Form.Item label="备注" {...fieldStatus(errors, "note")}>
+      <Form.Item label={t("form.note")} {...fieldStatus(errors, "note")}>
         <Input.TextArea
           autoSize={{ minRows: 2, maxRows: 5 }}
           maxLength={500}
           value={draft.note}
-          aria-label="备注"
+          aria-label={t("form.noteAria")}
           onChange={event => onChange({ ...draft, note: event.target.value })}
         />
       </Form.Item>

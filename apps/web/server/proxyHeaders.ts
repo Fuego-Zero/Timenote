@@ -37,10 +37,7 @@ export function pickProxyRequestHeaders(req: IncomingMessage, traceId: string): 
   return headers;
 }
 
-export function pickProxyResponseHeaders(
-  response: Response,
-  traceId: string
-): Record<string, string | string[]> {
+export function pickProxyResponseHeaders(response: Response, traceId: string): Record<string, string | string[]> {
   const outgoing: Record<string, string | string[]> = { "x-trace-id": traceId };
   for (const key of proxyResponseHeaderNames) {
     const value = response.headers.get(key);

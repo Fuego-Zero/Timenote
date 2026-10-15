@@ -57,6 +57,7 @@ export function createFeedToken(
   if (input.calendarName) {
     feed.calendarName = input.calendarName;
   }
+
   repo.transaction(() => {
     if (repo.feedTokens.listFeedTokens(ownerId).length >= maxFeedTokensPerUser) {
       throw new BusinessError("INVALID_INPUT", { message: `每个账号最多 ${maxFeedTokensPerUser} 个订阅地址` });
@@ -94,6 +95,7 @@ export function updateFeedToken(
     if (scope.eventScope === "all") {
       delete next.eventIds;
     }
+
     // calendarName：省略保持；null（空串）删除字段以恢复默认；非空写入。
     if (input.calendarName !== undefined) {
       if (input.calendarName === null) {

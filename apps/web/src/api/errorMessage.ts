@@ -1,3 +1,4 @@
+import { i18n } from "../i18n/index.js";
 import { ApiRequestError } from "./apiRequestError.js";
 
 export function errorMessage(error: unknown) {
@@ -5,5 +6,7 @@ export function errorMessage(error: unknown) {
     return error.message;
   }
 
-  return error instanceof Error && error.name === "TimeoutError" ? "请求超时，请稍后重试" : "网络异常，请稍后重试";
+  return error instanceof Error && error.name === "TimeoutError"
+    ? i18n.t("timeoutError", { ns: "common" })
+    : i18n.t("networkError", { ns: "common" });
 }

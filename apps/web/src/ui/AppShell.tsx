@@ -1,6 +1,7 @@
 import type { PublicUser } from "@timenote/contracts";
 import { Button, Dropdown, Flex, Layout, Tabs, theme, Typography } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { UsersPage } from "../features/admin/UsersPage.js";
 import { AccountModal } from "../features/auth/AccountModal.js";
@@ -21,14 +22,17 @@ export function AppShell({
   onUserChange: (user: PublicUser) => void;
   onLogout: () => void;
 }) {
+  const { t } = useTranslation("common");
   const { token } = theme.useToken();
   const [accountOpen, setAccountOpen] = useState(false);
   const [{ tab }, setTab] = useUrlState(tabSchema);
   const items = [
-    { key: "events", label: "事件", children: <EventsPage user={user} /> },
-    { key: "feeds", label: "订阅", children: <FeedsPage user={user} /> },
-    { key: "backup", label: "备份", children: <BackupPage /> },
-    ...(user.role === "admin" ? [{ key: "users", label: "账号管理", children: <UsersPage currentUser={user} /> }] : []),
+    { key: "events", label: t("nav.events"), children: <EventsPage user={user} /> },
+    { key: "feeds", label: t("nav.feeds"), children: <FeedsPage user={user} /> },
+    { key: "backup", label: t("nav.backup"), children: <BackupPage /> },
+    ...(user.role === "admin"
+      ? [{ key: "users", label: t("nav.users"), children: <UsersPage currentUser={user} /> }]
+      : []),
   ];
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -40,13 +44,13 @@ export function AppShell({
       >
         <Flex align="center" gap={12} justify="space-between">
           <Typography.Text strong style={{ fontSize: token.fontSizeLG, whiteSpace: "nowrap" }}>
-            岁时记 Timenote
+            {t("brand")}
           </Typography.Text>
           <Dropdown
             menu={{
               items: [
-                { key: "account", label: "账号设置" },
-                { key: "logout", label: "退出登录" },
+                { key: "account", label: t("nav.account") },
+                { key: "logout", label: t("nav.logout") },
               ],
               onClick: ({ key }) => (key === "logout" ? onLogout() : setAccountOpen(true)),
             }}

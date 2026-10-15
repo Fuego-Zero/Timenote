@@ -1,8 +1,10 @@
 import type { PublicUser } from "@timenote/contracts";
 import { App, Button, Form, Input, Select } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { api, errorMessage } from "../../api/client.js";
+import { localeRegistry, setLocale } from "../../i18n/index.js";
 import { timeZoneOptions } from "../../lib/timeZones.js";
 
 interface ProfileValues {
@@ -10,13 +12,8 @@ interface ProfileValues {
   timeZone: string;
 }
 
-export function ProfileForm({
-  user,
-  onUserChange,
-}: {
-  user: PublicUser;
-  onUserChange: (user: PublicUser) => void;
-}) {
+export function ProfileForm({ user, onUserChange }: { user: PublicUser; onUserChange: (user: PublicUser) => void }) {
+  const { t, i18n } = useTranslation(["auth", "common"]);
   const { message } = App.useApp();
   const [form] = Form.useForm<ProfileValues>();
   const [saving, setSaving] = useState(false);
@@ -26,7 +23,7 @@ export function ProfileForm({
     try {
       const data = await api<{ user: PublicUser }>("/auth/profile", "PUT", values);
       onUserChange(data.user);
-      void message.success("资料已保存；时区变化会同步影响订阅里的提醒时间");
+      void message.success(t("profile.saved"));
     } catch (error) {
       void message.error(errorMessage(error));
     } finally {
@@ -41,14 +38,25 @@ export function ProfileForm({
       layout="vertical"
       onFinish={values => void saveProfile(values)}
     >
-      <Form.Item label="显示名称" name="displayName">
+      <Form.Item label={t("profile.displayName")} name="displayName">
         <Input maxLength={40} />
       </Form.Item>
-      <Form.Item extra="订阅窗口与提醒时刻按此时区计算" label="时区" name="timeZone">
+      <Form.Item extra={t("profile.timeZoneExtra")} label={t("profile.timeZone")} name="timeZone">
         <Select showSearch options={timeZoneOptions()} />
       </Form.Item>
+      <Form.Item label={t("common:locale.label")}>
+        <Select
+          options={localeRegistry.map(entry => ({
+            value: entry.code,
+            label: t(`common:${entry.labelKey}`),
+          }))}
+          value={i18n.language}
+          aria-label={t("common:locale.label")}
+          onChange={code => void setLocale(code)}
+        />
+      </Form.Item>
       <Button htmlType="submit" loading={saving} type="primary">
-        保存资料
+        {t("profile.save")}
       </Button>
     </Form>
   );

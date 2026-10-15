@@ -1,6 +1,7 @@
 import { upcomingOccurrences } from "@timenote/calendar";
 import type { EventInput } from "@timenote/contracts";
 import { Alert, Empty, List, Typography } from "antd";
+import { useTranslation } from "react-i18next";
 
 import { draftIssues } from "./eventDraft.js";
 import { EventTag } from "./EventTag.js";
@@ -18,19 +19,21 @@ export function EventPreview({
   timeZone: string;
   now?: Date;
 }) {
+  const { t } = useTranslation("events");
+
   if (Object.keys(draftIssues(draft)).length) {
-    return <Alert showIcon title="填写完整且无误后显示预览" type="warning" />;
+    return <Alert showIcon title={t("preview.incomplete")} type="warning" />;
   }
 
   let occurrences;
   try {
     occurrences = upcomingOccurrences(draft, now, timeZone, previewCount);
   } catch (error) {
-    return <Alert showIcon title={error instanceof Error ? error.message : "无法计算发生日"} type="error" />;
+    return <Alert showIcon title={error instanceof Error ? error.message : t("preview.cannotCompute")} type="error" />;
   }
 
   if (!occurrences.length) {
-    return <Empty description="接下来没有符合规则的发生日" />;
+    return <Empty description={t("preview.none")} />;
   }
 
   return (
@@ -47,20 +50,22 @@ export function EventPreview({
               <Typography.Text type="secondary">{rangeText(occurrence)}</Typography.Text>
               {draft.date.calendar === "lunar" ? (
                 <EventTag style={{ marginInlineStart: 8 }} tone="lunar">
-                  农历 {occurrence.logicalYear} 年
+                  {t("preview.lunarYear", { year: occurrence.logicalYear })}
                 </EventTag>
               ) : null}
             </div>
             {occurrence.alarms.map(alarm => (
               <div key={`${alarm.daysBefore}-${alarm.time}`}>
-                <Typography.Text type="secondary">提醒：{alarmText(alarm.at, timeZone)}</Typography.Text>
+                <Typography.Text type="secondary">
+                  {t("preview.alarmPrefix", { text: alarmText(alarm.at, timeZone) })}
+                </Typography.Text>
               </div>
             ))}
           </div>
         </List.Item>
       )}
       size="small"
-      aria-label="发生日预览"
+      aria-label={t("preview.aria")}
     />
   );
 }

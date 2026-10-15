@@ -9,6 +9,7 @@ import {
 } from "@timenote/contracts";
 import { App, Empty, Flex, Input, Select, Space, Table, type TableColumnsType, Typography } from "antd";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
 import { RowActions } from "../../ui/RowActions.js";
@@ -19,7 +20,6 @@ import { rangeText } from "./occurrenceText.js";
 import { recurrenceSummary } from "./recurrenceText.js";
 import type { EventListQuery } from "./useEvents.js";
 
-const calendarLabels: Record<CalendarSystem, string> = { gregorian: "公历", lunar: "农历" };
 const pageSizeOptions = [10, 20, 50, 100];
 const searchDebounceMs = 300;
 
@@ -44,8 +44,14 @@ export function EventsList({
   onEdit: (event: CalendarEvent) => void;
   onRemove: (id: string) => Promise<void>;
 }) {
+  const { t } = useTranslation(["events", "common"]);
   const { message } = App.useApp();
   const [search, setSearch] = useState(query.q ?? "");
+  const labels = kindLabels();
+  const calendarLabels: Record<CalendarSystem, string> = {
+    gregorian: t("gregorian"),
+    lunar: t("lunar"),
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -67,7 +73,7 @@ export function EventsList({
   const columns: TableColumnsType<CalendarEvent> = [
     {
       key: "name",
-      title: "事件",
+      title: t("columnEvent"),
       render: (_value, event) => {
         const next = nextOccurrence(event, timeZone);
         return (
@@ -75,33 +81,35 @@ export function EventsList({
             <Typography.Title className="event-title" level={5} style={{ margin: 0 }}>
               {next?.title ?? event.name}
             </Typography.Title>
-            <Typography.Text type="secondary">{next ? rangeText(next) : "已过去"}</Typography.Text>
+            <Typography.Text type="secondary">{next ? rangeText(next) : t("past")}</Typography.Text>
           </Space>
         );
       },
     },
     {
       key: "kind",
-      title: "类型",
+      title: t("common:type"),
       filterMultiple: false,
       filteredValue: query.kind ? [query.kind] : null,
-      filters: eventKinds.map(kind => ({ text: kindLabels[kind], value: kind })),
-      render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{kindLabels[event.kind]}</EventTag>,
+      filters: eventKinds.map(kind => ({ text: labels[kind], value: kind })),
+      render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{labels[event.kind]}</EventTag>,
     },
     {
       key: "calendar",
-      title: "历法",
+      title: t("calendar"),
       filterMultiple: false,
       filteredValue: query.calendar ? [query.calendar] : null,
       filters: calendarSystems.map(calendar => ({ text: calendarLabels[calendar], value: calendar })),
       render: (_value, event) => (
         <Space wrap size={4}>
           {event.date.calendar === "lunar" ? (
-            <EventTag tone="lunar">农历</EventTag>
+            <EventTag tone="lunar">{t("lunar")}</EventTag>
           ) : (
-            <EventTag tone="solar">公历</EventTag>
+            <EventTag tone="solar">{t("gregorian")}</EventTag>
           )}
-          {event.durationDays > 1 ? <EventTag tone="duration">{event.durationDays} 天</EventTag> : null}
+          {event.durationDays > 1 ? (
+            <EventTag tone="duration">{t("daysTag", { count: event.durationDays })}</EventTag>
+          ) : null}
           {recurrenceSummary(event).map(text => (
             <EventTag key={text} tone="general">
               {text}
@@ -112,36 +120,36 @@ export function EventsList({
     },
     {
       key: "hasAlarm",
-      title: "提醒",
+      title: t("reminder"),
       filterMultiple: false,
       filteredValue: query.hasAlarm === undefined ? null : [String(query.hasAlarm)],
       filters: [
-        { text: "有提醒", value: "true" },
-        { text: "无提醒", value: "false" },
+        { text: t("hasAlarm"), value: "true" },
+        { text: t("noAlarm"), value: "false" },
       ],
-      render: (_value, event) => (event.alarms.length ? <EventTag tone="reminder">提醒</EventTag> : null),
+      render: (_value, event) => (event.alarms.length ? <EventTag tone="reminder">{t("reminder")}</EventTag> : null),
     },
     {
       key: "actions",
-      title: "操作",
+      title: t("common:actions"),
       width: 110,
       render: (_value, event) => (
         <RowActions
           actions={[
-            { key: "edit", label: "编辑", onClick: () => onEdit(event) },
+            { key: "edit", label: t("common:edit"), onClick: () => onEdit(event) },
             {
               key: "remove",
-              label: "删除",
+              label: t("common:delete"),
               danger: true,
               confirm: {
-                title: "删除事件",
-                description: "删除后订阅刷新时会移除对应日程。",
-                okText: "删除",
+                title: t("deleteConfirmTitle"),
+                description: t("deleteConfirmDesc"),
+                okText: t("common:delete"),
                 okDanger: true,
               },
               onClick: () =>
                 void onRemove(event.id).then(
-                  () => message.success("已删除"),
+                  () => message.success(t("deleted")),
                   (error: unknown) => message.error(errorMessage(error))
                 ),
             },
@@ -157,21 +165,21 @@ export function EventsList({
         <Input
           allowClear
           maxLength={maxQueryLength}
-          placeholder="搜索名称"
+          placeholder={t("common:searchName")}
           style={{ maxWidth: 240 }}
           value={search}
-          aria-label="搜索事件"
+          aria-label={t("searchAria")}
           onChange={event => setSearch(event.target.value)}
         />
         <Select
           id="events-sort"
           options={[
-            { value: "createdAt", label: "最近创建" },
-            { value: "nextOccurrence", label: "下次发生" },
+            { value: "createdAt", label: t("sortCreated") },
+            { value: "nextOccurrence", label: t("sortNext") },
           ]}
           style={{ width: 120 }}
           value={query.sort}
-          aria-label="排序"
+          aria-label={t("sortAria")}
           onChange={sort =>
             onQueryChange({ sort, page: 1, ...(sort === "createdAt" ? { nextWithinDays: undefined } : {}) })
           }
@@ -180,11 +188,11 @@ export function EventsList({
           <Select
             allowClear
             id="events-next-within"
-            options={[7, 30, 90].map(days => ({ value: days, label: `${days} 天内` }))}
-            placeholder="不限时间"
+            options={[7, 30, 90].map(days => ({ value: days, label: t("withinDays", { count: days }) }))}
+            placeholder={t("noTimeLimit")}
             style={{ width: 120 }}
             value={query.nextWithinDays}
-            aria-label="发生时间范围"
+            aria-label={t("nextWithinAria")}
             onChange={(days?: number) => onQueryChange({ nextWithinDays: days, page: 1 })}
           />
         ) : null}
@@ -194,11 +202,7 @@ export function EventsList({
         dataSource={page?.items ?? []}
         loading={loading}
         locale={{
-          emptyText: filtered ? (
-            <Empty description="没有匹配的事件" />
-          ) : (
-            <Empty description="还没有事件，点击「新建」添加生日或纪念日" />
-          ),
+          emptyText: filtered ? <Empty description={t("emptyFiltered")} /> : <Empty description={t("empty")} />,
         }}
         pagination={{
           current: query.page,

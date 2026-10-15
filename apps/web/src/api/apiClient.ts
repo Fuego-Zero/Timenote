@@ -15,8 +15,9 @@ export const authExpiredEvent = "timenote:auth-expired";
 export async function api<T>(path: string, method = "GET", body?: unknown): Promise<T> {
   const apiUrl = `/api${path}`;
   const bodyText = body === undefined ? undefined : JSON.stringify(body);
-  const signHeaders =
-    isSignExemptClientPath(method, path) ? {} : await buildClientSignHeaders({ method, apiUrl, bodyText });
+  const signHeaders = isSignExemptClientPath(method, path)
+    ? {}
+    : await buildClientSignHeaders({ method, apiUrl, bodyText });
   const response = await fetch(apiUrl, {
     method,
     signal: AbortSignal.timeout(apiTimeoutMs),

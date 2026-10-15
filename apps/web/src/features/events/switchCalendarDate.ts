@@ -1,6 +1,8 @@
 import { formatLunarMonthDay, isoDate, solarToLunar } from "@timenote/calendar";
 import type { EventInput } from "@timenote/contracts";
 
+import { i18n } from "../../i18n/index.js";
+
 /** 公历/农历切换：有年份时用 calendar 包换算，否则只改 calendar 标记。 */
 export function switchCalendarDate(
   date: EventInput["date"],
@@ -15,12 +17,17 @@ export function switchCalendarDate(
       const lunar = solarToLunar(isoDate(date.year, date.month, date.day));
       return {
         date: { calendar, ...lunar },
-        notice: `已把公历 ${isoDate(date.year, date.month, date.day)} 换算为农历 ${lunar.year} 年${formatLunarMonthDay(lunar.month, lunar.day, lunar.leapMonth)}，请核对`,
+        notice: i18n.t("switchCalendar.converted", {
+          ns: "events",
+          solar: isoDate(date.year, date.month, date.day),
+          year: lunar.year,
+          lunar: formatLunarMonthDay(lunar.month, lunar.day, lunar.leapMonth),
+        }),
       };
     } catch (error) {
       return {
         date: { ...date, calendar, day: Math.min(date.day, 30) },
-        notice: error instanceof Error ? error.message : "无法换算",
+        notice: error instanceof Error ? error.message : i18n.t("switchCalendar.failed", { ns: "events" }),
       };
     }
   }

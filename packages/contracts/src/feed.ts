@@ -9,6 +9,7 @@ const calendarNameInputSchema = z.preprocess(value => {
     const trimmed = value.trim();
     return trimmed === "" ? null : trimmed;
   }
+
   return value;
 }, z.string().max(40).nullable().optional());
 

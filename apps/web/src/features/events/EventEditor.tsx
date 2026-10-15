@@ -1,6 +1,7 @@
 import type { EventInput } from "@timenote/contracts";
 import { Alert, Button, Col, Divider, Drawer, Grid, Row, Space, theme, Typography } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { ApiRequestError, errorMessage } from "../../api/client.js";
 import { draftIssues } from "./eventDraft.js";
@@ -21,6 +22,7 @@ export function EventEditor({
   onClose: () => void;
   onSave: (draft: EventInput) => Promise<void>;
 }) {
+  const { t } = useTranslation(["events", "common"]);
   const screens = Grid.useBreakpoint();
   const { token } = theme.useToken();
   const [draft, setDraft] = useState(initial);
@@ -59,14 +61,14 @@ export function EventEditor({
       open
       footer={
         <Space style={{ width: "100%", justifyContent: "flex-end" }}>
-          <Button onClick={onClose}>取消</Button>
+          <Button onClick={onClose}>{t("common:cancel")}</Button>
           <Button loading={saving} type="primary" onClick={() => void save()}>
-            保存
+            {t("common:save")}
           </Button>
         </Space>
       }
       size={screens.md ? 1000 : "100%"}
-      title={editing ? "编辑事件" : "新建事件"}
+      title={editing ? t("editEvent") : t("newEvent")}
       onClose={onClose}
     >
       {saveError ? <Alert showIcon style={{ marginBottom: 16 }} title={saveError} type="error" /> : null}
@@ -98,7 +100,7 @@ export function EventEditor({
             }
           >
             <Typography.Title level={5} styles={{ root: { marginTop: 0 } }}>
-              未来几次（{timeZone}）
+              {t("preview.title", { timeZone })}
             </Typography.Title>
             <EventPreview draft={draft} timeZone={timeZone} />
           </div>

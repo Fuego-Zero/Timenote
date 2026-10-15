@@ -1,5 +1,6 @@
 import { App, Button, Form, Input } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { api, ApiRequestError, errorMessage } from "../../api/client.js";
 
@@ -9,6 +10,7 @@ interface PasswordValues {
 }
 
 export function ChangePasswordForm() {
+  const { t } = useTranslation("auth");
   const { message } = App.useApp();
   const [form] = Form.useForm<PasswordValues>();
   const [saving, setSaving] = useState(false);
@@ -18,7 +20,7 @@ export function ChangePasswordForm() {
     try {
       await api("/auth/password", "POST", values);
       form.resetFields();
-      void message.success("密码已修改，其他设备需要重新登录");
+      void message.success(t("password.success"));
     } catch (error) {
       if (error instanceof ApiRequestError && error.fields.currentPassword) {
         form.setFields([{ name: "currentPassword", errors: [error.fields.currentPassword] }]);
@@ -32,21 +34,25 @@ export function ChangePasswordForm() {
 
   return (
     <Form<PasswordValues> form={form} layout="vertical" onFinish={values => void changePassword(values)}>
-      <Form.Item label="当前密码" name="currentPassword" rules={[{ required: true, message: "请输入当前密码" }]}>
+      <Form.Item
+        label={t("password.current")}
+        name="currentPassword"
+        rules={[{ required: true, message: t("password.currentRequired") }]}
+      >
         <Input.Password autoComplete="current-password" />
       </Form.Item>
       <Form.Item
-        label="新密码"
+        label={t("password.next")}
         name="newPassword"
         rules={[
-          { required: true, message: "请输入新密码" },
-          { min: 8, max: 128, message: "密码长度为 8-128 位" },
+          { required: true, message: t("password.nextRequired") },
+          { min: 8, max: 128, message: t("password.length") },
         ]}
       >
         <Input.Password autoComplete="new-password" />
       </Form.Item>
       <Button htmlType="submit" loading={saving} type="primary">
-        修改密码
+        {t("password.submit")}
       </Button>
     </Form>
   );

@@ -1,0 +1,30 @@
+{
+  "brand": "岁时记 Timenote",
+  "loading": "加载中",
+  "retry": "重试",
+  "serviceUnavailable": "无法连接服务",
+  "networkError": "网络异常，请稍后重试",
+  "timeoutError": "请求超时，请稍后重试",
+  "save": "保存",
+  "cancel": "取消",
+  "edit": "编辑",
+  "delete": "删除",
+  "create": "创建",
+  "searchName": "搜索名称",
+  "actions": "操作",
+  "name": "名称",
+  "type": "类型",
+  "nav": {
+    "events": "事件",
+    "feeds": "订阅",
+    "backup": "备份",
+    "users": "账号管理",
+    "account": "账号设置",
+    "logout": "退出登录"
+  },
+  "locale": {
+    "label": "语言",
+    "zhCN": "中文",
+    "en": "English"
+  }
+}

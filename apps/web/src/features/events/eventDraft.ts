@@ -11,9 +11,16 @@ import {
   type Recurrence,
 } from "@timenote/contracts";
 
+import { i18n } from "../../i18n/index.js";
 import type { EventTagTone } from "./EventTag.js";
 
-export const kindLabels: Record<EventKind, string> = { birthday: "生日", anniversary: "纪念日", event: "普通事件" };
+export function kindLabels(): Record<EventKind, string> {
+  return {
+    birthday: i18n.t("kind.birthday", { ns: "events" }),
+    anniversary: i18n.t("kind.anniversary", { ns: "events" }),
+    event: i18n.t("kind.event", { ns: "events" }),
+  };
+}
 
 export const kindTagTones: Record<EventKind, EventTagTone> = {
   birthday: "birthday",
@@ -168,6 +175,6 @@ export function draftIssues(draft: EventInput): Record<string, string> {
   try {
     return eventDateIssues(parsed.data);
   } catch (error) {
-    return { "date.year": error instanceof Error ? error.message : "日期超出支持范围" };
+    return { "date.year": error instanceof Error ? error.message : i18n.t("draft.dateOutOfRange", { ns: "events" }) };
   }
 }

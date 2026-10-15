@@ -2,6 +2,7 @@ import { type EventInput, maxAlarms } from "@timenote/contracts";
 import { Button, Flex, Form, InputNumber, Select, Space, Switch, TimePicker } from "antd";
 import dayjs from "dayjs";
 import type { CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 
 import { fieldStatus } from "./fieldStatus.js";
 
@@ -20,20 +21,21 @@ function AlarmRow({
   onChange: (alarm: Alarm) => void;
   onRemove: () => void;
 }) {
+  const { t } = useTranslation("events");
   const preset = presetDays.includes(alarm.daysBefore);
   return (
     <Flex wrap gap={8}>
       <Select
         options={[
-          { label: "当天", value: 0 },
-          { label: "提前 1 天", value: 1 },
-          { label: "提前 3 天", value: 3 },
-          { label: "提前 7 天", value: 7 },
-          { label: "自定义天数", value: customValue },
+          { label: t("alarm.sameDay"), value: 0 },
+          { label: t("alarm.daysBefore", { count: 1 }), value: 1 },
+          { label: t("alarm.daysBefore", { count: 3 }), value: 3 },
+          { label: t("alarm.daysBefore", { count: 7 }), value: 7 },
+          { label: t("alarm.customDays"), value: customValue },
         ]}
         style={rowItemStyle}
         value={preset ? alarm.daysBefore : customValue}
-        aria-label="提前天数"
+        aria-label={t("alarm.daysAria")}
         onChange={value => onChange({ ...alarm, daysBefore: value === customValue ? 14 : value })}
       />
       {preset ? null : (
@@ -41,11 +43,11 @@ function AlarmRow({
           max={365}
           min={0}
           precision={0}
-          prefix="提前"
+          prefix={t("alarm.prefix") || undefined}
           style={rowItemStyle}
-          suffix="天"
+          suffix={t("alarm.suffix")}
           value={alarm.daysBefore}
-          aria-label="自定义提前天数"
+          aria-label={t("alarm.customAria")}
           onChange={value => onChange({ ...alarm, daysBefore: value ?? 0 })}
         />
       )}
@@ -54,7 +56,7 @@ function AlarmRow({
         format="HH:mm"
         style={rowItemStyle}
         value={dayjs(alarm.time, "HH:mm")}
-        aria-label="提醒时刻"
+        aria-label={t("alarm.timeAria")}
         onChange={value => {
           if (value) {
             onChange({ ...alarm, time: value.format("HH:mm") });
@@ -62,7 +64,7 @@ function AlarmRow({
         }}
       />
       <Button style={rowItemStyle} onClick={onRemove}>
-        删除
+        {t("alarm.remove")}
       </Button>
     </Flex>
   );
@@ -78,20 +80,21 @@ export function AlarmFields({
   errors: Record<string, string>;
   onChange: (draft: EventInput) => void;
 }) {
+  const { t } = useTranslation("events");
   const setAlarms = (alarms: Alarm[]) => onChange({ ...draft, alarms });
   const enabled = draft.alarms.length > 0;
   return (
     <Form.Item
-      extra="按账号时区的本地时刻提醒；跨天事件只在开始日前提醒"
-      label="日历提醒"
+      extra={t("alarm.extra")}
+      label={t("alarm.label")}
       {...fieldStatus(errors, "alarms", "alarms.0.time", "alarms.1.time", "alarms.0.daysBefore", "alarms.1.daysBefore")}
     >
       <Space orientation="vertical" style={{ width: "100%" }}>
         <Switch
           checked={enabled}
-          checkedChildren="开"
-          unCheckedChildren="关"
-          aria-label="开启提醒"
+          checkedChildren={t("alarm.on")}
+          unCheckedChildren={t("alarm.off")}
+          aria-label={t("alarm.switchAria")}
           onChange={checked => setAlarms(checked ? [{ daysBefore: 0, time: "09:00" }] : [])}
         />
         {draft.alarms.map((alarm, index) => (
@@ -104,7 +107,9 @@ export function AlarmFields({
           />
         ))}
         {enabled && draft.alarms.length < maxAlarms ? (
-          <Button onClick={() => setAlarms([...draft.alarms, { daysBefore: 1, time: "09:00" }])}>再加一条提醒</Button>
+          <Button onClick={() => setAlarms([...draft.alarms, { daysBefore: 1, time: "09:00" }])}>
+            {t("alarm.add")}
+          </Button>
         ) : null}
       </Space>
     </Form.Item>
