@@ -17,6 +17,8 @@ export interface Config {
   logSink?: LogSink;
   /** 是否开放公开自助注册；默认 false。 */
   publicRegisterEnabled: boolean;
+  /** 公开注册新账号是否默认停用；默认 true。为 false 时账号可立即登录，仍不在注册时建会话。 */
+  registerDefaultDisabled: boolean;
   /** 公开注册每分钟每来源上限；默认 ≤ loginLimit。 */
   registerLimit: number;
   sessionTtlSeconds: number;

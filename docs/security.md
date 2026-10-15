@@ -2,7 +2,7 @@
 
 ## 账号与会话
 
-- 默认可选关闭的公开注册（`PUBLIC_REGISTER_ENABLED`，默认 `false`）。关闭时 `POST /api/auth/register` 返回 `FORBIDDEN`，登录页不展示注册入口。开启后允许自助注册：新号 `role=user`、**默认停用**（`disabled: true`），不创建会话、不写 Cookie；须管理员在账号管理启用后方可登录。未启用/停用与错密登录返回同一提示，不暴露账号状态。
+- 默认可选关闭的公开注册（`PUBLIC_REGISTER_ENABLED`，默认 `false`）。关闭时 `POST /api/auth/register` 返回 `FORBIDDEN`，登录页不展示注册入口。开启后允许自助注册：新号 `role=user`，是否停用由 `REGISTER_DEFAULT_DISABLED` 决定（默认 `true`，即停用）。两种情况下都不创建会话、不写 Cookie。默认停用时须管理员在账号管理启用后方可登录；设为 `false` 时注册后可立即登录。未启用/停用与错密登录返回同一提示，不暴露账号状态。
 - 首个管理员只经首次引导创建：空库时 `GET /api/setup` 返回 `needed: true`，`POST /api/setup/admin` 创建并建立会话。不使用环境变量种子管理员。生产环境引导创建要求强密码（≥16 位且至少三类字符，避开常见弱口令）。公开注册**不替代**首次引导。管理员后台新建账号仍默认启用。所有管理接口在服务端 `requireAdmin` 校验，不依赖前端隐藏。
 - 密码用 scrypt（N=2^15、r=8、p=1、16 字节随机盐）哈希，存为 `scrypt$N$r$p$salt$hash`；数据库约束禁止出现明文 `password` 字段。
 - 登录时账号不存在、已停用、密码错误返回同一提示；账号不存在时也对占位哈希做一次校验，避免用响应时间探测用户名。

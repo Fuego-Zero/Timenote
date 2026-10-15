@@ -74,9 +74,13 @@ describe("配置", () => {
       loginLimit: 10,
       registerLimit: 5,
       publicRegisterEnabled: false,
+      registerDefaultDisabled: true,
     });
     expect(loadConfig({ ...base, PUBLIC_REGISTER_ENABLED: "true" }).publicRegisterEnabled).toBe(true);
     expect(() => loadConfig({ ...base, PUBLIC_REGISTER_ENABLED: "yes" })).toThrow(/PUBLIC_REGISTER_ENABLED/);
+    expect(loadConfig({ ...base, REGISTER_DEFAULT_DISABLED: "false" }).registerDefaultDisabled).toBe(false);
+    expect(loadConfig({ ...base, REGISTER_DEFAULT_DISABLED: "  " }).registerDefaultDisabled).toBe(true);
+    expect(() => loadConfig({ ...base, REGISTER_DEFAULT_DISABLED: "yes" })).toThrow(/REGISTER_DEFAULT_DISABLED/);
   });
 
   it("生产环境要求 HTTPS 来源，强制安全 Cookie 并使用 __Host- 前缀", () => {

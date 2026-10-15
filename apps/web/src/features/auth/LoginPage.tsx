@@ -21,9 +21,11 @@ type Mode = "login" | "register" | "registerSuccess";
 export function LoginPage({
   onLogin,
   publicRegisterEnabled,
+  registerDefaultDisabled,
 }: {
   onLogin: (user: PublicUser) => void;
   publicRegisterEnabled: boolean;
+  registerDefaultDisabled: boolean;
 }) {
   const { token } = theme.useToken();
   const [mode, setMode] = useState<Mode>("login");
@@ -80,9 +82,15 @@ export function LoginPage({
           <Card style={{ maxWidth: 380, width: "100%" }}>
             {mode === "registerSuccess" ? (
               <>
-                <Typography.Title level={3}>注册申请已提交</Typography.Title>
-                <Typography.Paragraph>账号已创建，需管理员启用后才能登录。启用前无法使用本服务。</Typography.Paragraph>
-                <Typography.Paragraph type="secondary">请联系站点管理员在「账号管理」中启用。</Typography.Paragraph>
+                <Typography.Title level={3}>{registerDefaultDisabled ? "注册申请已提交" : "注册成功"}</Typography.Title>
+                <Typography.Paragraph>
+                  {registerDefaultDisabled
+                    ? "账号已创建，需管理员启用后才能登录。启用前无法使用本服务。"
+                    : "账号已创建，现在可以登录。"}
+                </Typography.Paragraph>
+                {registerDefaultDisabled ? (
+                  <Typography.Paragraph type="secondary">请联系站点管理员在「账号管理」中启用。</Typography.Paragraph>
+                ) : null}
                 <Button block type="primary" onClick={goLogin}>
                   返回登录
                 </Button>
@@ -124,7 +132,9 @@ export function LoginPage({
               <>
                 <Typography.Title level={3}>注册账号</Typography.Title>
                 <Typography.Paragraph type="secondary">
-                  提交后账号默认停用，需管理员启用后才能登录。
+                  {registerDefaultDisabled
+                    ? "提交后账号默认停用，需管理员启用后才能登录。"
+                    : "提交后即可使用该账号登录。"}
                 </Typography.Paragraph>
                 {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
                 <Form<RegisterValues>
