@@ -31,7 +31,7 @@ function WebcalQrPanel({ webcalUrl }: { webcalUrl: string }) {
     <Flex align="flex-start" gap="middle" wrap>
       <QRCode size={120} type="svg" value={webcalUrl} />
       <Typography.Paragraph type="secondary" style={{ marginBottom: 0, maxWidth: 420 }}>
-        扫码得到与「复制 webcal」相同的地址，由系统日历处理（主打苹果）。Google / Android
+        扫码得到与「复制 webcal」相同的地址，由系统日历处理（适用于 Apple 日历）。Google / Android
         不保证扫码即订，请改用「复制地址」取得 HTTPS 后手动添加。
       </Typography.Paragraph>
     </Flex>

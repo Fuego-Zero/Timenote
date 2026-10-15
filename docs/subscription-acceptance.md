@@ -14,7 +14,7 @@
    - 「复制地址」复制 **HTTPS**（通用：Google / Outlook / 手动粘贴）；
    - 「复制 webcal」复制 **webcal**（苹果分享 / 隔空投送用）；
    - 「日历打开」跳转 webcal（本机可处理该协议时）；
-   - 有明文时可**展开行**，扫描页上的 **webcal 二维码**（主打苹果扫码加订）。无明文时上述 webcal / 二维码不可用，与「日历打开」门控一致。
+   - 有明文时可**展开行**，扫描页上的 **webcal 二维码**（适用于 Apple 日历扫码加订）。无明文时上述 webcal / 二维码不可用，与「日历打开」门控一致。
 2. 按客户端添加订阅：
    - 苹果日历：「日历」App →「日历」→「添加日历」→「添加订阅日历」→ 粘贴地址（HTTPS 或 webcal 均可）→ 订阅；或在设备上打开网页点「日历打开」；或扫描订阅页展开区的 webcal 二维码。参考 [Apple 支持](https://support.apple.com/zh-cn/guide/iphone/iph3d1110d4/ios)。
    - Google 日历：仅电脑网页版支持，「其他日历」旁的 ＋ →「通过网址添加」→ 粘贴 **HTTPS** 地址。不保证 App 内一点即订，也不保证扫码即可订阅。参考 [Google 日历帮助](https://support.google.com/calendar/answer/37100?hl=zh-Hans)。

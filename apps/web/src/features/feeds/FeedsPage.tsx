@@ -78,7 +78,7 @@ export function FeedsPage() {
       <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
         <Typography.Text strong>苹果：</Typography.Text>
         本机可点「日历打开」；分享给 iPhone / iPad 时复制 webcal 发给对方，用 Safari
-        或「日历」打开以添加订阅；也可展开行后扫描页上的 webcal 二维码（主打苹果）。
+        或「日历」打开以添加订阅；也可展开行后扫描页上的 webcal 二维码（适用于 Apple 日历）。
       </Typography.Paragraph>
       <Typography.Paragraph type="secondary">
         <Typography.Text strong>Google / Android / Outlook：</Typography.Text>
