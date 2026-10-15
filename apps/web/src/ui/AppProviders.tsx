@@ -1,8 +1,12 @@
 import { App as AntdApp, ConfigProvider, type ThemeConfig } from "antd";
 import zhCN from "antd/locale/zh_CN";
+import dayjs from "dayjs";
+import "dayjs/locale/zh-cn";
 import type { ReactNode } from "react";
 
 import { readCspNonce } from "../lib/nonce.js";
+
+dayjs.locale("zh-cn");
 
 // 事件 Tag 的语义色作为自定义 token 声明为必选键，EventTag 通过 theme.useToken() 读取。
 declare module "antd/es/theme/interface" {
