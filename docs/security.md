@@ -53,7 +53,7 @@
 
 ### 失败
 
-- `SIGN_INVALID` / `SIGN_EXPIRED` / `SIGN_REPLAY` → HTTP 403，响应含稳定 `code` 与 `requestId`。
+- `SIGN_INVALID` / `SIGN_EXPIRED` / `SIGN_REPLAY` → HTTP 403，响应含稳定 `code`、`message` 与 `requestId`。
 
 ## 跨站请求
 

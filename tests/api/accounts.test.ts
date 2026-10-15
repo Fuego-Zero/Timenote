@@ -185,7 +185,7 @@ describe("管理员后台权限边界", () => {
 });
 
 describe("development auth bypass", () => {
-  it("development injects first enabled admin without cookie; test/prod stay locked", async () => {
+  it("development injects earliest enabled admin without cookie; test/prod stay locked", async () => {
     const dev = await harness({ NODE_ENV: "development" });
     try {
       expect(dev.config.devAuthBypass).toBe(true);
@@ -235,6 +235,35 @@ describe("development auth bypass", () => {
     }
   });
 
+  it("升任用户名更靠前的管理员后，旁路身份与 SIGN 密钥仍指向最早 admin", async () => {
+    const dev = await harness({ NODE_ENV: "development" });
+    try {
+      const b = dev.browser();
+      const before = await b.request<{ user: PublicUser | null }>("GET", "/api/auth/session");
+      expect(before.json.user?.username).toBe("admin");
+
+      // 冻结时钟下种子 admin 与新建用户 createdAt 相同；拨钟后才能体现「最早创建」稳定选取。
+      dev.clock.now += 60_000;
+      const created = await b.request<{ user: PublicUser }>("POST", "/api/admin/users", {
+        username: "aaa",
+        displayName: "A",
+        password: "aaa-password-1",
+        role: "user",
+      });
+      expect(created.status).toBe(201);
+      expect((await b.request("PATCH", `/api/admin/users/${created.json.user.id}`, { role: "admin" })).status).toBe(
+        200
+      );
+
+      // 若仍按 username 取「第一个」admin，此处会变成 aaa 并换 dev: 密钥 → SIGN_INVALID。
+      const after = await b.request<{ user: PublicUser | null }>("GET", "/api/auth/session");
+      expect(after.json.user?.username).toBe("admin");
+      expect((await b.request("GET", "/api/events")).status).toBe(200);
+      expect((await b.request("PATCH", `/api/admin/users/${created.json.user.id}`, { role: "user" })).status).toBe(200);
+    } finally {
+      await dev.close();
+    }
+  });
   it("no enabled admin means no bypass; health and feeds stay public", async () => {
     const dev = await harness({ NODE_ENV: "development" });
     try {

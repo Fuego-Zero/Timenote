@@ -3,6 +3,7 @@ import type { FastifyRequest } from "fastify";
 
 import type { ApiContext } from "./context.js";
 import { assertCsrfOrigin, isPublicPath } from "./csrfOrigin.js";
+import { pickDevBypassAdmin } from "./pickDevBypassAdmin.js";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -42,8 +43,9 @@ export function authenticate(ctx: ApiContext, req: FastifyRequest, allowPrivateL
   }
 
   // development 免登录：不落库、不设 Cookie，只挂 req.user；无启用 admin 则不注入。
+  // 身份必须稳定（最早创建的启用 admin），避免升任其他管理员后旁路换人并换 SIGN 密钥。
   if (config.devAuthBypass) {
-    const admin = repo.users.listUsers().find(user => user.role === "admin" && !user.disabled);
+    const admin = pickDevBypassAdmin(repo.users.listUsers());
     if (admin) {
       req.user = admin;
       req.userId = admin.id;

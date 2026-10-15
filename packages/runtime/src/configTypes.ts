@@ -8,7 +8,7 @@ export interface Config {
   cookieName: string;
   cookieSecure: boolean;
   defaultTimeZone: string;
-  /** development 且 DEV_AUTH_BYPASS 未设为 0 时，无真实会话则注入首个启用 admin（不落库、不设 Cookie）。 */
+  /** development 且 DEV_AUTH_BYPASS 未设为 0 时，无真实会话则注入最早创建的启用 admin（不落库、不设 Cookie；身份按 createdAt 稳定，不随 username 排序变化）。 */
   devAuthBypass: boolean;
   env: string;
   feedFutureYears: number;
