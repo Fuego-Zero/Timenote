@@ -1,0 +1,13 @@
+{
+  "title": "Backup and restore",
+  "intro": "Export every event on this account, including original dates, rules, templates, and reminders. Import only adds or overwrites your own events with the same ID; it does not delete existing data. You will see how many will be added or overwritten before anything is written.",
+  "export": "Export JSON",
+  "import": "Import JSON",
+  "pickFile": "Choose backup file",
+  "confirmTitle": "Confirm import",
+  "confirmBody": "This will add {{created}} and overwrite {{updated}} events. Overwritten events are replaced by the backup and cannot be undone.",
+  "importOk": "Import",
+  "done": "Import finished: {{created}} added, {{updated}} updated",
+  "invalidJson": "The file is not valid JSON",
+  "invalidBackup": "The file is not a valid Timenote backup"
+}

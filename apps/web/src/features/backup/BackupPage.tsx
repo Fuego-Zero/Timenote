@@ -1,12 +1,14 @@
 import type { BackupFile, ImportResult } from "@timenote/contracts";
 import { App, Button, Space, Typography } from "antd";
 import { useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
 import { exportBackupFile } from "./exportBackupFile.js";
 import { BackupImportError, importBackup, previewBackup, readBackupFile } from "./importBackupFile.js";
 
 export function BackupPage() {
+  const { t } = useTranslation(["backup", "common"]);
   const { message, modal } = App.useApp();
   const fileInput = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -30,7 +32,7 @@ export function BackupPage() {
   async function runImport(backup: BackupFile) {
     try {
       const result = await importBackup(backup);
-      void message.success(`导入完成：新增 ${result.created}，更新 ${result.updated}`);
+      void message.success(t("done", { created: result.created, updated: result.updated }));
     } catch (error) {
       showError(error);
       throw error;
@@ -39,10 +41,10 @@ export function BackupPage() {
 
   function confirmImport(backup: BackupFile, preview: ImportResult) {
     modal.confirm({
-      title: "确认导入",
-      content: `将新增 ${preview.created}、覆盖 ${preview.updated} 个事件。覆盖的事件会被备份中的内容替换，无法撤销。`,
-      okText: "导入",
-      cancelText: "取消",
+      title: t("confirmTitle"),
+      content: t("confirmBody", { created: preview.created, updated: preview.updated }),
+      okText: t("importOk"),
+      cancelText: t("common:cancel"),
       onOk: () => runImport(backup),
     });
   }
@@ -63,25 +65,22 @@ export function BackupPage() {
   return (
     <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       <Typography.Title level={4} style={{ margin: 0 }}>
-        备份与恢复
+        {t("title")}
       </Typography.Title>
-      <Typography.Paragraph type="secondary">
-        导出当前账号的全部事件（含原始日期、规则、模板和提醒）。导入只新增或覆盖同 ID
-        的本人事件，不会删除现有数据；导入前会先显示将新增和覆盖的数量，确认后才写入。
-      </Typography.Paragraph>
+      <Typography.Paragraph type="secondary">{t("intro")}</Typography.Paragraph>
       <Space wrap>
         <Button loading={busy} type="primary" onClick={() => void onExport()}>
-          导出 JSON
+          {t("export")}
         </Button>
         <Button loading={busy} onClick={() => fileInput.current?.click()}>
-          导入 JSON
+          {t("import")}
         </Button>
         <input
           ref={fileInput}
           hidden
           accept="application/json,.json"
           type="file"
-          aria-label="选择备份文件"
+          aria-label={t("pickFile")}
           onChange={event => {
             const file = event.target.files?.[0];
             event.target.value = "";

@@ -10,6 +10,7 @@
   "edit": "编辑",
   "delete": "删除",
   "create": "创建",
+  "confirm": "确认",
   "searchName": "搜索名称",
   "actions": "操作",
   "name": "名称",
@@ -20,6 +21,7 @@
     "backup": "备份",
     "users": "账号管理",
     "account": "账号设置",
+    "password": "修改密码",
     "logout": "退出登录"
   },
   "locale": {

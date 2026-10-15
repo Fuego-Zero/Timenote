@@ -1,11 +1,10 @@
 import type { PublicUser } from "@timenote/contracts";
-import { Divider, Modal } from "antd";
+import { Modal } from "antd";
 import { useTranslation } from "react-i18next";
 
-import { ChangePasswordForm } from "./ChangePasswordForm.js";
 import { ProfileForm } from "./ProfileForm.js";
 
-export function AccountModal({
+export function ProfileModal({
   user,
   open,
   onClose,
@@ -20,8 +19,6 @@ export function AccountModal({
   return (
     <Modal destroyOnHidden footer={null} open={open} title={t("account.title")} onCancel={onClose}>
       <ProfileForm user={user} onUserChange={onUserChange} />
-      <Divider />
-      <ChangePasswordForm />
     </Modal>
   );
 }

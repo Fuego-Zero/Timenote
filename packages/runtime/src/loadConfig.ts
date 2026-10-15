@@ -1,7 +1,7 @@
 import { isTimeZone } from "@timenote/contracts";
 
 import type { Config } from "./configTypes.js";
-import { integerEnv, originEnv, requiredEnv, signMasterKeyEnv, textEnv } from "./envParse.js";
+import { booleanEnv, integerEnv, originEnv, requiredEnv, signMasterKeyEnv, textEnv } from "./envParse.js";
 
 const defaultSessionTtlSeconds = 30 * 24 * 60 * 60;
 
@@ -32,6 +32,10 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
   }
 
   const webBindHost = textEnv(env, "WEB_BIND_HOST", "127.0.0.1");
+  const publicRegisterEnabled = booleanEnv(env, "PUBLIC_REGISTER_ENABLED", false);
+  // 缺省停用，与原先写死的行为一致；设为 false 时新注册账号可立即登录。
+  const registerDefaultDisabled = booleanEnv(env, "REGISTER_DEFAULT_DISABLED", true);
+
   // 仅 development 开启；未设置 DEV_AUTH_BYPASS 视为开启，设为 0 关闭。production/test 一律关闭。
   const devAuthBypass = nodeEnv === "development" && env.DEV_AUTH_BYPASS !== "0";
   return {
@@ -47,6 +51,9 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
     sessionTtlSeconds: integerEnv(env, "SESSION_TTL_SECONDS", defaultSessionTtlSeconds, 300, 365 * 24 * 60 * 60),
     signMasterKey: signMasterKeyEnv(env, production),
     loginLimit: integerEnv(env, "LOGIN_RATE_LIMIT", 10, 1, 1000),
+    registerLimit: integerEnv(env, "REGISTER_RATE_LIMIT", 5, 1, 1000),
+    publicRegisterEnabled,
+    registerDefaultDisabled,
     bodyLimit: integerEnv(env, "REQUEST_BODY_LIMIT", 1024 * 1024, 1024, 16 * 1024 * 1024),
     defaultTimeZone,
     feedPastYears: integerEnv(env, "FEED_WINDOW_PAST_YEARS", 1, 0, 10),

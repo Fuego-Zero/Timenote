@@ -10,6 +10,7 @@
   "edit": "Edit",
   "delete": "Delete",
   "create": "Create",
+  "confirm": "Confirm",
   "searchName": "Search by name",
   "actions": "Actions",
   "name": "Name",
@@ -20,6 +21,7 @@
     "backup": "Backup",
     "users": "Accounts",
     "account": "Account settings",
+    "password": "Change password",
     "logout": "Log out"
   },
   "locale": {

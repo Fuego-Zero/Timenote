@@ -1,7 +1,9 @@
 import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 
+import enAdmin from "./en/admin.json";
 import enAuth from "./en/auth.json";
+import enBackup from "./en/backup.json";
 import enCommon from "./en/common.json";
 import enEvents from "./en/events.json";
 import enFeeds from "./en/feeds.json";
@@ -12,7 +14,9 @@ import {
   matchNavigatorLanguage,
   resolveLocale,
 } from "./locales.js";
+import zhAdmin from "./zh-CN/admin.json";
 import zhAuth from "./zh-CN/auth.json";
+import zhBackup from "./zh-CN/backup.json";
 import zhCommon from "./zh-CN/common.json";
 import zhEvents from "./zh-CN/events.json";
 import zhFeeds from "./zh-CN/feeds.json";
@@ -25,12 +29,16 @@ const resources = {
     auth: zhAuth,
     events: zhEvents,
     feeds: zhFeeds,
+    admin: zhAdmin,
+    backup: zhBackup,
   },
   en: {
     common: enCommon,
     auth: enAuth,
     events: enEvents,
     feeds: enFeeds,
+    admin: enAdmin,
+    backup: enBackup,
   },
 } as const;
 
@@ -88,7 +96,7 @@ void i18next.use(initReactI18next).init({
   lng: initial,
   fallbackLng: defaultLocaleCode,
   defaultNS: "common",
-  ns: ["common", "auth", "events", "feeds"],
+  ns: ["common", "auth", "events", "feeds", "admin", "backup"],
   interpolation: { escapeValue: false },
   returnNull: false,
 });

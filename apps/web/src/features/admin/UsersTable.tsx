@@ -1,14 +1,78 @@
 import { maxQueryLength, type PageQuery, type PageResult, type PublicUser } from "@timenote/contracts";
-import { Button, Empty, Input, Space, Table, Tag, Typography } from "antd";
+import { Button, Empty, Input, Popconfirm, Space, Switch, Table, Tag, Tooltip, Typography } from "antd";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 
+import { resolveLocale } from "../../i18n/index.js";
 import { RowActions } from "../../ui/RowActions.js";
 
 const searchDebounceMs = 300;
-const selfDisabledReason = "不能操作当前登录账号";
 
-function dateTime(ms: number) {
-  return new Date(ms).toLocaleString("zh-CN", { hour12: false });
+function dateTime(ms: number, intl: string) {
+  return new Date(ms).toLocaleString(intl, { hour12: false });
+}
+
+function StatusSwitch({
+  user,
+  self,
+  onToggle,
+}: {
+  user: PublicUser;
+  self: boolean;
+  onToggle: (user: PublicUser) => void;
+}) {
+  const { t } = useTranslation("admin");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const enabled = !user.disabled;
+  const switchNode = (
+    <Switch
+      checked={enabled}
+      checkedChildren={t("enabledShort")}
+      disabled={self}
+      unCheckedChildren={t("disabledShort")}
+      onChange={checked => {
+        if (self) {
+          return;
+        }
+
+        if (checked) {
+          onToggle(user);
+          return;
+        }
+
+        setConfirmOpen(true);
+      }}
+    />
+  );
+
+  if (self) {
+    return (
+      <Tooltip title={t("selfDisabled")}>
+        <span>{switchNode}</span>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Popconfirm
+      description={t("disableDesc")}
+      okText={t("disabledShort")}
+      open={confirmOpen}
+      title={t("disableTitle")}
+      onCancel={() => setConfirmOpen(false)}
+      onConfirm={() => {
+        onToggle(user);
+        setConfirmOpen(false);
+      }}
+      onOpenChange={open => {
+        if (!open) {
+          setConfirmOpen(false);
+        }
+      }}
+    >
+      <span>{switchNode}</span>
+    </Popconfirm>
+  );
 }
 
 export function UsersTable({
@@ -32,6 +96,8 @@ export function UsersTable({
   onResetPassword: (user: PublicUser) => void;
   onRemove: (user: PublicUser) => void;
 }) {
+  const { t, i18n } = useTranslation(["admin", "common"]);
+  const { intl } = resolveLocale(i18n.language);
   const [search, setSearch] = useState(query.q ?? "");
 
   useEffect(() => {
@@ -49,16 +115,16 @@ export function UsersTable({
       <Input
         allowClear
         maxLength={maxQueryLength}
-        placeholder="搜索用户名或显示名称"
+        placeholder={t("searchPlaceholder")}
         style={{ maxWidth: 240 }}
         value={search}
-        aria-label="搜索账号"
+        aria-label={t("searchAria")}
         onChange={event => setSearch(event.target.value)}
       />
       <Table<PublicUser>
         columns={[
           {
-            title: "用户名",
+            title: t("username"),
             dataIndex: "username",
             render: (_value, user) => (
               <Space orientation="vertical" size={0}>
@@ -68,72 +134,59 @@ export function UsersTable({
             ),
           },
           {
-            title: "角色",
+            title: t("role"),
             dataIndex: "role",
-            render: (_value, user) => (user.role === "admin" ? <Tag color="volcano">管理员</Tag> : <Tag>普通用户</Tag>),
-          },
-          {
-            title: "状态",
-            dataIndex: "disabled",
             render: (_value, user) =>
-              user.disabled ? <Tag color="default">已停用</Tag> : <Tag color="green">启用</Tag>,
+              user.role === "admin" ? <Tag color="volcano">{t("admin")}</Tag> : <Tag>{t("user")}</Tag>,
           },
-          { title: "时区", dataIndex: "timeZone" },
           {
-            title: "最后登录",
+            title: t("status"),
+            dataIndex: "disabled",
+            width: 110,
+            render: (_value, user) => (
+              <StatusSwitch self={user.id === currentUserId} user={user} onToggle={onToggleDisabled} />
+            ),
+          },
+          { title: t("timeZone"), dataIndex: "timeZone" },
+          {
+            title: t("lastLogin"),
             dataIndex: "lastLoginAt",
-            render: (_value, user) => (user.lastLoginAt === null ? "—" : dateTime(user.lastLoginAt)),
+            render: (_value, user) => (user.lastLoginAt === null ? "—" : dateTime(user.lastLoginAt, intl)),
           },
           {
-            title: "操作",
+            title: t("common:actions"),
             key: "actions",
-            width: 260,
+            width: 210,
             render: (_value, user) => {
               const self = user.id === currentUserId;
-              const selfReason = self ? selfDisabledReason : undefined;
+              const selfReason = self ? t("selfDisabled") : undefined;
               return (
                 <RowActions
                   actions={[
                     {
-                      key: "toggleDisabled",
-                      label: user.disabled ? "启用" : "停用",
-                      disabled: self,
-                      disabledReason: selfReason,
-                      confirm: {
-                        title: user.disabled ? "启用账号" : "停用账号",
-                        description: user.disabled
-                          ? "启用后该账号可以重新登录，订阅恢复更新。"
-                          : "该账号的登录与订阅立即失效。",
-                        okText: user.disabled ? "启用" : "停用",
-                        okDanger: false,
-                      },
-                      onClick: () => onToggleDisabled(user),
-                    },
-                    {
                       key: "toggleRole",
-                      label: user.role === "admin" ? "取消管理" : "设管理员",
+                      label: user.role === "admin" ? t("revokeAdmin") : t("makeAdmin"),
                       disabled: self,
                       disabledReason: selfReason,
                       confirm: {
-                        title: user.role === "admin" ? "设为普通用户" : "设为管理员",
-                        description:
-                          user.role === "admin" ? "该账号将失去账号管理权限。" : "该账号将可以管理所有账号。",
-                        okText: "确认",
+                        title: user.role === "admin" ? t("toUserTitle") : t("toAdminTitle"),
+                        description: user.role === "admin" ? t("toUserDesc") : t("toAdminDesc"),
+                        okText: t("common:confirm"),
                         okDanger: false,
                       },
                       onClick: () => onToggleRole(user),
                     },
-                    { key: "resetPassword", label: "重置密码", onClick: () => onResetPassword(user) },
+                    { key: "resetPassword", label: t("resetPassword"), onClick: () => onResetPassword(user) },
                     {
                       key: "remove",
-                      label: "删除",
+                      label: t("common:delete"),
                       danger: true,
                       disabled: self,
                       disabledReason: selfReason,
                       confirm: {
-                        title: "删除账号",
-                        description: "该账号的事件和订阅地址会一并删除，且无法恢复。",
-                        okText: "删除",
+                        title: t("deleteTitle"),
+                        description: t("deleteDesc"),
+                        okText: t("common:delete"),
                         okDanger: true,
                       },
                       onClick: () => onRemove(user),
@@ -148,8 +201,8 @@ export function UsersTable({
         loading={loading}
         locale={{
           emptyText: (
-            <Empty description="没有匹配的账号">
-              <Button onClick={() => setSearch("")}>清除搜索</Button>
+            <Empty description={t("empty")}>
+              <Button onClick={() => setSearch("")}>{t("clearSearch")}</Button>
             </Empty>
           ),
         }}

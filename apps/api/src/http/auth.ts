@@ -1,7 +1,18 @@
-import { changePasswordInputSchema, loginInputSchema, updateProfileInputSchema } from "@timenote/contracts";
+import {
+  changePasswordInputSchema,
+  loginInputSchema,
+  registerInputSchema,
+  updateProfileInputSchema,
+} from "@timenote/contracts";
 
 import { toPublicUser } from "../accounts.js";
-import { authenticateCredentials, changeOwnPassword, recordLogin, updateProfile } from "../authService.js";
+import {
+  authenticateCredentials,
+  changeOwnPassword,
+  recordLogin,
+  registerPublicUser,
+  updateProfile,
+} from "../authService.js";
 import type { ApiContext } from "../context.js";
 import { issueSessionSignKey } from "../requestSign.js";
 import { endSession, requireUser, startSession } from "../session.js";
@@ -13,10 +24,17 @@ export function registerAuth(ctx: ApiContext) {
       return {
         user: toPublicUser(req.user),
         signKey: issueSessionSignKey(ctx, req.sessionId, req.user.id),
+        publicRegisterEnabled: config.publicRegisterEnabled,
+        registerDefaultDisabled: config.registerDefaultDisabled,
       };
     }
 
-    return { user: null, anonSign: ctx.requestSign.issueAnon(ctx.now()) };
+    return {
+      user: null,
+      anonSign: ctx.requestSign.issueAnon(ctx.now()),
+      publicRegisterEnabled: config.publicRegisterEnabled,
+      registerDefaultDisabled: config.registerDefaultDisabled,
+    };
   });
 
   app.post(
@@ -34,6 +52,20 @@ export function registerAuth(ctx: ApiContext) {
         user: toPublicUser({ ...user, lastLoginAt: now }),
         signKey: ctx.requestSign.sessionSignKey(sessionId),
       };
+    }
+  );
+
+  app.post(
+    "/api/auth/register",
+    {
+      config: {
+        rateLimit: { max: config.env === "test" ? 1000 : config.registerLimit, timeWindow: "1 minute" },
+      },
+    },
+    async req => {
+      const input = registerInputSchema.parse(req.body);
+      await registerPublicUser(repo, config, input, ctx.now());
+      return { success: true };
     }
   );
 
