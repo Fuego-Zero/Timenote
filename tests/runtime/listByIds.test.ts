@@ -21,6 +21,7 @@ it("listEventsByIds 不截断：json_each 传参，超过 SQLite 变量上限的
     timeZone: "Asia/Shanghai",
     createdAt: 1,
     updatedAt: 1,
+    lastLoginAt: null,
     passwordHash: "scrypt$test",
   });
   for (let n = 1; n <= 150; n += 1) {

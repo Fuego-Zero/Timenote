@@ -1,7 +1,7 @@
 import { changePasswordInputSchema, loginInputSchema, updateProfileInputSchema } from "@timenote/contracts";
 
 import { toPublicUser } from "../accounts.js";
-import { authenticateCredentials, changeOwnPassword, updateProfile } from "../authService.js";
+import { authenticateCredentials, changeOwnPassword, recordLogin, updateProfile } from "../authService.js";
 import type { ApiContext } from "../context.js";
 import { issueSessionSignKey } from "../requestSign.js";
 import { endSession, requireUser, startSession } from "../session.js";
@@ -25,10 +25,15 @@ export function registerAuth(ctx: ApiContext) {
     async (req, reply) => {
       const input = loginInputSchema.parse(req.body);
       const user = await authenticateCredentials(repo, input.username, input.password);
+      const now = ctx.now();
+      recordLogin(repo, user.id, now);
       const sessionId = startSession(ctx, reply, user.id);
       req.userId = user.id;
       req.sessionId = sessionId;
-      return { user: toPublicUser(user), signKey: ctx.requestSign.sessionSignKey(sessionId) };
+      return {
+        user: toPublicUser({ ...user, lastLoginAt: now }),
+        signKey: ctx.requestSign.sessionSignKey(sessionId),
+      };
     }
   );
 

@@ -25,6 +25,7 @@ function user(id: string, username: string, createdAt: number, displayName = "")
     timeZone: "Asia/Shanghai",
     createdAt,
     updatedAt: createdAt,
+    lastLoginAt: null,
     passwordHash: "scrypt$test",
   };
 }

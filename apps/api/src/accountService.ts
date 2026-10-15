@@ -25,6 +25,7 @@ export async function createUser(repo: OpenedRepository, input: CreateUserInput,
     timeZone: input.timeZone ?? defaultTimeZone,
     createdAt: now,
     updatedAt: now,
+    lastLoginAt: null,
     passwordHash,
   };
   repo.transaction(() => {

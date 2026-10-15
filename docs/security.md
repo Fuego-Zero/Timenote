@@ -5,6 +5,7 @@
 - 不开放注册。首个管理员只经首次引导创建：空库时 `GET /api/setup` 返回 `needed: true`，`POST /api/setup/admin` 创建并建立会话。不使用环境变量种子管理员。生产环境引导创建要求强密码（≥16 位且至少三类字符，避开常见弱口令）。后续账号只能由管理员在后台创建。所有管理接口在服务端 `requireAdmin` 校验，不依赖前端隐藏。
 - 密码用 scrypt（N=2^15、r=8、p=1、16 字节随机盐）哈希，存为 `scrypt$N$r$p$salt$hash`；数据库约束禁止出现明文 `password` 字段。
 - 登录时账号不存在、已停用、密码错误返回同一提示；账号不存在时也对占位哈希做一次校验，避免用响应时间探测用户名。
+- 用户 payload 含 `lastLoginAt`（epoch ms，可 null）：仅在 `POST /api/auth/login` 与 `POST /api/setup/admin` 鉴权成功后由 `recordLogin` 写入；会话活跃续期、登出、改密、密码错误或账号停用均不更新。管理员 `GET /api/admin/users` 列表可见该字段。
 - 会话 Cookie 是 32 字节随机 token，数据库只存其 SHA-256。属性：`HttpOnly`、`SameSite=Lax`、`Path=/`；生产强制 `Secure` 并使用 `__Host-timenote` 前缀。会话活跃时每 10 分钟滚动续期。
 - 改密后除当前会话外全部失效；管理员重置密码、停用账号会立即踢出该账号所有会话。
 - 管理员不能停用、降级或删除自己；任何变更都不能让系统失去最后一个启用的管理员。

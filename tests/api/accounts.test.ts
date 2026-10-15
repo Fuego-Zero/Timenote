@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { PublicUser } from "../../packages/contracts/src/index.js";
+import { storedUserSchema } from "../../packages/runtime/src/entities.js";
 import { adminPassword, harness, type Harness } from "../helpers.js";
 
 let h: Harness;
@@ -260,5 +261,72 @@ describe("development auth bypass", () => {
     } finally {
       await dev.close();
     }
+  });
+});
+
+describe("最后登录时间", () => {
+  it("登录成功写入 lastLoginAt；密码错误与停用账号不写", async () => {
+    const admin = h.browser();
+    await admin.login();
+    const alice = await createUser(admin, "alice");
+    expect(alice.lastLoginAt).toBeNull();
+    expect(h.repo.users.getUser(alice.id)?.lastLoginAt).toBeNull();
+
+    const wrong = await h.browser().request("POST", "/api/auth/login", {
+      username: "alice",
+      password: "wrong-password",
+    });
+    expect(wrong.status).toBe(401);
+    expect(h.repo.users.getUser(alice.id)?.lastLoginAt).toBeNull();
+
+    await admin.request("PATCH", `/api/admin/users/${alice.id}`, { disabled: true });
+    const disabledLogin = await h.browser().request("POST", "/api/auth/login", {
+      username: "alice",
+      password: "alice-password",
+    });
+    expect(disabledLogin.status).toBe(401);
+    expect(h.repo.users.getUser(alice.id)?.lastLoginAt).toBeNull();
+
+    await admin.request("PATCH", `/api/admin/users/${alice.id}`, { disabled: false });
+    const loginAt = h.clock.now + 60_000;
+    h.clock.now = loginAt;
+    const session = h.browser();
+    const ok = await session.login("alice", "alice-password");
+    expect(ok.status).toBe(200);
+    expect((ok.json as { user: PublicUser }).user.lastLoginAt).toBe(loginAt);
+    expect(h.repo.users.getUser(alice.id)?.lastLoginAt).toBe(loginAt);
+
+    const list = await admin.request<{ items: PublicUser[] }>("GET", "/api/admin/users");
+    expect(list.status).toBe(200);
+    const row = list.json.items.find(u => u.id === alice.id);
+    expect(row?.lastLoginAt).toBe(loginAt);
+  });
+
+  it("authenticate 会话续期不推进 lastLoginAt", async () => {
+    const b = h.browser();
+    const loginAt = h.clock.now;
+    await b.login();
+    const admin = h.repo.users.listUsers().find(u => u.username === "admin")!;
+    expect(admin.lastLoginAt).toBe(loginAt);
+
+    h.clock.now = loginAt + 11 * 60 * 1000;
+    expect((await b.request("GET", "/api/events")).status).toBe(200);
+    expect(h.repo.users.getUser(admin.id)?.lastLoginAt).toBe(loginAt);
+  });
+
+  it("存量 payload 缺少 lastLoginAt 时解析为 null", () => {
+    const parsed = storedUserSchema.parse({
+      id: "legacy-id",
+      username: "legacy",
+      displayName: "旧账号",
+      role: "user",
+      disabled: false,
+      timeZone: "Asia/Shanghai",
+      createdAt: 1,
+      updatedAt: 1,
+      passwordHash:
+        "scrypt$32768$8$1$aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa$bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    });
+    expect(parsed.lastLoginAt).toBeNull();
   });
 });

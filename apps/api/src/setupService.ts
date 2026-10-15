@@ -11,6 +11,8 @@ import {
   strongAdminPasswordMessage,
 } from "@timenote/runtime";
 
+import { recordLogin } from "./authService.js";
+
 export function hasEnabledAdmin(repo: OpenedRepository) {
   return repo.users.listUsers().some(user => user.role === "admin" && !user.disabled);
 }
@@ -46,10 +48,12 @@ export async function createInitialAdmin(
         timeZone: config.defaultTimeZone,
         createdAt: now,
         updatedAt: now,
+        lastLoginAt: null,
         passwordHash,
       };
       repo.users.putUser(user);
-      return user;
+      recordLogin(repo, user.id, now);
+      return { ...user, lastLoginAt: now };
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
