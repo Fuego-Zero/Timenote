@@ -7,6 +7,10 @@ import { RowActions } from "../../ui/RowActions.js";
 const searchDebounceMs = 300;
 const selfDisabledReason = "不能操作当前登录账号";
 
+function dateTime(ms: number) {
+  return new Date(ms).toLocaleString("zh-CN", { hour12: false });
+}
+
 export function UsersTable({
   page,
   loading,
@@ -75,6 +79,11 @@ export function UsersTable({
               user.disabled ? <Tag color="default">已停用</Tag> : <Tag color="green">启用</Tag>,
           },
           { title: "时区", dataIndex: "timeZone" },
+          {
+            title: "最后登录",
+            dataIndex: "lastLoginAt",
+            render: (_value, user) => (user.lastLoginAt === null ? "—" : dateTime(user.lastLoginAt)),
+          },
           {
             title: "操作",
             key: "actions",

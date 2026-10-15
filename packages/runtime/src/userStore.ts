@@ -52,6 +52,15 @@ export class UserStore {
     return { items, total, page: query.page, pageSize: query.pageSize };
   }
 
+  /**
+   * 仅写入 lastLoginAt。用 SQLite json_set 原子更新单个 JSON 字段，
+   * 避免整段 payload 读改写与并发 putUser 互相覆盖。
+   */
+  recordLastLoginAt(userId: string, at: number) {
+    return this.db.run(sql`UPDATE "user" SET payload = json_set(payload, '$.lastLoginAt', ${at}) WHERE id = ${userId}`)
+      .changes;
+  }
+
   putUser(user: StoredUser) {
     const payload = JSON.stringify(storedUserSchema.parse(user));
     this.db

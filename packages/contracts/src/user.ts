@@ -32,6 +32,8 @@ export const publicUserSchema = z.object({
   timeZone: z.string(),
   createdAt: z.int(),
   updatedAt: z.int(),
+  /** 最近一次成功登录（建会话）时刻；从未成功登录为 null。存量缺字段读时按 null。 */
+  lastLoginAt: z.int().nullable().default(null),
 });
 export type PublicUser = z.infer<typeof publicUserSchema>;
 

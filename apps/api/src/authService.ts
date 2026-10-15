@@ -9,6 +9,12 @@ import {
 } from "@timenote/runtime";
 
 /** 校验凭证；账号不存在、停用或密码错误返回同一提示，不泄露账号状态。 */
+
+/** 成功登录/建会话后写入 lastLoginAt；不在 startSession 内调用。 */
+export function recordLogin(repo: OpenedRepository, userId: string, now: number) {
+  repo.users.recordLastLoginAt(userId, now);
+}
+
 export async function authenticateCredentials(
   repo: OpenedRepository,
   username: string,

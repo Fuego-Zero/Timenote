@@ -42,7 +42,7 @@ Web 反代只转发白名单请求头（`content-type`、`cookie`、`origin`、`
 
 | 表            | 内容                                                                                                      |
 | ------------- | --------------------------------------------------------------------------------------------------------- |
-| `user`        | 用户名、显示名称、角色、停用状态、时区、scrypt 密码哈希                                                   |
+| `user`        | 用户名、显示名称、角色、停用状态、时区、scrypt 密码哈希、`lastLoginAt`（最近成功登录，可 null）           |
 | `app_session` | 会话 token 的 SHA-256、归属账号、最后活跃与过期时间                                                       |
 | `event`       | 事件可编辑字段 + `id`、`ownerId`、`revision`、`createdAt`、`updatedAt`                                    |
 | `feed_token`  | 订阅地址名称、token 明文（用于再次显示）、SHA-256、创建与轮换时间；可选 `eventScope` / `eventIds`（见下） |

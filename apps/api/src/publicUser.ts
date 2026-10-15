@@ -11,5 +11,6 @@ export function toPublicUser(user: StoredUser): PublicUser {
     timeZone: user.timeZone,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    lastLoginAt: user.lastLoginAt,
   };
 }
