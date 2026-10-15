@@ -26,7 +26,7 @@ export function AppShell({
   const [{ tab }, setTab] = useUrlState(tabSchema);
   const items = [
     { key: "events", label: "事件", children: <EventsPage user={user} /> },
-    { key: "feeds", label: "订阅", children: <FeedsPage /> },
+    { key: "feeds", label: "订阅", children: <FeedsPage user={user} /> },
     { key: "backup", label: "备份", children: <BackupPage /> },
     ...(user.role === "admin" ? [{ key: "users", label: "账号管理", children: <UsersPage currentUser={user} /> }] : []),
   ];

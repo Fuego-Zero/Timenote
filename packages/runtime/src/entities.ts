@@ -22,6 +22,8 @@ export const storedFeedTokenSchema = z.object({
   id: z.uuid(),
   ownerId: z.string(),
   name: z.string(),
+  /** 自定义日历显示名；缺省时渲染回退「显示名|用户名的纪念日」。空串不应入库。 */
+  calendarName: z.string().max(40).optional(),
   token: z
     .string()
     .regex(/^[A-Za-z0-9_-]{43}$/)

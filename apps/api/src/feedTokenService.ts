@@ -19,6 +19,7 @@ export function toFeedToken(repo: OpenedRepository, config: Config, feed: Stored
   return {
     id: feed.id,
     name: feed.name,
+    calendarName: feed.calendarName ?? null,
     url,
     webcalUrl: url ? url.replace(/^https?:/, "webcal:") : null,
     createdAt: feed.createdAt,
@@ -52,6 +53,10 @@ export function createFeedToken(
     rotatedAt: now,
     ...scope,
   };
+  // 仅非空自定义名入库；空串/null/省略均不写字段，渲染走默认拼装。
+  if (input.calendarName) {
+    feed.calendarName = input.calendarName;
+  }
   repo.transaction(() => {
     if (repo.feedTokens.listFeedTokens(ownerId).length >= maxFeedTokensPerUser) {
       throw new BusinessError("INVALID_INPUT", { message: `每个账号最多 ${maxFeedTokensPerUser} 个订阅地址` });
@@ -88,6 +93,14 @@ export function updateFeedToken(
     // all 时去掉 eventIds，避免把 [] 存成「未配置」混淆
     if (scope.eventScope === "all") {
       delete next.eventIds;
+    }
+    // calendarName：省略保持；null（空串）删除字段以恢复默认；非空写入。
+    if (input.calendarName !== undefined) {
+      if (input.calendarName === null) {
+        delete next.calendarName;
+      } else {
+        next.calendarName = input.calendarName;
+      }
     }
 
     repo.feedTokens.putFeedToken(next);

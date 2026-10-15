@@ -281,4 +281,101 @@ describe("订阅地址", () => {
     expect(stored.eventScope).toBe("all");
     expect(stored.eventIds).toBeUndefined();
   });
+
+  it("calendarName 自定义与回退：默认拼装、自定义、只改 name、缺字段、清空、不随 displayName", async () => {
+    const b = await signedIn();
+    const ownerId = h.repo.users.listUsers()[0]!.id;
+
+    // 1) 不填 → ICS =「管理员的纪念日」（种子显示名）
+    const plain = await issue(b, "手机");
+    expect(plain.feed.calendarName).toBeNull();
+    const plainBody = (await h.browser().request("GET", plain.path)).body;
+    expect(plainBody).toContain("X-WR-CALNAME:管理员的纪念日\r\n");
+    expect(plainBody).toContain("NAME:管理员的纪念日");
+
+    // 2) 填写 calendarName → ICS 头变；列表 name 不变
+    const custom = await b.request<{ feed: FeedToken }>("PATCH", `/api/feed-tokens/${plain.feed.id}`, {
+      calendarName: "家里的节庆",
+    });
+    expect(custom.status).toBe(200);
+    expect(custom.json.feed).toMatchObject({ name: "手机", calendarName: "家里的节庆" });
+    const customBody = (await h.browser().request("GET", plain.path)).body;
+    expect(customBody).toContain("X-WR-CALNAME:家里的节庆\r\n");
+    expect(customBody).not.toContain("X-WR-CALNAME:管理员的纪念日");
+
+    // 3) 只改设备名称 → ICS 头不变
+    const renamed = await b.request<{ feed: FeedToken }>("PATCH", `/api/feed-tokens/${plain.feed.id}`, {
+      name: "客厅平板",
+    });
+    expect(renamed.json.feed).toMatchObject({ name: "客厅平板", calendarName: "家里的节庆" });
+    const afterRename = (await h.browser().request("GET", plain.path)).body;
+    expect(afterRename).toContain("X-WR-CALNAME:家里的节庆\r\n");
+
+    // 5a) 已自定义不随 displayName 变
+    await b.request("PUT", "/api/auth/profile", { displayName: "新昵称", timeZone: "Asia/Shanghai" });
+    const afterDisplay = (await h.browser().request("GET", plain.path)).body;
+    expect(afterDisplay).toContain("X-WR-CALNAME:家里的节庆\r\n");
+    expect(afterDisplay).not.toContain("新昵称的纪念日");
+
+    // 5b) 清空 calendarName → 恢复默认（此时显示名已是新昵称）
+    const cleared = await b.request<{ feed: FeedToken }>("PATCH", `/api/feed-tokens/${plain.feed.id}`, {
+      calendarName: "",
+    });
+    expect(cleared.json.feed.calendarName).toBeNull();
+    const clearedStored = h.repo.feedTokens.getFeedToken(ownerId, plain.feed.id)!;
+    expect(clearedStored.calendarName).toBeUndefined();
+    const clearedBody = (await h.browser().request("GET", plain.path)).body;
+    expect(clearedBody).toContain("X-WR-CALNAME:新昵称的纪念日\r\n");
+
+    // 未自定义订阅随 displayName 变（再开一条）
+    const other = await issue(b, "手表");
+    expect(other.feed.calendarName).toBeNull();
+    expect((await h.browser().request("GET", other.path)).body).toContain("X-WR-CALNAME:新昵称的纪念日\r\n");
+    await b.request("PUT", "/api/auth/profile", { displayName: "管理员", timeZone: "Asia/Shanghai" });
+    expect((await h.browser().request("GET", other.path)).body).toContain("X-WR-CALNAME:管理员的纪念日\r\n");
+
+    // 4) 缺字段旧订阅回退默认，不报错
+    const id = crypto.randomUUID();
+    const token = "B".repeat(43);
+    const { hashToken } = await import("../../packages/runtime/src/security.js");
+    const tokenHash = hashToken(token);
+    const payload = JSON.stringify({
+      id,
+      ownerId,
+      name: "无日历名字段",
+      token,
+      tokenHash,
+      createdAt: 1,
+      rotatedAt: 1,
+    });
+    const { openDatabase } = await import("../../packages/runtime/src/sqlite.js");
+    const db = openDatabase(h.config.sqlitePath);
+    db.prepare("INSERT INTO feed_token (id, owner, token_hash, payload) VALUES (?, ?, ?, ?)").run(
+      id,
+      ownerId,
+      tokenHash,
+      payload
+    );
+    db.close();
+    const list = await b.request<PageResult<FeedToken>>("GET", "/api/feed-tokens");
+    expect(list.json.items.find(feed => feed.id === id)).toMatchObject({ calendarName: null });
+    const legacyBody = (await h.browser().request("GET", `/api/feeds/${token}.ics`)).body;
+    expect(legacyBody).toContain("X-WR-CALNAME:管理员的纪念日\r\n");
+
+    // 创建时可直接带 calendarName；空串等同未设置
+    const createdCustom = await b.request<{ feed: FeedToken }>("POST", "/api/feed-tokens", {
+      name: "带名",
+      calendarName: "  公司日历  ",
+    });
+    expect(createdCustom.status).toBe(201);
+    expect(createdCustom.json.feed.calendarName).toBe("公司日历");
+    expect((await h.browser().request("GET", new URL(createdCustom.json.feed.url!).pathname)).body).toContain(
+      "X-WR-CALNAME:公司日历\r\n"
+    );
+    const createdEmpty = await b.request<{ feed: FeedToken }>("POST", "/api/feed-tokens", {
+      name: "空名",
+      calendarName: "   ",
+    });
+    expect(createdEmpty.json.feed.calendarName).toBeNull();
+  });
 });

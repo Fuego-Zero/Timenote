@@ -1,4 +1,4 @@
-import type { FeedEventScope, FeedToken } from "@timenote/contracts";
+import type { FeedEventScope, FeedToken, PublicUser } from "@timenote/contracts";
 import { Alert, Form, Input, Modal, Radio } from "antd";
 import { useState } from "react";
 
@@ -6,9 +6,15 @@ import { errorMessage } from "../../api/client.js";
 import { EventPicker } from "./EventPicker.js";
 
 export interface FeedDraft {
+  calendarName: string;
   eventIds: string[];
   eventScope: FeedEventScope;
   name: string;
+}
+
+/** 与 ICS 默认拼装一致：显示名优先，否则用户名 +「的纪念日」。 */
+function defaultCalendarName(user: PublicUser) {
+  return `${user.displayName || user.username}的纪念日`;
 }
 
 /** 新建与编辑订阅共用的弹窗；保存失败（如所选事件已被删除返回 400）时在弹窗内提示并刷新选择器。 */
@@ -16,21 +22,29 @@ export function FeedFormModal({
   feed,
   onCancel,
   onSubmit,
+  user,
 }: {
   /** 为空时是新建。 */
   feed?: FeedToken;
   onCancel: () => void;
   onSubmit: (draft: FeedDraft) => Promise<void>;
+  user: PublicUser;
 }) {
   const [draft, setDraft] = useState<FeedDraft>(() =>
     feed
-      ? { name: feed.name, eventScope: feed.eventScope, eventIds: feed.eventIds }
-      : { name: "我的设备", eventScope: "all", eventIds: [] }
+      ? {
+          name: feed.name,
+          calendarName: feed.calendarName ?? "",
+          eventScope: feed.eventScope,
+          eventIds: feed.eventIds,
+        }
+      : { name: "我的设备", calendarName: "", eventScope: "all", eventIds: [] }
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<unknown>();
   const [reloadKey, setReloadKey] = useState(0);
   const title = feed ? "编辑订阅" : "创建订阅地址";
+  const previewName = draft.calendarName.trim() || defaultCalendarName(user);
 
   async function submit() {
     setSaving(true);
@@ -38,6 +52,8 @@ export function FeedFormModal({
     try {
       await onSubmit({
         name: draft.name.trim(),
+        // 空串交给 API preprocess 成 null，表示未自定义 / 清空恢复默认。
+        calendarName: draft.calendarName.trim(),
         eventScope: draft.eventScope,
         eventIds: draft.eventScope === "selected" ? draft.eventIds : [],
       });
@@ -62,13 +78,22 @@ export function FeedFormModal({
     >
       <Form layout="vertical">
         {error ? <Alert showIcon style={{ marginBottom: 16 }} title={errorMessage(error)} type="error" /> : null}
-        <Form.Item label="设备名称">
+        <Form.Item label="设备名称" extra="仅网页列表备注，不会写入日历名称。">
           <Input
             maxLength={30}
             placeholder="如 iPhone、工作电脑"
             value={draft.name}
             aria-label="订阅名称"
             onChange={event => setDraft(current => ({ ...current, name: event.target.value }))}
+          />
+        </Form.Item>
+        <Form.Item label="日历显示名" extra={`日历中将显示：${previewName}`}>
+          <Input
+            maxLength={40}
+            placeholder={`默认：${defaultCalendarName(user)}`}
+            value={draft.calendarName}
+            aria-label="日历显示名"
+            onChange={event => setDraft(current => ({ ...current, calendarName: event.target.value }))}
           />
         </Form.Item>
         <Form.Item label="事件范围">
