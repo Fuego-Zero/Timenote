@@ -1,9 +1,7 @@
 import type { AnonSign } from "@timenote/contracts";
 
 export type SignState =
-  | { kind: "session"; signKey: string }
-  | { kind: "anon"; anonKeyId: string; signKey: string; expiresAt: number }
-  | null;
+  { kind: "session"; signKey: string } | { kind: "anon"; anonKeyId: string; signKey: string; expiresAt: number } | null;
 
 let state: SignState = null;
 

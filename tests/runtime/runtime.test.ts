@@ -71,7 +71,12 @@ describe("配置", () => {
       defaultTimeZone: "Asia/Shanghai",
       feedPastYears: 1,
       feedFutureYears: 20,
+      loginLimit: 10,
+      registerLimit: 5,
+      publicRegisterEnabled: false,
     });
+    expect(loadConfig({ ...base, PUBLIC_REGISTER_ENABLED: "true" }).publicRegisterEnabled).toBe(true);
+    expect(() => loadConfig({ ...base, PUBLIC_REGISTER_ENABLED: "yes" })).toThrow(/PUBLIC_REGISTER_ENABLED/);
   });
 
   it("生产环境要求 HTTPS 来源，强制安全 Cookie 并使用 __Host- 前缀", () => {

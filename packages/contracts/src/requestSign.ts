@@ -28,12 +28,5 @@ export function canonicalSignPayload(input: {
   nonce: string;
   bodyHash: string;
 }) {
-  return [
-    input.method.toUpperCase(),
-    input.path,
-    input.query,
-    input.timestamp,
-    input.nonce,
-    input.bodyHash,
-  ].join("\n");
+  return [input.method.toUpperCase(), input.path, input.query, input.timestamp, input.nonce, input.bodyHash].join("\n");
 }

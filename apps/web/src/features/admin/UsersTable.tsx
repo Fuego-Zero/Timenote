@@ -1,5 +1,5 @@
 import { maxQueryLength, type PageQuery, type PageResult, type PublicUser } from "@timenote/contracts";
-import { Button, Empty, Input, Space, Table, Tag, Typography } from "antd";
+import { Button, Empty, Input, Popconfirm, Space, Switch, Table, Tag, Tooltip, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 import { RowActions } from "../../ui/RowActions.js";
@@ -9,6 +9,68 @@ const selfDisabledReason = "不能操作当前登录账号";
 
 function dateTime(ms: number) {
   return new Date(ms).toLocaleString("zh-CN", { hour12: false });
+}
+
+function StatusSwitch({
+  user,
+  self,
+  onToggle,
+}: {
+  user: PublicUser;
+  self: boolean;
+  onToggle: (user: PublicUser) => void;
+}) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const enabled = !user.disabled;
+  const switchNode = (
+    <Switch
+      checked={enabled}
+      checkedChildren="启用"
+      disabled={self}
+      unCheckedChildren="停用"
+      onChange={checked => {
+        if (self) {
+          return;
+        }
+
+        if (checked) {
+          onToggle(user);
+          return;
+        }
+
+        setConfirmOpen(true);
+      }}
+    />
+  );
+
+  if (self) {
+    return (
+      <Tooltip title={selfDisabledReason}>
+        <span>{switchNode}</span>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Popconfirm
+      description="该账号的登录与订阅立即失效。"
+      okText="停用"
+      open={confirmOpen}
+      title="停用账号"
+      onCancel={() => setConfirmOpen(false)}
+      onConfirm={() => {
+        onToggle(user);
+        setConfirmOpen(false);
+      }}
+      onOpenChange={open => {
+        if (!open) {
+          setConfirmOpen(false);
+        }
+      }}
+    >
+      <span>{switchNode}</span>
+    </Popconfirm>
+  );
 }
 
 export function UsersTable({
@@ -75,8 +137,10 @@ export function UsersTable({
           {
             title: "状态",
             dataIndex: "disabled",
-            render: (_value, user) =>
-              user.disabled ? <Tag color="default">已停用</Tag> : <Tag color="green">启用</Tag>,
+            width: 110,
+            render: (_value, user) => (
+              <StatusSwitch self={user.id === currentUserId} user={user} onToggle={onToggleDisabled} />
+            ),
           },
           { title: "时区", dataIndex: "timeZone" },
           {
@@ -87,28 +151,13 @@ export function UsersTable({
           {
             title: "操作",
             key: "actions",
-            width: 260,
+            width: 210,
             render: (_value, user) => {
               const self = user.id === currentUserId;
               const selfReason = self ? selfDisabledReason : undefined;
               return (
                 <RowActions
                   actions={[
-                    {
-                      key: "toggleDisabled",
-                      label: user.disabled ? "启用" : "停用",
-                      disabled: self,
-                      disabledReason: selfReason,
-                      confirm: {
-                        title: user.disabled ? "启用账号" : "停用账号",
-                        description: user.disabled
-                          ? "启用后该账号可以重新登录，订阅恢复更新。"
-                          : "该账号的登录与订阅立即失效。",
-                        okText: user.disabled ? "启用" : "停用",
-                        okDanger: false,
-                      },
-                      onClick: () => onToggleDisabled(user),
-                    },
                     {
                       key: "toggleRole",
                       label: user.role === "admin" ? "取消管理" : "设管理员",

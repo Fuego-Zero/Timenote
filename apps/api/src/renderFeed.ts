@@ -34,7 +34,9 @@ export function renderFeedForToken(
   try {
     body = buildFeed({
       // 优先自定义 calendarName；禁止用 feed.name（设备备注）。空/缺省回退默认拼装。
-      calendarName: feed.calendarName?.trim() || `${owner.displayName || owner.username}的纪念日`,
+      calendarName: feed.calendarName?.trim()
+        ? feed.calendarName.trim()
+        : `${owner.displayName || owner.username}的纪念日`,
       timeZone: owner.timeZone,
       window: feedWindow(new Date(now), owner.timeZone, config.feedPastYears, config.feedFutureYears),
       today: todayIn(new Date(now), owner.timeZone),

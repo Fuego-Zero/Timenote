@@ -82,7 +82,9 @@ export async function harness(env: NodeJS.Dict<string> = {}, options: { logSink?
       const signHeaders: Record<string, string> = {};
       if (!isSignExemptPath(method, path)) {
         const needAnon =
-          (method === "POST" && path === "/api/auth/login") || (method === "POST" && path === "/api/setup/admin");
+          (method === "POST" && path === "/api/auth/login") ||
+          (method === "POST" && path === "/api/auth/register") ||
+          (method === "POST" && path === "/api/setup/admin");
         if (needAnon) {
           if (!anonSign || anonSign.expiresAt <= clock.now) {
             await mintAnon();

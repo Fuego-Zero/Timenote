@@ -58,7 +58,7 @@ function Root() {
       return <SetupPage onReady={session.setUser} />;
     }
 
-    return <LoginPage onLogin={session.setUser} />;
+    return <LoginPage publicRegisterEnabled={session.state.publicRegisterEnabled} onLogin={session.setUser} />;
   }
 
   return <AppShell user={session.state.user} onLogout={() => void session.logout()} onUserChange={session.setUser} />;

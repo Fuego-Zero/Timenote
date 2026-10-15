@@ -126,4 +126,27 @@ describe("请求完整性 SIGN", () => {
       await empty.close();
     }
   });
+
+  it("register 必须带匿名 SIGN", async () => {
+    const on = await harness({ PUBLIC_REGISTER_ENABLED: "true" });
+    try {
+      const unsigned = await on.app.inject({
+        method: "POST",
+        url: "/api/auth/register",
+        headers: { origin: webOrigin, "content-type": "application/json" },
+        payload: JSON.stringify({ username: "signeduser", password: "signed-password" }),
+      });
+      expect(unsigned.statusCode).toBe(403);
+      expect(unsigned.json()).toMatchObject({ code: "SIGN_INVALID" });
+
+      const ok = await on.browser().request("POST", "/api/auth/register", {
+        username: "signeduser",
+        password: "signed-password",
+      });
+      expect(ok.status).toBe(200);
+      expect(ok.json).toEqual({ success: true });
+    } finally {
+      await on.close();
+    }
+  });
 });

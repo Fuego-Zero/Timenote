@@ -104,17 +104,17 @@ docker compose start app
 
 仓库 Settings → Actions → General → Workflow permissions 选 **Read and write permissions**，否则 `GITHUB_TOKEN` 不能推送镜像。然后在 Settings → Secrets and variables → Actions 添加：
 
-| 密钥 | 内容 |
-| --- | --- |
-| `SSH_HOST` | 搬瓦工 IP |
-| `SSH_PORT` | 面板里的 SSH 端口 |
-| `SSH_USER` | 能直接运行 Docker 的用户，通常是 `root` |
-| `SSH_PRIVATE_KEY` | 专用部署私钥全文（含 BEGIN/END 行） |
-| `SSH_KNOWN_HOSTS` | `ssh-keyscan -p <端口> <IP>` 的主机密钥行 |
-| `DEPLOY_PATH` | 服务器上的部署目录绝对路径，例如 `/data/Timenote` |
-| `COMPOSE_PROJECT_NAME` | Compose 项目名，例如 `timenote` |
-| `GHCR_USER` | GitHub 用户名 |
-| `GHCR_TOKEN` | 只读 Packages 的 Personal Access Token |
+| 密钥                   | 内容                                              |
+| ---------------------- | ------------------------------------------------- |
+| `SSH_HOST`             | 搬瓦工 IP                                         |
+| `SSH_PORT`             | 面板里的 SSH 端口                                 |
+| `SSH_USER`             | 能直接运行 Docker 的用户，通常是 `root`           |
+| `SSH_PRIVATE_KEY`      | 专用部署私钥全文（含 BEGIN/END 行）               |
+| `SSH_KNOWN_HOSTS`      | `ssh-keyscan -p <端口> <IP>` 的主机密钥行         |
+| `DEPLOY_PATH`          | 服务器上的部署目录绝对路径，例如 `/data/Timenote` |
+| `COMPOSE_PROJECT_NAME` | Compose 项目名，例如 `timenote`                   |
+| `GHCR_USER`            | GitHub 用户名                                     |
+| `GHCR_TOKEN`           | 只读 Packages 的 Personal Access Token            |
 
 `GHCR_TOKEN` 用 classic token，只勾选 `read:packages`。镜像是私有的，服务器每次发布用它登录 GHCR，成功后会 `docker logout`。
 

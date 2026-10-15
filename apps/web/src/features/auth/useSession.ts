@@ -3,7 +3,10 @@ import { useCallback, useEffect, useState } from "react";
 
 import { api, authExpiredEvent, clearRequestSign } from "../../api/client.js";
 
-type SessionState = { status: "loading" } | { status: "ready"; user: PublicUser | null } | { status: "error" };
+type SessionState =
+  | { status: "loading" }
+  | { status: "ready"; user: PublicUser | null; publicRegisterEnabled: boolean }
+  | { status: "error" };
 
 export function useSession() {
   const [state, setState] = useState<SessionState>({ status: "loading" });
@@ -11,10 +14,14 @@ export function useSession() {
 
   useEffect(() => {
     let active = true;
-    api<{ user: PublicUser | null }>("/auth/session").then(
+    api<{ user: PublicUser | null; publicRegisterEnabled?: boolean }>("/auth/session").then(
       data => {
         if (active) {
-          setState({ status: "ready", user: data.user });
+          setState({
+            status: "ready",
+            user: data.user,
+            publicRegisterEnabled: data.publicRegisterEnabled === true,
+          });
         }
       },
       () => {
@@ -31,7 +38,11 @@ export function useSession() {
   useEffect(() => {
     const expire = () => {
       clearRequestSign();
-      setState({ status: "ready", user: null });
+      setState(prev =>
+        prev.status === "ready"
+          ? { status: "ready", user: null, publicRegisterEnabled: prev.publicRegisterEnabled }
+          : { status: "ready", user: null, publicRegisterEnabled: false }
+      );
     };
 
     window.addEventListener(authExpiredEvent, expire);
@@ -42,11 +53,21 @@ export function useSession() {
     setState({ status: "loading" });
     setVersion(value => value + 1);
   }, []);
-  const setUser = useCallback((user: PublicUser | null) => setState({ status: "ready", user }), []);
+  const setUser = useCallback((user: PublicUser | null) => {
+    setState(prev => ({
+      status: "ready",
+      user,
+      publicRegisterEnabled: prev.status === "ready" ? prev.publicRegisterEnabled : false,
+    }));
+  }, []);
   const logout = useCallback(async () => {
     await api("/auth/logout", "POST");
     clearRequestSign();
-    setState({ status: "ready", user: null });
+    setState(prev => ({
+      status: "ready",
+      user: null,
+      publicRegisterEnabled: prev.status === "ready" ? prev.publicRegisterEnabled : false,
+    }));
   }, []);
 
   return { state, reload, setUser, logout };

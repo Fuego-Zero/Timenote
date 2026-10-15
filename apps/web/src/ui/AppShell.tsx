@@ -3,7 +3,8 @@ import { Button, Dropdown, Flex, Layout, Tabs, theme, Typography } from "antd";
 import { useState } from "react";
 
 import { UsersPage } from "../features/admin/UsersPage.js";
-import { AccountModal } from "../features/auth/AccountModal.js";
+import { PasswordModal } from "../features/auth/PasswordModal.js";
+import { ProfileModal } from "../features/auth/ProfileModal.js";
 import { BackupPage } from "../features/backup/BackupPage.js";
 import { EventsPage } from "../features/events/EventsPage.js";
 import { FeedsPage } from "../features/feeds/FeedsPage.js";
@@ -22,7 +23,8 @@ export function AppShell({
   onLogout: () => void;
 }) {
   const { token } = theme.useToken();
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [{ tab }, setTab] = useUrlState(tabSchema);
   const items = [
     { key: "events", label: "事件", children: <EventsPage user={user} /> },
@@ -45,10 +47,19 @@ export function AppShell({
           <Dropdown
             menu={{
               items: [
-                { key: "account", label: "账号设置" },
+                { key: "profile", label: "账号设置" },
+                { key: "password", label: "修改密码" },
                 { key: "logout", label: "退出登录" },
               ],
-              onClick: ({ key }) => (key === "logout" ? onLogout() : setAccountOpen(true)),
+              onClick: ({ key }) => {
+                if (key === "logout") {
+                  onLogout();
+                } else if (key === "password") {
+                  setPasswordOpen(true);
+                } else {
+                  setProfileOpen(true);
+                }
+              },
             }}
           >
             <Button>{user.displayName || user.username}</Button>
@@ -76,7 +87,8 @@ export function AppShell({
           }}
         />
       </Layout.Content>
-      <AccountModal open={accountOpen} user={user} onClose={() => setAccountOpen(false)} onUserChange={onUserChange} />
+      <ProfileModal open={profileOpen} user={user} onClose={() => setProfileOpen(false)} onUserChange={onUserChange} />
+      <PasswordModal open={passwordOpen} onClose={() => setPasswordOpen(false)} />
     </Layout>
   );
 }

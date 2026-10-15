@@ -55,5 +55,9 @@ export function isSignExemptPath(method: string, path: string): boolean {
 
 export function isAnonSignPath(method: string, path: string): boolean {
   const upper = method.toUpperCase();
-  return (upper === "POST" && path === "/api/auth/login") || (upper === "POST" && path === "/api/setup/admin");
+  return (
+    (upper === "POST" && path === "/api/auth/login") ||
+    (upper === "POST" && path === "/api/auth/register") ||
+    (upper === "POST" && path === "/api/setup/admin")
+  );
 }
