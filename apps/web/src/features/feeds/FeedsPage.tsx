@@ -32,7 +32,7 @@ export function FeedsPage() {
   async function copy(url: string) {
     try {
       await navigator.clipboard.writeText(url);
-      void message.success("已复制订阅地址");
+      void message.success(url.startsWith("webcal:") ? "已复制 webcal 地址" : "已复制订阅地址");
     } catch {
       void message.warning("无法自动复制，请长按地址手动复制");
     }
@@ -71,8 +71,18 @@ export function FeedsPage() {
           创建订阅地址
         </Button>
       </Flex>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+        为每台设备创建一个私密订阅地址。地址等同密码，会保留在这里，可以随时复制；泄露时可轮换，旧地址立即失效。修改、添加或删除事件不会改地址。局域网或纯
+        HTTP 环境下，webcal 链接可能无法被系统日历正确打开。
+      </Typography.Paragraph>
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 0 }}>
+        <Typography.Text strong>苹果：</Typography.Text>
+        本机可点「日历打开」；分享给 iPhone / iPad 时复制 webcal 发给对方，用 Safari
+        或「日历」打开以添加订阅；也可展开行后扫描页上的 webcal 二维码（主打苹果）。
+      </Typography.Paragraph>
       <Typography.Paragraph type="secondary">
-        为每台设备创建一个私密订阅地址。地址会保留在这里，可以随时复制。修改、添加或删除事件不会改地址；地址泄露时可轮换，旧地址立即失效。
+        <Typography.Text strong>Google / Android / Outlook：</Typography.Text>
+        请复制 HTTPS 地址，到对应日历「通过网址添加」。不保证 App 内一点即订，也不保证扫码即可订阅。
       </Typography.Paragraph>
       {feeds.error ? <Alert showIcon title={errorMessage(feeds.error)} type="error" /> : null}
       <FeedsTable

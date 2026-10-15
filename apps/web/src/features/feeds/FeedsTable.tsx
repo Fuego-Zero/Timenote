@@ -1,5 +1,5 @@
 import { type FeedToken, maxQueryLength, type PageQuery, type PageResult } from "@timenote/contracts";
-import { Button, Empty, Input, Space, Table, type TableColumnsType, Tooltip, Typography } from "antd";
+import { Button, Empty, Flex, Input, QRCode, Space, Table, type TableColumnsType, Tooltip, Typography } from "antd";
 import { useEffect, useState } from "react";
 
 import { type RowAction, RowActions } from "../../ui/RowActions.js";
@@ -22,6 +22,19 @@ function scopeLabel(feed: FeedToken) {
     <Tooltip title={title}>
       <span>{label}</span>
     </Tooltip>
+  );
+}
+
+/** 有明文 webcal 时在行展开区展示二维码，避免挤进操作列。 */
+function WebcalQrPanel({ webcalUrl }: { webcalUrl: string }) {
+  return (
+    <Flex align="flex-start" gap="middle" wrap>
+      <QRCode size={120} type="svg" value={webcalUrl} />
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 0, maxWidth: 420 }}>
+        扫码得到与「复制 webcal」相同的地址，由系统日历处理（主打苹果）。Google / Android
+        不保证扫码即订，请改用「复制地址」取得 HTTPS 后手动添加。
+      </Typography.Paragraph>
+    </Flex>
   );
 }
 
@@ -87,17 +100,21 @@ export function FeedsTable({
     {
       key: "actions",
       title: "操作",
-      width: 310,
+      // 编辑 + 复制地址 + 复制 webcal + 日历打开 + 轮换 + 撤销
+      width: 450,
       render: (_value, feed) => {
-        const { url } = feed;
+        const { url, webcalUrl } = feed;
         const actions: RowAction[] = [{ key: "edit", label: "编辑", onClick: () => onEdit(feed) }];
         if (url) {
-          actions.push(
-            { key: "copy", label: "复制地址", onClick: () => onCopy(url) },
-            { key: "open", label: "日历打开", href: feed.webcalUrl ?? undefined }
-          );
+          actions.push({ key: "copy", label: "复制地址", onClick: () => onCopy(url) });
+          if (webcalUrl) {
+            actions.push(
+              { key: "copy-webcal", label: "复制 webcal", onClick: () => onCopy(webcalUrl) },
+              { key: "open", label: "日历打开", href: webcalUrl }
+            );
+          }
         } else {
-          // 旧订阅没有明文地址：复制置灰并说明原因；也没有可打开的 webcal 地址，故不显示「日历打开」。
+          // 旧订阅没有明文地址：复制置灰并说明原因；也没有可打开的 webcal 地址，故不显示 webcal / 日历打开。
           actions.push({
             key: "copy",
             label: "复制地址",
@@ -150,6 +167,10 @@ export function FeedsTable({
       <Table<FeedToken>
         columns={columns}
         dataSource={page?.items ?? []}
+        expandable={{
+          expandedRowRender: feed => (feed.webcalUrl ? <WebcalQrPanel webcalUrl={feed.webcalUrl} /> : null),
+          rowExpandable: feed => Boolean(feed.webcalUrl),
+        }}
         loading={loading}
         locale={{
           emptyText:

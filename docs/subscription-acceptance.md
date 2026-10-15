@@ -10,11 +10,15 @@
 
 ## 添加订阅
 
-1. 网页「订阅」→「创建订阅地址」→ 在弹窗中填写订阅名称「我的手机」→「创建」→ 在列表中点「复制地址」。
+1. 网页「订阅」→「创建订阅地址」→ 在弹窗中填写订阅名称「我的手机」→「创建」→ 在列表中：
+   - 「复制地址」复制 **HTTPS**（通用：Google / Outlook / 手动粘贴）；
+   - 「复制 webcal」复制 **webcal**（苹果分享 / 隔空投送用）；
+   - 「日历打开」跳转 webcal（本机可处理该协议时）；
+   - 有明文时可**展开行**，扫描页上的 **webcal 二维码**（主打苹果扫码加订）。无明文时上述 webcal / 二维码不可用，与「日历打开」门控一致。
 2. 按客户端添加订阅：
-   - 苹果日历：「日历」App →「日历」→「添加日历」→「添加订阅日历」→ 粘贴地址 → 订阅；或在设备上打开网页，点「日历打开」（webcal 链接）。参考 [Apple 支持](https://support.apple.com/zh-cn/guide/iphone/iph3d1110d4/ios)。
-   - Google 日历：仅电脑网页版支持，「其他日历」旁的 ＋ →「通过网址添加」→ 粘贴 HTTPS 地址。参考 [Google 日历帮助](https://support.google.com/calendar/answer/37100?hl=zh-Hans)。
-   - Outlook 网页版：「添加日历」→「从 Web 中订阅」→ 粘贴 HTTPS 地址；首次同步与后续更新可能超过 24 小时。参考 [Microsoft 支持](https://support.microsoft.com/zh-cn/office/cff1429c-5af6-41ec-a5b4-74f2c278e98c)。
+   - 苹果日历：「日历」App →「日历」→「添加日历」→「添加订阅日历」→ 粘贴地址（HTTPS 或 webcal 均可）→ 订阅；或在设备上打开网页点「日历打开」；或扫描订阅页展开区的 webcal 二维码。参考 [Apple 支持](https://support.apple.com/zh-cn/guide/iphone/iph3d1110d4/ios)。
+   - Google 日历：仅电脑网页版支持，「其他日历」旁的 ＋ →「通过网址添加」→ 粘贴 **HTTPS** 地址。不保证 App 内一点即订，也不保证扫码即可订阅。参考 [Google 日历帮助](https://support.google.com/calendar/answer/37100?hl=zh-Hans)。
+   - Outlook 网页版 / Android：「添加日历」→「从 Web 中订阅」（或对应「通过网址添加」）→ 粘贴 **HTTPS** 地址；首次同步与后续更新可能超过 24 小时。不保证一点即订或扫码即订。参考 [Microsoft 支持](https://support.microsoft.com/zh-cn/office/cff1429c-5af6-41ec-a5b4-74f2c278e98c)。
 
 - [ ] 订阅成功，日历名称显示为「<显示名称>的纪念日」。
 - [ ] 关闭页面再打开「订阅」，同一地址仍然完整显示，可以再次复制。
