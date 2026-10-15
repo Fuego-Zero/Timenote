@@ -1,4 +1,4 @@
-import { type FeedToken, pageQuerySchema } from "@timenote/contracts";
+import { type FeedToken, pageQuerySchema, type PublicUser } from "@timenote/contracts";
 import { Alert, App, Button, Flex, Space, Typography } from "antd";
 import { useState } from "react";
 
@@ -12,7 +12,7 @@ interface FormState {
   feed?: FeedToken;
 }
 
-export function FeedsPage() {
+export function FeedsPage({ user }: { user: PublicUser }) {
   const { message } = App.useApp();
   const [query, setQuery] = useUrlState(pageQuerySchema);
   const feeds = useFeedTokens(query);
@@ -99,6 +99,7 @@ export function FeedsPage() {
         <FeedFormModal
           key={form.feed?.id ?? "new"}
           feed={form.feed}
+          user={user}
           onCancel={() => setForm(undefined)}
           onSubmit={draft => submit(form.feed, draft)}
         />
