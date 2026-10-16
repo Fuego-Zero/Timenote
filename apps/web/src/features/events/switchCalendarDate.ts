@@ -1,7 +1,9 @@
-import { formatLunarMonthDay, isoDate, solarToLunar } from "@timenote/calendar";
+import { isoDate, solarToLunar } from "@timenote/calendar";
 import type { EventInput } from "@timenote/contracts";
 
 import { i18n } from "../../i18n/index.js";
+import { translateDetail } from "../../i18n/translateMessage.js";
+import { formatLunarDateLabel } from "./dateFieldOptions.js";
 
 /** 公历/农历切换：有年份时用 calendar 包换算，否则只改 calendar 标记。 */
 export function switchCalendarDate(
@@ -21,13 +23,14 @@ export function switchCalendarDate(
           ns: "events",
           solar: isoDate(date.year, date.month, date.day),
           year: lunar.year,
-          lunar: formatLunarMonthDay(lunar.month, lunar.day, lunar.leapMonth),
+          lunar: formatLunarDateLabel(lunar.month, lunar.day, lunar.leapMonth),
         }),
       };
     } catch (error) {
       return {
         date: { ...date, calendar, day: Math.min(date.day, 30) },
-        notice: error instanceof Error ? error.message : i18n.t("switchCalendar.failed", { ns: "events" }),
+        notice:
+          error instanceof Error ? translateDetail(error.message) : i18n.t("switchCalendar.failed", { ns: "events" }),
       };
     }
   }

@@ -12,6 +12,7 @@
     "@timenote/calendar": "workspace:*",
     "@timenote/contracts": "workspace:*",
     "@timenote/runtime": "workspace:*",
+    "altcha-lib": "2.6.0",
     "fastify": "5.12.5",
     "zod": "4.6.5"
   }

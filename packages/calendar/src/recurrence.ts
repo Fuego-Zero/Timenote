@@ -1,11 +1,11 @@
-import type { EventInput, Recurrence } from "@timenote/contracts";
+import { type EventInput, issueDetail, type Recurrence } from "@timenote/contracts";
 
 import { addDays, compareIsoDate, daysBetween, daysInGregorianMonth, type IsoDate, isoDate } from "./dates.js";
 
 /** 按天/周/月重复的起始日（第 0 次）；契约保证这类规则只用于公历且年份已知。 */
 export function recurrenceOrigin(date: EventInput["date"]): IsoDate {
   if (date.year === null || date.calendar !== "gregorian") {
-    throw new Error("按天、周、月重复只支持已知年份的公历日期");
+    throw new Error(issueDetail("daily_needs_gregorian"));
   }
 
   return isoDate(date.year, date.month, date.day);

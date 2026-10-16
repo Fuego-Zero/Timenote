@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api, ApiRequestError, errorMessage } from "../../api/client.js";
+import { translateFieldError } from "../../i18n/translateMessage.js";
 
 interface SetupValues {
   displayName?: string;
@@ -25,7 +26,7 @@ export function SetupPage({ onReady }: { onReady: (user: PublicUser) => void }) 
       onReady(data.user);
     } catch (caught) {
       if (caught instanceof ApiRequestError && caught.fields.password) {
-        setError(caught.fields.password);
+        setError(translateFieldError(caught.fields.password));
       } else {
         setError(errorMessage(caught));
       }

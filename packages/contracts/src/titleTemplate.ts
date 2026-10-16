@@ -1,3 +1,4 @@
+import { issueDetail } from "./error.js";
 import type { EventKind } from "./eventEnums.js";
 
 /** 标题模板可用的全部变量；每个模板实际可用哪些由事件规则决定，其他 `{{…}}` 或孤立花括号一律拒绝。 */
@@ -20,16 +21,11 @@ export const defaultRecurrenceTemplates = {
 
 export const defaultMilestoneTemplate = "{{name}}第 {{days}} 天";
 
-function variableText(variables: readonly TemplateVariable[]) {
-  const names = variables.map(variable => `{{${variable}}}`);
-  return names.length > 1 ? `${names.slice(0, -1).join("、")} 和 ${names.at(-1)}` : names.join("");
-}
-
 /** 白名单检查：只允许 allowed 中的变量，其余 `{{…}}` 和孤立花括号都拒绝。 */
 export function templateIssue(template: string, allowed: readonly TemplateVariable[]): string | undefined {
   const stripped = allowed.reduce((text, variable) => text.replaceAll(`{{${variable}}}`, ""), template);
   if (stripped.includes("{") || stripped.includes("}")) {
-    return `模板只支持 ${variableText(allowed)}`;
+    return issueDetail("template_vars", { vars: allowed.join(",") });
   }
 
   return undefined;

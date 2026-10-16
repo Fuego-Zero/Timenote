@@ -1,9 +1,11 @@
 import type { PublicUser } from "@timenote/contracts";
 import { Alert, Button, Card, Flex, Form, Input, Layout, theme, Typography } from "antd";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api, errorMessage } from "../../api/client.js";
+import { localeRegistry, resolveLocale, setLocale } from "../../i18n/index.js";
+import { RegisterChallenge } from "./RegisterChallenge.js";
 
 interface LoginValues {
   password: string;
@@ -28,13 +30,17 @@ export function LoginPage({
   publicRegisterEnabled: boolean;
   registerDefaultDisabled: boolean;
 }) {
-  const { t } = useTranslation(["auth", "common"]);
+  const { t, i18n } = useTranslation(["auth", "common"]);
   const { token } = theme.useToken();
   const [mode, setMode] = useState<Mode>("login");
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
   const [loginForm] = Form.useForm<LoginValues>();
   const [registerForm] = Form.useForm<RegisterValues>();
+  const [altchaPayload, setAltchaPayload] = useState<string>();
+  const onAltchaPayload = useCallback((payload: string | undefined) => {
+    setAltchaPayload(payload);
+  }, []);
 
   async function submitLogin(values: LoginValues) {
     setSubmitting(true);
@@ -57,7 +63,9 @@ export function LoginPage({
         username: values.username,
         password: values.password,
         displayName: values.displayName,
+        altcha: altchaPayload,
       });
+      setAltchaPayload(undefined);
       setMode("registerSuccess");
       registerForm.resetFields();
     } catch (caught) {
@@ -69,6 +77,7 @@ export function LoginPage({
 
   function goLogin() {
     setError(undefined);
+    setAltchaPayload(undefined);
     setMode("login");
   }
 
@@ -77,8 +86,55 @@ export function LoginPage({
     setMode("register");
   }
 
+  const currentLocale = resolveLocale(i18n.language).code;
+
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", position: "relative" }}>
+      <nav
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 24,
+          zIndex: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: token.fontSize,
+        }}
+        aria-label={t("common:locale.label")}
+      >
+        {localeRegistry.map((entry, index) => {
+          const label = t(`common:${entry.labelKey}`);
+          const current = entry.code === currentLocale;
+          return (
+            <span key={entry.code} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {index > 0 ? <span style={{ color: token.colorTextQuaternary }}>|</span> : null}
+              {current ? (
+                <span style={{ fontWeight: 600 }} aria-current="true">
+                  {label}
+                </span>
+              ) : (
+                <button
+                  style={{
+                    padding: 0,
+                    border: 0,
+                    background: "none",
+                    color: token.colorPrimary,
+                    font: "inherit",
+                    cursor: "pointer",
+                  }}
+                  type="button"
+                  onClick={() => {
+                    void setLocale(entry.code);
+                  }}
+                >
+                  {label}
+                </button>
+              )}
+            </span>
+          );
+        })}
+      </nav>
       <Layout.Content>
         <Flex align="center" justify="center" style={{ minHeight: "100vh", padding: token.padding }}>
           <Card style={{ maxWidth: 380, width: "100%" }}>
@@ -191,7 +247,8 @@ export function LoginPage({
                   >
                     <Input.Password autoComplete="new-password" />
                   </Form.Item>
-                  <Button block htmlType="submit" loading={submitting} type="primary">
+                  <RegisterChallenge language={resolveLocale(i18n.language).code} onPayload={onAltchaPayload} />
+                  <Button block disabled={!altchaPayload} htmlType="submit" loading={submitting} type="primary">
                     {t("register.submit")}
                   </Button>
                 </Form>

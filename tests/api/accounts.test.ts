@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { encodeSolvedAltcha } from "../../apps/api/src/registerChallenge.js";
 import type { PublicUser } from "../../packages/contracts/src/index.js";
 import { storedUserSchema } from "../../packages/runtime/src/entities.js";
 import { adminPassword, harness, type Harness } from "../helpers.js";
@@ -30,7 +31,9 @@ describe("登录与会话", () => {
     const missing = await b.request("POST", "/api/auth/login", { username: "nobody", password: "wrong-password" });
     expect([wrong.status, missing.status]).toEqual([401, 401]);
     expect(wrong.json).toMatchObject({ code: "INVALID_CREDENTIALS" });
-    expect((missing.json as { message: string }).message).toBe((wrong.json as { message: string }).message);
+    expect(missing.json).toMatchObject({ code: "INVALID_CREDENTIALS" });
+    expect(missing.json).not.toHaveProperty("message");
+    expect(wrong.json).not.toHaveProperty("message");
 
     const ok = await b.login();
     const cookie = String(ok.headers["set-cookie"]);
@@ -76,7 +79,7 @@ describe("登录与会话", () => {
       newPassword: "new-admin-password",
     });
     expect(res.status).toBe(400);
-    expect(res.json).toMatchObject({ fields: { currentPassword: "当前密码不正确" } });
+    expect(res.json).toMatchObject({ fields: { currentPassword: { detail: "current_password" } } });
   });
 });
 
@@ -118,7 +121,7 @@ describe("管理员后台权限边界", () => {
       role: "user",
     });
     expect(dup.status).toBe(409);
-    expect(dup.json).toMatchObject({ code: "USERNAME_TAKEN", fields: { username: expect.any(String) } });
+    expect(dup.json).toMatchObject({ code: "USERNAME_TAKEN", fields: { username: { detail: "username_taken" } } });
   });
 
   it("停用账号立即踢出其会话且无法再登录；重置密码同样踢出", async () => {
@@ -504,6 +507,40 @@ describe("公开注册", () => {
       });
       expect(unsigned.statusCode).toBe(403);
       expect(unsigned.json()).toMatchObject({ code: "SIGN_INVALID" });
+    } finally {
+      await on.close();
+    }
+  });
+
+  it("无效或重复使用的计算题不建账号", async () => {
+    const on = await harness({ PUBLIC_REGISTER_ENABLED: "true" });
+    try {
+      const b = on.browser();
+      const invalid = await b.request("POST", "/api/auth/register", {
+        username: "nocaptcha",
+        password: "nocaptcha-password",
+        altcha: "not-valid",
+      });
+      expect(invalid.status).toBe(400);
+      expect(invalid.json).toMatchObject({ code: "INVALID_INPUT", detail: "captcha_invalid" });
+      expect(on.repo.users.getUserByUsername("nocaptcha")).toBeUndefined();
+
+      const issued = await on.app.inject({ method: "GET", url: "/api/auth/register-challenge" });
+      const altcha = await encodeSolvedAltcha(issued.json());
+      const first = await b.request("POST", "/api/auth/register", {
+        username: "once",
+        password: "once-password",
+        altcha,
+      });
+      expect(first.status).toBe(200);
+      const second = await b.request("POST", "/api/auth/register", {
+        username: "twice",
+        password: "twice-password",
+        altcha,
+      });
+      expect(second.status).toBe(400);
+      expect(second.json).toMatchObject({ detail: "captcha_invalid" });
+      expect(on.repo.users.getUserByUsername("twice")).toBeUndefined();
     } finally {
       await on.close();
     }

@@ -43,6 +43,7 @@
     "devicePlaceholder": "如 iPhone、工作电脑",
     "deviceAria": "订阅名称",
     "defaultDeviceName": "我的设备",
+    "defaultCalendarName": "{{name}}的纪念日",
     "calendarName": "日历显示名",
     "calendarExtra": "日历中将显示：{{name}}",
     "calendarPlaceholder": "默认：{{name}}",

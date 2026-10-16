@@ -47,6 +47,18 @@
     "alarmPrefix": "Reminder: {{text}}",
     "aria": "Occurrence preview"
   },
+  "templates": {
+    "birthdayYears": "{{name}}'s {{years}}th birthday",
+    "birthday": "{{name}}'s birthday",
+    "anniversaryYears": "{{name}}'s {{years}}th anniversary",
+    "anniversary": "{{name}} anniversary",
+    "event": "{{name}}",
+    "everyNYears": "{{name}} #{{count}}",
+    "weekly": "{{name}} week {{count}}",
+    "monthly": "{{name}} month {{count}}",
+    "other": "{{name}} #{{count}}",
+    "milestone": "{{name}} day {{days}}"
+  },
   "titleFields": {
     "template": "Title template",
     "templateAria": "Title template",
@@ -86,6 +98,10 @@
     "leapMonth": "Leap month",
     "monthLabel": "{{n}}",
     "dayLabel": "{{n}}",
+    "lunarMonth": "Mo{{n}}",
+    "lunarDay": "{{n}}",
+    "lunarDate": "{{month}} {{day}}",
+    "lunarLeap": "{{month}}bis {{day}}",
     "labels": {
       "birthday": "Date of birth",
       "anniversary": "First date",

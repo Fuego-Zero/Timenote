@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// 契约的默认校验提示统一为中文，前端表单与服务端错误字段使用同一套文案。
+// 校验失败的 message 使用稳定 detail，不携带自然语言；网页按当前语言生成提示。
 z.config(z.locales.zhCN());
 
 export * from "./backup.js";

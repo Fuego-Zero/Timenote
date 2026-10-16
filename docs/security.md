@@ -2,7 +2,7 @@
 
 ## 账号与会话
 
-- 默认可选关闭的公开注册（`PUBLIC_REGISTER_ENABLED`，默认 `false`）。关闭时 `POST /api/auth/register` 返回 `FORBIDDEN`，登录页不展示注册入口。开启后允许自助注册：新号 `role=user`，是否停用由 `REGISTER_DEFAULT_DISABLED` 决定（默认 `true`，即停用）。两种情况下都不创建会话、不写 Cookie。默认停用时须管理员在账号管理启用后方可登录；设为 `false` 时注册后可立即登录。未启用/停用与错密登录返回同一提示，不暴露账号状态。
+- 默认可选关闭的公开注册（`PUBLIC_REGISTER_ENABLED`，默认 `false`）。关闭时 `POST /api/auth/register` 返回 `FORBIDDEN`，登录页不展示注册入口。开启后允许自助注册：新号 `role=user`，是否停用由 `REGISTER_DEFAULT_DISABLED` 决定（默认 `true`，即停用）。注册请求必须带上浏览器算完的 ALTCHA 结果，服务端用 `SIGN_MASTER_KEY` 派生的密钥核对，同一道题只能用一次；没有有效结果不建账号。两种情况下都不创建会话、不写 Cookie。默认停用时须管理员在账号管理启用后方可登录；设为 `false` 时注册后可立即登录。未启用/停用与错密登录返回同一提示，不暴露账号状态。
 - 首个管理员只经首次引导创建：空库时 `GET /api/setup` 返回 `needed: true`，`POST /api/setup/admin` 创建并建立会话。不使用环境变量种子管理员。生产环境引导创建要求强密码（≥16 位且至少三类字符，避开常见弱口令）。公开注册**不替代**首次引导。管理员后台新建账号仍默认启用。所有管理接口在服务端 `requireAdmin` 校验，不依赖前端隐藏。
 - 密码用 scrypt（N=2^15、r=8、p=1、16 字节随机盐）哈希，存为 `scrypt$N$r$p$salt$hash`；数据库约束禁止出现明文 `password` 字段。
 - 登录时账号不存在、已停用、密码错误返回同一提示；账号不存在时也对占位哈希做一次校验，避免用响应时间探测用户名。
@@ -21,7 +21,7 @@
 
 - 需登录的 `/api/*`（读+写）强制 SIGN。
 - `POST /api/auth/login`、`POST /api/auth/register`、`POST /api/setup/admin` **必须**使用匿名短时 signKey。
-- 仅 `GET /api/auth/session`、`GET /api/setup`（及同类只读探测）可不签或只校 Origin。
+- 仅 `GET /api/auth/session`、`GET /api/auth/register-challenge`、`GET /api/setup`（及同类只读探测）可不签或只校 Origin。
 - `/health`、`/api/feeds/*` 不签（feed 仍只凭 URL token）。
 
 ### 密钥形态（HKDF-SHA256）
@@ -83,12 +83,12 @@
 
 ## 浏览器侧
 
-- `index.html` 每次请求生成 CSP nonce：`script-src`、`style-src` 只允许同源与 nonce，`object-src 'none'`、`frame-ancestors 'none'`、`base-uri 'none'`；Ant Design 的运行时样式统一带 nonce。
+- `index.html` 每次请求生成 CSP nonce：`script-src`、`style-src` 只允许同源与 nonce，`worker-src` 允许同源和 `blob:`（注册页的计算题在浏览器里开 Worker），`object-src 'none'`、`frame-ancestors 'none'`、`base-uri 'none'`；Ant Design 的运行时样式统一带 nonce。
 - API 使用 helmet 默认安全头；Web 对所有响应加 `X-Content-Type-Options: nosniff` 与 `Referrer-Policy: no-referrer`（避免订阅地址经 Referer 泄露）。
 
 ## 限流
 
-- 全局每个来源地址每分钟 120 次请求；登录接口每分钟 `LOGIN_RATE_LIMIT` 次（默认 10）；公开注册接口每分钟 `REGISTER_RATE_LIMIT` 次（默认 5，建议 ≤ 登录桶）。
+- 全局每个来源地址每分钟 120 次请求；登录接口每分钟 `LOGIN_RATE_LIMIT` 次（默认 10）；公开注册接口每分钟 `REGISTER_RATE_LIMIT` 次（默认 5，建议 ≤ 登录桶）。注册计算题走全局限额，提交注册仍受注册桶限制。
 - 已知限制：来源地址取 Web 反代看到的上一跳。部署在反向代理或 Docker 端口映射之后时，所有客户端会共用同一个来源地址，登录限流变为全站共享——遭遇撞库时可能短时间内阻止正常登录。家庭规模使用可以接受；需要按真实客户端限流时，应在反向代理层做限流。
 
 ## 运维边界

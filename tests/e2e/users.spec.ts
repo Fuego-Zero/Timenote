@@ -66,5 +66,5 @@ test("账号列表服务端分页；停用 Switch 需确认、启用直接切换
   await expect(page).not.toHaveURL(/page=2/);
   await expect(rows).toHaveCount(2);
 
-  expect(warnings.filter(text => /deprecated/i.test(text) && !/Spin|maskClosable/.test(text))).toEqual([]);
+  expect(warnings.filter(text => /deprecated/i.test(text) && !/maskClosable/.test(text))).toEqual([]);
 });

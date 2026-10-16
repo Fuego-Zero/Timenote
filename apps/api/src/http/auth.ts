@@ -4,6 +4,7 @@ import {
   registerInputSchema,
   updateProfileInputSchema,
 } from "@timenote/contracts";
+import { BusinessError } from "@timenote/runtime";
 
 import { toPublicUser } from "../accounts.js";
 import {
@@ -64,10 +65,25 @@ export function registerAuth(ctx: ApiContext) {
     },
     async req => {
       const input = registerInputSchema.parse(req.body);
+      if (!config.publicRegisterEnabled) {
+        throw new BusinessError("FORBIDDEN");
+      }
+
+      const hasAdmin = repo.users.listUsers().some(user => user.role === "admin" && !user.disabled);
+      if (!hasAdmin) {
+        throw new BusinessError("FORBIDDEN");
+      }
+
+      if (!input.altcha || !(await ctx.registerChallenges.consume(input.altcha, ctx.now()))) {
+        throw new BusinessError("INVALID_INPUT", { detail: "captcha_invalid" });
+      }
+
       await registerPublicUser(repo, config, input, ctx.now());
       return { success: true };
     }
   );
+
+  app.get("/api/auth/register-challenge", () => ctx.registerChallenges.issue(ctx.now(), ctx.config.env === "test"));
 
   app.post("/api/auth/logout", (req, reply) => {
     endSession(ctx, req, reply);

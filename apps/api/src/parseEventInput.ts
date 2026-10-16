@@ -1,4 +1,4 @@
-import { CalendarRangeError, eventDateIssues } from "@timenote/calendar";
+import { CalendarRangeError, eventDateIssues, LUNAR_MAX_YEAR, LUNAR_MIN_YEAR } from "@timenote/calendar";
 import { type EventInput, eventInputSchema } from "@timenote/contracts";
 import { BusinessError } from "@timenote/runtime";
 
@@ -19,7 +19,10 @@ export function parseEventInput(body: unknown, fieldPrefix = ""): EventInput {
     issues = eventDateIssues(parsed.data);
   } catch (error) {
     if (error instanceof CalendarRangeError) {
-      throw new BusinessError("CALENDAR_RANGE", { message: error.message });
+      throw new BusinessError("CALENDAR_RANGE", {
+        detail: "lunar_range",
+        params: { year: error.year, min: LUNAR_MIN_YEAR, max: LUNAR_MAX_YEAR },
+      });
     }
 
     throw error;

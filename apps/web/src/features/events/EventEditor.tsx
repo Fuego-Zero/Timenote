@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ApiRequestError, errorMessage } from "../../api/client.js";
+import { translateFieldError } from "../../i18n/translateMessage.js";
 import { draftIssues } from "./eventDraft.js";
 import { EventForm } from "./EventForm.js";
 import { EventPreview } from "./EventPreview.js";
@@ -46,7 +47,9 @@ export function EventEditor({
       await onSave(draft);
     } catch (error) {
       if (error instanceof ApiRequestError && Object.keys(error.fields).length) {
-        setServerErrors(error.fields);
+        setServerErrors(
+          Object.fromEntries(Object.entries(error.fields).map(([path, field]) => [path, translateFieldError(field)]))
+        );
       } else {
         setSaveError(errorMessage(error));
       }

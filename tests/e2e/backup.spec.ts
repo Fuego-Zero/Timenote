@@ -48,5 +48,5 @@ test("导入前先预览数量，取消时不写库，确认后才导入（任�
   await expect(again.getByText("将新增 0、覆盖 1 个事件")).toBeVisible();
   await again.getByRole("button", { name: /^取\s?消$/ }).click();
 
-  expect(warnings.filter(text => /deprecated/i.test(text) && !/Spin|maskClosable/.test(text))).toEqual([]);
+  expect(warnings.filter(text => /deprecated/i.test(text) && !/maskClosable/.test(text))).toEqual([]);
 });

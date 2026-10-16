@@ -1,4 +1,4 @@
-import { Button, Layout, Result, Spin } from "antd";
+import { Button, Layout, Result, Spin, theme } from "antd";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +8,22 @@ import { SetupPage } from "./features/auth/SetupPage.js";
 import { useSession } from "./features/auth/useSession.js";
 import { AppProviders } from "./ui/AppProviders.js";
 import { AppShell } from "./ui/AppShell.js";
+
+function Loading() {
+  const { t } = useTranslation("common");
+  const { token } = theme.useToken();
+  return (
+    <Spin
+      fullscreen
+      description={t("loading")}
+      styles={{
+        root: { backgroundColor: token.colorBgLayout },
+        section: { color: token.colorPrimary },
+        description: { color: token.colorPrimary },
+      }}
+    />
+  );
+}
 
 function Root() {
   const { t } = useTranslation("common");
@@ -38,7 +54,7 @@ function Root() {
   }, [session.state]);
 
   if (session.state.status === "loading") {
-    return <Spin fullscreen tip={t("loading")} />;
+    return <Loading />;
   }
 
   if (session.state.status === "error") {
@@ -57,7 +73,7 @@ function Root() {
 
   if (!session.state.user) {
     if (setupNeeded === null) {
-      return <Spin fullscreen tip={t("loading")} />;
+      return <Loading />;
     }
 
     if (setupNeeded) {

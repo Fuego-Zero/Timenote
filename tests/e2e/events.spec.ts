@@ -86,6 +86,6 @@ test("事件列表：分页与筛选同步到地址栏，刷新还原；删掉�
   await expect(rows).toHaveCount(20);
   await expect(page.getByLabel("排序")).toBeVisible();
   await expect(page.locator(".ant-select").filter({ hasText: "下次发生" })).toBeVisible();
-  // App.tsx 的 Spin tip 与 AccountModal 的 maskClosable 是本批之外的既有警告，单独排除；本页组件不应再产生弃用警告。
-  expect(warnings.filter(text => !/\[antd: (Spin|Modal)\]/.test(text))).toEqual([]);
+  // Modal 的 maskClosable 仍是既有弃用警告，单独排除；本页组件不应再产生其他弃用警告。
+  expect(warnings.filter(text => !/maskClosable/.test(text))).toEqual([]);
 });

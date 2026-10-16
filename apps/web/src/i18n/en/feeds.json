@@ -43,6 +43,7 @@
     "devicePlaceholder": "e.g. iPhone, work laptop",
     "deviceAria": "Feed name",
     "defaultDeviceName": "My device",
+    "defaultCalendarName": "{{name}}'s anniversaries",
     "calendarName": "Calendar display name",
     "calendarExtra": "Shown in calendars as: {{name}}",
     "calendarPlaceholder": "Default: {{name}}",

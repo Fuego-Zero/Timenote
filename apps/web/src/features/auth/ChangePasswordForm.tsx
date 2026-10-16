@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api, ApiRequestError, errorMessage } from "../../api/client.js";
+import { translateFieldError } from "../../i18n/translateMessage.js";
 
 interface PasswordValues {
   currentPassword: string;
@@ -23,7 +24,7 @@ export function ChangePasswordForm() {
       void message.success(t("password.success"));
     } catch (error) {
       if (error instanceof ApiRequestError && error.fields.currentPassword) {
-        form.setFields([{ name: "currentPassword", errors: [error.fields.currentPassword] }]);
+        form.setFields([{ name: "currentPassword", errors: [translateFieldError(error.fields.currentPassword)] }]);
       } else {
         void message.error(errorMessage(error));
       }

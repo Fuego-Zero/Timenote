@@ -13,8 +13,8 @@ export interface FeedDraft {
   name: string;
 }
 
-/** 与 ICS 默认拼装一致：显示名优先，否则用户名 +「的纪念日」。一期不动 ICS 默认串。 */
-function defaultCalendarName(user: PublicUser) {
+/** 旧订阅没有自定义名时，服务端仍用中文默认名，不因后来切换语言而改写。 */
+function storedCalendarName(user: PublicUser) {
   return `${user.displayName || user.username}的纪念日`;
 }
 
@@ -46,7 +46,9 @@ export function FeedFormModal({
   const [error, setError] = useState<unknown>();
   const [reloadKey, setReloadKey] = useState(0);
   const title = feed ? t("edit") : t("create");
-  const previewName = draft.calendarName.trim() || defaultCalendarName(user);
+  const localizedDefault = t("form.defaultCalendarName", { name: user.displayName || user.username });
+  const previewName =
+    draft.calendarName.trim() || (feed ? (feed.calendarName ?? storedCalendarName(user)) : localizedDefault);
 
   async function submit() {
     setSaving(true);
@@ -54,8 +56,8 @@ export function FeedFormModal({
     try {
       await onSubmit({
         name: draft.name.trim(),
-        // 空串交给 API preprocess 成 null，表示未自定义 / 清空恢复默认。
-        calendarName: draft.calendarName.trim(),
+        // 新建时把当时语言的默认名写进订阅；编辑时留空仍表示清空自定义，不改已有默认名的语言。
+        calendarName: draft.calendarName.trim() || (feed ? "" : localizedDefault),
         eventScope: draft.eventScope,
         eventIds: draft.eventScope === "selected" ? draft.eventIds : [],
       });
@@ -92,7 +94,9 @@ export function FeedFormModal({
         <Form.Item extra={t("form.calendarExtra", { name: previewName })} label={t("form.calendarName")}>
           <Input
             maxLength={40}
-            placeholder={t("form.calendarPlaceholder", { name: defaultCalendarName(user) })}
+            placeholder={t("form.calendarPlaceholder", {
+              name: feed ? (feed.calendarName ?? storedCalendarName(user)) : localizedDefault,
+            })}
             value={draft.calendarName}
             aria-label={t("form.calendarAria")}
             onChange={event => setDraft(current => ({ ...current, calendarName: event.target.value }))}

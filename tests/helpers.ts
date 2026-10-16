@@ -1,6 +1,7 @@
 import { join } from "node:path";
 
 import { createApiServer } from "../apps/api/src/index.js";
+import { encodeSolvedAltcha } from "../apps/api/src/registerChallenge.js";
 import {
   buildSignHeaders,
   isSignExemptPath,
@@ -41,7 +42,7 @@ export async function harness(env: NodeJS.Dict<string> = {}, options: { logSink?
         url: "/api/setup",
         headers: { origin: config.webOrigin },
       });
-      const json = res.json() as { anonSign?: { anonKeyId: string; signKey: string; expiresAt: number } };
+      const json = res.json<{ anonSign?: { anonKeyId: string; signKey: string; expiresAt: number } }>();
       if (!json.anonSign) {
         throw new Error("无法获取匿名签名密钥");
       }
@@ -56,10 +57,10 @@ export async function harness(env: NodeJS.Dict<string> = {}, options: { logSink?
         url: "/api/auth/session",
         headers: { origin: config.webOrigin, ...(cookie ? { cookie } : {}) },
       });
-      const json = res.json() as {
+      const json = res.json<{
         signKey?: string;
         anonSign?: { anonKeyId: string; signKey: string; expiresAt: number };
-      };
+      }>();
       if (json.signKey) {
         sessionSignKey = json.signKey;
       }
@@ -78,7 +79,23 @@ export async function harness(env: NodeJS.Dict<string> = {}, options: { logSink?
       headers: Record<string, string> = {}
     ) {
       const path = url.split("?")[0] ?? url;
-      const bodyText = body === undefined ? undefined : JSON.stringify(body);
+      let payload = body;
+      if (
+        method === "POST" &&
+        path === "/api/auth/register" &&
+        payload &&
+        typeof payload === "object" &&
+        !Array.isArray(payload)
+      ) {
+        const record = payload as Record<string, unknown>;
+        if (record.altcha === undefined) {
+          const issued = await app.inject({ method: "GET", url: "/api/auth/register-challenge" });
+          record.altcha = await encodeSolvedAltcha(issued.json());
+          payload = record;
+        }
+      }
+
+      const bodyText = payload === undefined ? undefined : JSON.stringify(payload);
       const signHeaders: Record<string, string> = {};
       if (!isSignExemptPath(method, path)) {
         const needAnon =
@@ -136,11 +153,11 @@ export async function harness(env: NodeJS.Dict<string> = {}, options: { logSink?
       const setCookie = res.headers["set-cookie"];
       const first = Array.isArray(setCookie) ? setCookie[0] : setCookie;
       if (first) {
-        const pair = first.split(";")[0]!;
+        const pair = first.split(";")[0] ?? "";
         cookie = pair.endsWith("=") ? undefined : pair;
       }
 
-      const json = res.headers["content-type"]?.toString().includes("json") ? (res.json() as T) : undefined;
+      const json = res.headers["content-type"]?.toString().includes("json") ? res.json<T>() : undefined;
       if (json && typeof json === "object") {
         const row = json as { signKey?: string; anonSign?: typeof anonSign };
         if (typeof row.signKey === "string") {

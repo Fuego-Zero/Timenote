@@ -18,7 +18,7 @@ export class RequestSignRegistry {
   issueAnon(nowMs: number): { anonKeyId: string; signKey: string; expiresAt: number } {
     this.purge(nowMs);
     if (this.anons.size >= anonSignMaxActive) {
-      throw new BusinessError("RATE_LIMITED", { message: "匿名签名密钥发放过于频繁，请稍后再试" });
+      throw new BusinessError("RATE_LIMITED", { detail: "anon_sign_limited" });
     }
 
     const anonKeyId = randomBytes(32).toString("base64url");

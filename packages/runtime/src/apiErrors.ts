@@ -1,4 +1,4 @@
-import type { ApiError, ErrorCode } from "@timenote/contracts";
+import { type ApiError, type ErrorCode, type FieldError, parseIssueDetail } from "@timenote/contracts";
 import type { ZodError } from "zod";
 
 export const safeMessages: Record<ErrorCode, string> = {
@@ -37,17 +37,32 @@ export const statusByCode: Record<ErrorCode, number> = {
   INTERNAL_ERROR: 500,
 };
 
-/** 预期内的业务错误：对外只返回稳定 code、中文提示和字段定位，不暴露内部细节。 */
+/** 预期内的业务错误。HTTP 只带 code、detail 和参数；safeMessages 仅用于进程内日志。 */
 export class BusinessError extends Error {
-  readonly fields?: Record<string, string>;
+  readonly detail?: string;
+  readonly params?: Record<string, string | number>;
+  readonly fields?: Record<string, FieldError>;
 
   constructor(
     public code: ErrorCode,
-    options: { message?: string; fields?: Record<string, string> } = {}
+    options: {
+      detail?: string;
+      params?: Record<string, string | number>;
+      fields?: Record<string, string | FieldError>;
+    } = {}
   ) {
-    super(options.message ?? safeMessages[code]);
+    super(options.detail ?? safeMessages[code]);
     this.name = "BusinessError";
-    this.fields = options.fields;
+    this.detail = options.detail;
+    this.params = options.params;
+    this.fields = options.fields
+      ? Object.fromEntries(
+          Object.entries(options.fields).map(([path, value]) => [
+            path,
+            typeof value === "string" ? parseIssueDetail(value) : value,
+          ])
+        )
+      : undefined;
   }
 }
 
@@ -56,10 +71,10 @@ function isZodError(error: unknown): error is ZodError {
 }
 
 function zodFields(error: ZodError) {
-  const fields: Record<string, string> = {};
+  const fields: Record<string, FieldError> = {};
   for (const issue of error.issues) {
     const path = issue.path.join(".") || "_";
-    fields[path] ??= issue.message;
+    fields[path] ??= parseIssueDetail(issue.message);
   }
 
   return fields;
@@ -90,21 +105,26 @@ export function toApiError(error: unknown): { status: number; body: Omit<ApiErro
   if (error instanceof BusinessError) {
     return {
       status: statusByCode[error.code],
-      body: { code: error.code, message: error.message, ...(error.fields ? { fields: error.fields } : {}) },
+      body: {
+        code: error.code,
+        ...(error.detail ? { detail: error.detail } : {}),
+        ...(error.params ? { params: error.params } : {}),
+        ...(error.fields ? { fields: error.fields } : {}),
+      },
     };
   }
 
   if (isZodError(error)) {
     return {
       status: 400,
-      body: { code: "INVALID_INPUT", message: safeMessages.INVALID_INPUT, fields: zodFields(error) },
+      body: { code: "INVALID_INPUT", fields: zodFields(error) },
     };
   }
 
   const code = frameworkErrorCode((error as { statusCode?: number }).statusCode);
   if (code) {
-    return { status: statusByCode[code], body: { code, message: safeMessages[code] } };
+    return { status: statusByCode[code], body: { code } };
   }
 
-  return { status: 500, body: { code: "INTERNAL_ERROR", message: safeMessages.INTERNAL_ERROR } };
+  return { status: 500, body: { code: "INTERNAL_ERROR" } };
 }

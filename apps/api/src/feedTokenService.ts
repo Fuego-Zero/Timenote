@@ -60,7 +60,7 @@ export function createFeedToken(
 
   repo.transaction(() => {
     if (repo.feedTokens.listFeedTokens(ownerId).length >= maxFeedTokensPerUser) {
-      throw new BusinessError("INVALID_INPUT", { message: `每个账号最多 ${maxFeedTokensPerUser} 个订阅地址` });
+      throw new BusinessError("INVALID_INPUT", { detail: "feed_limit", params: { max: maxFeedTokensPerUser } });
     }
 
     repo.feedTokens.putFeedToken(feed);

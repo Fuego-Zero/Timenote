@@ -3,7 +3,8 @@ import { Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { ApiRequestError } from "../../api/client.js";
+import { ApiRequestError, errorMessage } from "../../api/client.js";
+import { translateFieldError } from "../../i18n/translateMessage.js";
 import { timeZoneOptions } from "../../lib/timeZones.js";
 
 export function UserFormModal({
@@ -34,11 +35,11 @@ export function UserFormModal({
         form.setFields(
           Object.entries(caught.fields).map(([name, message]) => ({
             name: name as keyof CreateUserInput,
-            errors: [message],
+            errors: [translateFieldError(message)],
           }))
         );
       } else {
-        setError(caught instanceof Error ? caught.message : t("createFailed"));
+        setError(errorMessage(caught));
       }
     } finally {
       setSaving(false);

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { issueDetail } from "../../packages/contracts/src/index.js";
+
 import {
   CalendarRangeError,
   eventDateIssues,
@@ -65,10 +67,10 @@ describe("农历周年", () => {
 
   it("校验已知年份的农历原始日期真实存在", () => {
     expect(eventDateIssues(lunar({ date: { year: 2025, month: 2, day: 1, leapMonth: true } }))).toEqual({
-      "date.leapMonth": "农历 2025 年没有闰2月",
+      "date.leapMonth": issueDetail("no_leap_month", { year: 2025, month: 2 }),
     });
     expect(eventDateIssues(lunar({ date: { year: 2025, month: 12, day: 30 } }))).toEqual({
-      "date.day": "该农历月只有 29 天",
+      "date.day": issueDetail("lunar_month_days", { n: 29 }),
     });
     expect(eventDateIssues(lunar({ date: { year: 2025, month: 6, day: 1, leapMonth: true } }))).toEqual({});
     expect(eventDateIssues(lunar({ date: { year: 1899, month: 1, day: 1 } }))).toHaveProperty("date.year");

@@ -47,6 +47,18 @@
     "alarmPrefix": "提醒：{{text}}",
     "aria": "发生日预览"
   },
+  "templates": {
+    "birthdayYears": "{{name}} {{years}} 岁生日",
+    "birthday": "{{name}}生日",
+    "anniversaryYears": "{{name}}第 {{years}} 周年",
+    "anniversary": "{{name}}纪念日",
+    "event": "{{name}}",
+    "everyNYears": "{{name}}第 {{count}} 次",
+    "weekly": "{{name}}第 {{count}} 周",
+    "monthly": "{{name}}第 {{count}} 个月",
+    "other": "{{name}}第 {{count}} 次",
+    "milestone": "{{name}}第 {{days}} 天"
+  },
   "titleFields": {
     "template": "标题模板",
     "templateAria": "标题模板",
@@ -86,6 +98,8 @@
     "leapMonth": "闰月",
     "monthLabel": "{{n}} 月",
     "dayLabel": "{{n}} 日",
+    "lunarMonth": "{{ordinal}}月",
+    "lunarDay": "{{ordinal}}",
     "labels": {
       "birthday": "出生日期",
       "anniversary": "首次日期",

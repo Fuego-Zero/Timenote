@@ -108,7 +108,7 @@ export function OriginalDateFields({
                 />
               ) : null}
               <Select
-                options={lunar ? lunarMonthOptions : monthOptions()}
+                options={lunar ? lunarMonthOptions() : monthOptions()}
                 style={rowItemStyle}
                 value={date.month}
                 aria-label={t("originalDate.monthAria")}

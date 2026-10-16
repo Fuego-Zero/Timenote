@@ -46,7 +46,10 @@ export function isSignExemptPath(method: string, path: string): boolean {
   }
 
   const upper = method.toUpperCase();
-  if (upper === "GET" && (path === "/api/auth/session" || path === "/api/setup")) {
+  if (
+    upper === "GET" &&
+    (path === "/api/auth/session" || path === "/api/auth/register-challenge" || path === "/api/setup")
+  ) {
     return true;
   }
 

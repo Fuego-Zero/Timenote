@@ -5,6 +5,7 @@ import enAdmin from "./en/admin.json";
 import enAuth from "./en/auth.json";
 import enBackup from "./en/backup.json";
 import enCommon from "./en/common.json";
+import enErrors from "./en/errors.json";
 import enEvents from "./en/events.json";
 import enFeeds from "./en/feeds.json";
 import {
@@ -18,10 +19,14 @@ import zhAdmin from "./zh-CN/admin.json";
 import zhAuth from "./zh-CN/auth.json";
 import zhBackup from "./zh-CN/backup.json";
 import zhCommon from "./zh-CN/common.json";
+import zhErrors from "./zh-CN/errors.json";
 import zhEvents from "./zh-CN/events.json";
 import zhFeeds from "./zh-CN/feeds.json";
 
 export const localeStorageKey = "timenote.locale";
+
+/** 浏览器标签用的双语全称，不随界面语言切换。顶栏和登录页只用当前语言的 brand。 */
+export const productTitle = "岁时记 Timenote";
 
 const resources = {
   "zh-CN": {
@@ -29,6 +34,7 @@ const resources = {
     auth: zhAuth,
     events: zhEvents,
     feeds: zhFeeds,
+    errors: zhErrors,
     admin: zhAdmin,
     backup: zhBackup,
   },
@@ -37,6 +43,7 @@ const resources = {
     auth: enAuth,
     events: enEvents,
     feeds: enFeeds,
+    errors: enErrors,
     admin: enAdmin,
     backup: enBackup,
   },
@@ -69,6 +76,11 @@ export function detectLocale(): string {
 export function applyDocumentLang(entry: LocaleEntry) {
   if (typeof document !== "undefined") {
     document.documentElement.lang = entry.htmlLang;
+    document.title = productTitle;
+    const manifest = document.querySelector<HTMLLinkElement>('link[rel="manifest"]');
+    if (manifest) {
+      manifest.href = `/site.webmanifest?lang=${entry.code}`;
+    }
   }
 }
 
@@ -96,7 +108,7 @@ void i18next.use(initReactI18next).init({
   lng: initial,
   fallbackLng: defaultLocaleCode,
   defaultNS: "common",
-  ns: ["common", "auth", "events", "feeds", "admin", "backup"],
+  ns: ["common", "auth", "events", "feeds", "admin", "backup", "errors"],
   interpolation: { escapeValue: false },
   returnNull: false,
 });

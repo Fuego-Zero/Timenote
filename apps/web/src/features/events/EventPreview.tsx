@@ -3,6 +3,7 @@ import type { EventInput } from "@timenote/contracts";
 import { Alert, Empty, List, Typography } from "antd";
 import { useTranslation } from "react-i18next";
 
+import { translateDetail } from "../../i18n/translateMessage.js";
 import { draftIssues } from "./eventDraft.js";
 import { EventTag } from "./EventTag.js";
 import { alarmText, rangeText } from "./occurrenceText.js";
@@ -29,7 +30,13 @@ export function EventPreview({
   try {
     occurrences = upcomingOccurrences(draft, now, timeZone, previewCount);
   } catch (error) {
-    return <Alert showIcon title={error instanceof Error ? error.message : t("preview.cannotCompute")} type="error" />;
+    return (
+      <Alert
+        showIcon
+        title={error instanceof Error ? translateDetail(error.message) : t("preview.cannotCompute")}
+        type="error"
+      />
+    );
   }
 
   if (!occurrences.length) {

@@ -1,14 +1,15 @@
 import type { PublicUser } from "@timenote/contracts";
-import { App, Button, Form, Input, Select } from "antd";
+import { App, Button, Form, Input, Radio, Select } from "antd";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { api, errorMessage } from "../../api/client.js";
-import { localeRegistry, setLocale } from "../../i18n/index.js";
+import { localeRegistry, resolveLocale, setLocale } from "../../i18n/index.js";
 import { timeZoneOptions } from "../../lib/timeZones.js";
 
 interface ProfileValues {
   displayName: string;
+  locale: string;
   timeZone: string;
 }
 
@@ -21,9 +22,13 @@ export function ProfileForm({ user, onUserChange }: { user: PublicUser; onUserCh
   async function saveProfile(values: ProfileValues) {
     setSaving(true);
     try {
-      const data = await api<{ user: PublicUser }>("/auth/profile", "PUT", values);
+      const data = await api<{ user: PublicUser }>("/auth/profile", "PUT", {
+        displayName: values.displayName,
+        timeZone: values.timeZone,
+      });
       onUserChange(data.user);
-      void message.success(t("profile.saved"));
+      await setLocale(values.locale);
+      void message.success(i18n.t("profile.saved", { ns: "auth" }));
     } catch (error) {
       void message.error(errorMessage(error));
     } finally {
@@ -34,7 +39,11 @@ export function ProfileForm({ user, onUserChange }: { user: PublicUser; onUserCh
   return (
     <Form<ProfileValues>
       form={form}
-      initialValues={{ displayName: user.displayName, timeZone: user.timeZone }}
+      initialValues={{
+        displayName: user.displayName,
+        timeZone: user.timeZone,
+        locale: resolveLocale(i18n.language).code,
+      }}
       layout="vertical"
       onFinish={values => void saveProfile(values)}
     >
@@ -44,15 +53,16 @@ export function ProfileForm({ user, onUserChange }: { user: PublicUser; onUserCh
       <Form.Item extra={t("profile.timeZoneExtra")} label={t("profile.timeZone")} name="timeZone">
         <Select showSearch options={timeZoneOptions()} />
       </Form.Item>
-      <Form.Item label={t("common:locale.label")}>
-        <Select
+      <Form.Item label={t("common:locale.label")} name="locale">
+        <Radio.Group
+          block
+          buttonStyle="solid"
           options={localeRegistry.map(entry => ({
             value: entry.code,
             label: t(`common:${entry.labelKey}`),
           }))}
-          value={i18n.language}
+          optionType="button"
           aria-label={t("common:locale.label")}
-          onChange={code => void setLocale(code)}
         />
       </Form.Item>
       <Button htmlType="submit" loading={saving} type="primary">
