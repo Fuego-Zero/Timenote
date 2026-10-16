@@ -1,8 +1,10 @@
 import type { CreateUserInput } from "@timenote/contracts";
 import { Form, Input, Modal, Select } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
-import { ApiRequestError } from "../../api/client.js";
+import { ApiRequestError, errorMessage } from "../../api/client.js";
+import { translateFieldError } from "../../i18n/translateMessage.js";
 import { timeZoneOptions } from "../../lib/timeZones.js";
 
 export function UserFormModal({
@@ -16,6 +18,7 @@ export function UserFormModal({
   onCancel: () => void;
   onSubmit: (input: CreateUserInput) => Promise<void>;
 }) {
+  const { t } = useTranslation(["admin", "common"]);
   const [form] = Form.useForm<CreateUserInput>();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
@@ -32,11 +35,11 @@ export function UserFormModal({
         form.setFields(
           Object.entries(caught.fields).map(([name, message]) => ({
             name: name as keyof CreateUserInput,
-            errors: [message],
+            errors: [translateFieldError(message)],
           }))
         );
       } else {
-        setError(caught instanceof Error ? caught.message : "创建失败");
+        setError(errorMessage(caught));
       }
     } finally {
       setSaving(false);
@@ -47,9 +50,9 @@ export function UserFormModal({
     <Modal
       destroyOnHidden
       confirmLoading={saving}
-      okText="创建"
+      okText={t("common:create")}
       open={open}
-      title="新建账号"
+      title={t("form.title")}
       onCancel={onCancel}
       onOk={() => void submit()}
     >
@@ -59,37 +62,37 @@ export function UserFormModal({
         layout="vertical"
       >
         <Form.Item
-          label="用户名"
+          label={t("form.username")}
           name="username"
           rules={[
-            { required: true, message: "请输入用户名" },
-            { pattern: /^[a-z0-9][a-z0-9_.-]{2,31}$/, message: "3-32 位小写字母、数字或 _.-" },
+            { required: true, message: t("form.usernameRequired") },
+            { pattern: /^[a-z0-9][a-z0-9_.-]{2,31}$/, message: t("form.usernamePattern") },
           ]}
         >
           <Input autoCapitalize="none" autoComplete="off" />
         </Form.Item>
-        <Form.Item label="显示名称" name="displayName">
+        <Form.Item label={t("form.displayName")} name="displayName">
           <Input maxLength={40} />
         </Form.Item>
         <Form.Item
-          label="初始密码"
+          label={t("form.password")}
           name="password"
           rules={[
-            { required: true, message: "请输入初始密码" },
-            { min: 8, max: 128, message: "密码长度为 8-128 位" },
+            { required: true, message: t("form.passwordRequired") },
+            { min: 8, max: 128, message: t("form.passwordLength") },
           ]}
         >
           <Input.Password autoComplete="new-password" />
         </Form.Item>
-        <Form.Item label="角色" name="role">
+        <Form.Item label={t("form.role")} name="role">
           <Select
             options={[
-              { label: "普通用户", value: "user" },
-              { label: "管理员", value: "admin" },
+              { label: t("user"), value: "user" },
+              { label: t("admin"), value: "admin" },
             ]}
           />
         </Form.Item>
-        <Form.Item label="时区" name="timeZone">
+        <Form.Item label={t("form.timeZone")} name="timeZone">
           <Select showSearch options={timeZoneOptions()} />
         </Form.Item>
         {error ? <div role="alert">{error}</div> : null}

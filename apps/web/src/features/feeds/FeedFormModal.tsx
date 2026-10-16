@@ -1,6 +1,7 @@
 import type { FeedEventScope, FeedToken, PublicUser } from "@timenote/contracts";
 import { Alert, Form, Input, Modal, Radio } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
 import { EventPicker } from "./EventPicker.js";
@@ -12,8 +13,8 @@ export interface FeedDraft {
   name: string;
 }
 
-/** 与 ICS 默认拼装一致：显示名优先，否则用户名 +「的纪念日」。 */
-function defaultCalendarName(user: PublicUser) {
+/** 旧订阅没有自定义名时，服务端仍用中文默认名，不因后来切换语言而改写。 */
+function storedCalendarName(user: PublicUser) {
   return `${user.displayName || user.username}的纪念日`;
 }
 
@@ -30,6 +31,7 @@ export function FeedFormModal({
   onSubmit: (draft: FeedDraft) => Promise<void>;
   user: PublicUser;
 }) {
+  const { t } = useTranslation(["feeds", "common"]);
   const [draft, setDraft] = useState<FeedDraft>(() =>
     feed
       ? {
@@ -38,13 +40,15 @@ export function FeedFormModal({
           eventScope: feed.eventScope,
           eventIds: feed.eventIds,
         }
-      : { name: "我的设备", calendarName: "", eventScope: "all", eventIds: [] }
+      : { name: t("form.defaultDeviceName"), calendarName: "", eventScope: "all", eventIds: [] }
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<unknown>();
   const [reloadKey, setReloadKey] = useState(0);
-  const title = feed ? "编辑订阅" : "创建订阅地址";
-  const previewName = draft.calendarName.trim() || defaultCalendarName(user);
+  const title = feed ? t("edit") : t("create");
+  const localizedDefault = t("form.defaultCalendarName", { name: user.displayName || user.username });
+  const previewName =
+    draft.calendarName.trim() || (feed ? (feed.calendarName ?? storedCalendarName(user)) : localizedDefault);
 
   async function submit() {
     setSaving(true);
@@ -52,8 +56,8 @@ export function FeedFormModal({
     try {
       await onSubmit({
         name: draft.name.trim(),
-        // 空串交给 API preprocess 成 null，表示未自定义 / 清空恢复默认。
-        calendarName: draft.calendarName.trim(),
+        // 新建时把当时语言的默认名写进订阅；编辑时留空仍表示清空自定义，不改已有默认名的语言。
+        calendarName: draft.calendarName.trim() || (feed ? "" : localizedDefault),
         eventScope: draft.eventScope,
         eventIds: draft.eventScope === "selected" ? draft.eventIds : [],
       });
@@ -70,7 +74,7 @@ export function FeedFormModal({
       open
       confirmLoading={saving}
       okButtonProps={{ disabled: !draft.name.trim() }}
-      okText={feed ? "保存" : "创建"}
+      okText={feed ? t("common:save") : t("common:create")}
       title={title}
       width={720}
       onCancel={onCancel}
@@ -78,35 +82,37 @@ export function FeedFormModal({
     >
       <Form layout="vertical">
         {error ? <Alert showIcon style={{ marginBottom: 16 }} title={errorMessage(error)} type="error" /> : null}
-        <Form.Item extra="仅网页列表备注，不会写入日历名称。" label="设备名称">
+        <Form.Item extra={t("form.deviceExtra")} label={t("form.deviceName")}>
           <Input
             maxLength={30}
-            placeholder="如 iPhone、工作电脑"
+            placeholder={t("form.devicePlaceholder")}
             value={draft.name}
-            aria-label="订阅名称"
+            aria-label={t("form.deviceAria")}
             onChange={event => setDraft(current => ({ ...current, name: event.target.value }))}
           />
         </Form.Item>
-        <Form.Item extra={`日历中将显示：${previewName}`} label="日历显示名">
+        <Form.Item extra={t("form.calendarExtra", { name: previewName })} label={t("form.calendarName")}>
           <Input
             maxLength={40}
-            placeholder={`默认：${defaultCalendarName(user)}`}
+            placeholder={t("form.calendarPlaceholder", {
+              name: feed ? (feed.calendarName ?? storedCalendarName(user)) : localizedDefault,
+            })}
             value={draft.calendarName}
-            aria-label="日历显示名"
+            aria-label={t("form.calendarAria")}
             onChange={event => setDraft(current => ({ ...current, calendarName: event.target.value }))}
           />
         </Form.Item>
-        <Form.Item label="事件范围">
+        <Form.Item label={t("form.eventScope")}>
           <Radio.Group
             value={draft.eventScope}
             onChange={event => setDraft(current => ({ ...current, eventScope: event.target.value as FeedEventScope }))}
           >
-            <Radio value="all">全部事件</Radio>
-            <Radio value="selected">仅所选事件</Radio>
+            <Radio value="all">{t("form.allEvents")}</Radio>
+            <Radio value="selected">{t("form.selectedEvents")}</Radio>
           </Radio.Group>
         </Form.Item>
         {draft.eventScope === "selected" ? (
-          <Form.Item label="选择事件">
+          <Form.Item label={t("form.pickEvents")}>
             <EventPicker
               reloadKey={reloadKey}
               value={draft.eventIds}

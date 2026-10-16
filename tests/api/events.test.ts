@@ -58,7 +58,10 @@ describe("事件", () => {
     expect(bad.status).toBe(400);
     expect(bad.json).toMatchObject({
       code: "INVALID_INPUT",
-      fields: { titleTemplate: expect.any(String), durationDays: "最后一天不能早于开始日期" },
+      fields: {
+        titleTemplate: { detail: "template_vars", params: { vars: "name,years" } },
+        durationDays: { detail: "duration_before_start" },
+      },
     });
 
     const lunar = await b.request(
@@ -67,14 +70,18 @@ describe("事件", () => {
       eventInput({ date: { calendar: "lunar", year: 2025, month: 2, day: 1, leapMonth: true } })
     );
     expect(lunar.status).toBe(400);
-    expect(lunar.json).toMatchObject({ fields: { "date.leapMonth": "农历 2025 年没有闰2月" } });
+    expect(lunar.json).toMatchObject({
+      fields: { "date.leapMonth": { detail: "no_leap_month", params: { year: 2025, month: 2 } } },
+    });
 
     const range = await b.request("POST", "/api/events", eventInput({ date: { calendar: "lunar", year: 1800 } }));
     expect(range.status).toBe(400);
-    expect(range.json).toMatchObject({ fields: { "date.year": expect.stringContaining("1900-2100") } });
+    expect(range.json).toMatchObject({
+      fields: { "date.year": { detail: "lunar_range", params: { min: 1900, max: 2100, year: 1800 } } },
+    });
 
     const plain = await b.request("POST", "/api/events", eventInput({ kind: "event", date: { year: null } }));
-    expect(plain.json).toMatchObject({ fields: { "date.year": "普通事件必须填写年份" } });
+    expect(plain.json).toMatchObject({ fields: { "date.year": { detail: "event_year_required" } } });
 
     const control = await b.request("POST", "/api/events", eventInput({ titlePrefix: "\u0007" }));
     expect(control.status).toBe(400);

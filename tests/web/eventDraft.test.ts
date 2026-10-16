@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  dayOptions,
+  formatLunarDateLabel,
+  lunarMonthOptions,
+} from "../../apps/web/src/features/events/dateFieldOptions.js";
 import { draftIssues, newDraft, withKind, withYear } from "../../apps/web/src/features/events/eventDraft.js";
 import { alarmText, rangeText } from "../../apps/web/src/features/events/occurrenceText.js";
+import { setLocale } from "../../apps/web/src/i18n/index.js";
 import { expandEvent } from "../../packages/calendar/src/index.js";
 import { eventInput } from "../fixtures.js";
 
@@ -29,6 +35,21 @@ describe("事件表单草稿", () => {
     expect(plain).toMatchObject({ titleTemplate: "{{name}}", titlePrefix: "" });
   });
 
+  it("英文界面把默认标题和农历月日换成英文，自定义标题保持不变", async () => {
+    await setLocale("en");
+    try {
+      expect(newDraft("birthday", tz).titleTemplate).toBe("{{name}}'s {{years}}th birthday");
+      expect(eventInput().titleTemplate).toBe("{{name}} {{years}} 岁生日");
+      expect(withYear(eventInput(), null).titleTemplate).toBe("{{name}}生日");
+      expect(lunarMonthOptions().find(option => option.value === 9)?.label).toBe("Mo9");
+      expect(dayOptions(true, 9).find(option => option.value === 4)?.label).toBe("4");
+      expect(formatLunarDateLabel(9, 4, false)).toBe("Mo9 4");
+      expect(formatLunarDateLabel(9, 4, true)).toBe("Mo9bis 4");
+    } finally {
+      await setLocale("zh-CN");
+    }
+  });
+
   it("表单校验与服务端同源：契约错误和农历日期错误都定位到字段", () => {
     expect(draftIssues(eventInput({ name: " " }))).toEqual({ name: "请填写名称" });
     expect(draftIssues(eventInput({ date: { month: 2, day: 30 } }))).toEqual({ "date.day": "该月没有这一天" });
@@ -50,7 +71,7 @@ describe("事件表单草稿", () => {
       tz,
       "2026-10-02"
     );
-    expect(rangeText(occurrence!)).toBe("2026年10月1日 周四 至 2026年10月7日 周三");
+    expect(rangeText(occurrence)).toBe("2026年10月1日 周四 至 2026年10月7日 周三");
     expect(alarmText("2026-02-15T01:00:00.000Z", tz)).toBe("2/15 09:00");
   });
 });

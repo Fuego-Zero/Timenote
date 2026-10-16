@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 
-import { buildFeed, CalendarRangeError, feedWindow, todayIn } from "@timenote/calendar";
+import { buildFeed, CalendarRangeError, feedWindow, LUNAR_MAX_YEAR, LUNAR_MIN_YEAR, todayIn } from "@timenote/calendar";
 import { BusinessError, type Config, hashToken, type OpenedRepository, type StoredFeedToken } from "@timenote/runtime";
 
 import { eventsForFeed } from "./feedScope.js";
@@ -44,7 +44,10 @@ export function renderFeedForToken(
     });
   } catch (error) {
     if (error instanceof CalendarRangeError) {
-      throw new BusinessError("CALENDAR_RANGE", { message: error.message });
+      throw new BusinessError("CALENDAR_RANGE", {
+        detail: "lunar_range",
+        params: { year: error.year, min: LUNAR_MIN_YEAR, max: LUNAR_MAX_YEAR },
+      });
     }
 
     throw error;

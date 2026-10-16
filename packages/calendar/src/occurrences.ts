@@ -1,5 +1,11 @@
 import { TZDate } from "@date-fns/tz";
-import { type EventInput, isYearlyEveryYear, maxFutureOccurrences, maxPastOccurrences } from "@timenote/contracts";
+import {
+  type EventInput,
+  issueDetail,
+  isYearlyEveryYear,
+  maxFutureOccurrences,
+  maxPastOccurrences,
+} from "@timenote/contracts";
 
 import { alarmInstant, type AlarmTime } from "./alarms.js";
 import { addDays, compareIsoDate, type IsoDate, isoDate } from "./dates.js";
@@ -187,7 +193,7 @@ function windowCycles(event: EventInput, window: YearWindow, today: IsoDate, tim
 export function expandEvent(event: EventInput, window: YearWindow, timeZone: string, today: IsoDate): Occurrence[] {
   if (event.kind === "event") {
     if (event.date.year === null) {
-      throw new Error("普通事件必须填写年份");
+      throw new Error(issueDetail("event_year_required"));
     }
 
     const single = yearlyOccurrence(event, event.date.year, timeZone);

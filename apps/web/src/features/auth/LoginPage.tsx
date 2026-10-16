@@ -1,8 +1,11 @@
 import type { PublicUser } from "@timenote/contracts";
 import { Alert, Button, Card, Flex, Form, Input, Layout, theme, Typography } from "antd";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { api, errorMessage } from "../../api/client.js";
+import { localeRegistry, resolveLocale, setLocale } from "../../i18n/index.js";
+import { RegisterChallenge } from "./RegisterChallenge.js";
 
 interface LoginValues {
   password: string;
@@ -27,12 +30,17 @@ export function LoginPage({
   publicRegisterEnabled: boolean;
   registerDefaultDisabled: boolean;
 }) {
+  const { t, i18n } = useTranslation(["auth", "common"]);
   const { token } = theme.useToken();
   const [mode, setMode] = useState<Mode>("login");
   const [error, setError] = useState<string>();
   const [submitting, setSubmitting] = useState(false);
   const [loginForm] = Form.useForm<LoginValues>();
   const [registerForm] = Form.useForm<RegisterValues>();
+  const [altchaPayload, setAltchaPayload] = useState<string>();
+  const onAltchaPayload = useCallback((payload: string | undefined) => {
+    setAltchaPayload(payload);
+  }, []);
 
   async function submitLogin(values: LoginValues) {
     setSubmitting(true);
@@ -55,7 +63,9 @@ export function LoginPage({
         username: values.username,
         password: values.password,
         displayName: values.displayName,
+        altcha: altchaPayload,
       });
+      setAltchaPayload(undefined);
       setMode("registerSuccess");
       registerForm.resetFields();
     } catch (caught) {
@@ -67,6 +77,7 @@ export function LoginPage({
 
   function goLogin() {
     setError(undefined);
+    setAltchaPayload(undefined);
     setMode("login");
   }
 
@@ -75,34 +86,79 @@ export function LoginPage({
     setMode("register");
   }
 
+  const currentLocale = resolveLocale(i18n.language).code;
+
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", position: "relative" }}>
+      <nav
+        style={{
+          position: "absolute",
+          top: 16,
+          right: 24,
+          zIndex: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          fontSize: token.fontSize,
+        }}
+        aria-label={t("common:locale.label")}
+      >
+        {localeRegistry.map((entry, index) => {
+          const label = t(`common:${entry.labelKey}`);
+          const current = entry.code === currentLocale;
+          return (
+            <span key={entry.code} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {index > 0 ? <span style={{ color: token.colorTextQuaternary }}>|</span> : null}
+              {current ? (
+                <span style={{ fontWeight: 600 }} aria-current="true">
+                  {label}
+                </span>
+              ) : (
+                <button
+                  style={{
+                    padding: 0,
+                    border: 0,
+                    background: "none",
+                    color: token.colorPrimary,
+                    font: "inherit",
+                    cursor: "pointer",
+                  }}
+                  type="button"
+                  onClick={() => {
+                    void setLocale(entry.code);
+                  }}
+                >
+                  {label}
+                </button>
+              )}
+            </span>
+          );
+        })}
+      </nav>
       <Layout.Content>
         <Flex align="center" justify="center" style={{ minHeight: "100vh", padding: token.padding }}>
           <Card style={{ maxWidth: 380, width: "100%" }}>
             {mode === "registerSuccess" ? (
               <>
-                <Typography.Title level={3}>{registerDefaultDisabled ? "注册申请已提交" : "注册成功"}</Typography.Title>
+                <Typography.Title level={3}>
+                  {registerDefaultDisabled ? t("register.pendingTitle") : t("register.successTitle")}
+                </Typography.Title>
                 <Typography.Paragraph>
-                  {registerDefaultDisabled
-                    ? "账号已创建，需管理员启用后才能登录。启用前无法使用本服务。"
-                    : "账号已创建，现在可以登录。"}
+                  {registerDefaultDisabled ? t("register.pendingBody") : t("register.successBody")}
                 </Typography.Paragraph>
                 {registerDefaultDisabled ? (
-                  <Typography.Paragraph type="secondary">请联系站点管理员在「账号管理」中启用。</Typography.Paragraph>
+                  <Typography.Paragraph type="secondary">{t("register.pendingHint")}</Typography.Paragraph>
                 ) : null}
                 <Button block type="primary" onClick={goLogin}>
-                  返回登录
+                  {t("register.back")}
                 </Button>
               </>
             ) : null}
 
             {mode === "login" ? (
               <>
-                <Typography.Title level={3}>岁时记 Timenote</Typography.Title>
-                <Typography.Paragraph type="secondary">
-                  欢迎使用岁时记。记录生日与纪念日，并订阅到你的日历。
-                </Typography.Paragraph>
+                <Typography.Title level={3}>{t("common:brand")}</Typography.Title>
+                <Typography.Paragraph type="secondary">{t("login.welcome")}</Typography.Paragraph>
                 {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
                 <Form<LoginValues>
                   form={loginForm}
@@ -110,19 +166,27 @@ export function LoginPage({
                   requiredMark={false}
                   onFinish={values => void submitLogin(values)}
                 >
-                  <Form.Item label="用户名" name="username" rules={[{ required: true, message: "请输入用户名" }]}>
+                  <Form.Item
+                    label={t("login.username")}
+                    name="username"
+                    rules={[{ required: true, message: t("login.usernameRequired") }]}
+                  >
                     <Input autoCapitalize="none" autoComplete="username" />
                   </Form.Item>
-                  <Form.Item label="密码" name="password" rules={[{ required: true, message: "请输入密码" }]}>
+                  <Form.Item
+                    label={t("login.password")}
+                    name="password"
+                    rules={[{ required: true, message: t("login.passwordRequired") }]}
+                  >
                     <Input.Password autoComplete="current-password" />
                   </Form.Item>
                   <Button block htmlType="submit" loading={submitting} type="primary">
-                    登录
+                    {t("login.submit")}
                   </Button>
                 </Form>
                 {publicRegisterEnabled ? (
                   <Button block style={{ marginTop: 12 }} type="link" onClick={goRegister}>
-                    注册账号
+                    {t("login.register")}
                   </Button>
                 ) : null}
               </>
@@ -130,11 +194,9 @@ export function LoginPage({
 
             {mode === "register" ? (
               <>
-                <Typography.Title level={3}>注册账号</Typography.Title>
+                <Typography.Title level={3}>{t("register.title")}</Typography.Title>
                 <Typography.Paragraph type="secondary">
-                  {registerDefaultDisabled
-                    ? "提交后账号默认停用，需管理员启用后才能登录。"
-                    : "提交后即可使用该账号登录。"}
+                  {registerDefaultDisabled ? t("register.pendingForm") : t("register.readyForm")}
                 </Typography.Paragraph>
                 {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
                 <Form<RegisterValues>
@@ -144,53 +206,54 @@ export function LoginPage({
                   onFinish={values => void submitRegister(values)}
                 >
                   <Form.Item
-                    label="用户名"
+                    label={t("register.username")}
                     name="username"
                     rules={[
-                      { required: true, message: "请输入用户名" },
-                      { pattern: /^[a-z0-9][a-z0-9_.-]{2,31}$/, message: "3-32 位小写字母、数字或 _.-" },
+                      { required: true, message: t("register.usernameRequired") },
+                      { pattern: /^[a-z0-9][a-z0-9_.-]{2,31}$/, message: t("register.usernamePattern") },
                     ]}
                   >
                     <Input autoCapitalize="none" autoComplete="username" />
                   </Form.Item>
-                  <Form.Item label="显示名称" name="displayName">
+                  <Form.Item label={t("register.displayName")} name="displayName">
                     <Input maxLength={40} />
                   </Form.Item>
                   <Form.Item
-                    label="密码"
+                    label={t("register.password")}
                     name="password"
                     rules={[
-                      { required: true, message: "请输入密码" },
-                      { min: 8, max: 128, message: "密码长度为 8-128 位" },
+                      { required: true, message: t("register.passwordRequired") },
+                      { min: 8, max: 128, message: t("register.passwordLength") },
                     ]}
                   >
                     <Input.Password autoComplete="new-password" />
                   </Form.Item>
                   <Form.Item
                     dependencies={["password"]}
-                    label="确认密码"
+                    label={t("register.confirm")}
                     name="confirmPassword"
                     rules={[
-                      { required: true, message: "请再次输入密码" },
+                      { required: true, message: t("register.confirmRequired") },
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           if (!value || getFieldValue("password") === value) {
                             return Promise.resolve();
                           }
 
-                          return Promise.reject(new Error("两次输入的密码不一致"));
+                          return Promise.reject(new Error(t("register.confirmMismatch")));
                         },
                       }),
                     ]}
                   >
                     <Input.Password autoComplete="new-password" />
                   </Form.Item>
-                  <Button block htmlType="submit" loading={submitting} type="primary">
-                    提交注册
+                  <RegisterChallenge language={resolveLocale(i18n.language).code} onPayload={onAltchaPayload} />
+                  <Button block disabled={!altchaPayload} htmlType="submit" loading={submitting} type="primary">
+                    {t("register.submit")}
                   </Button>
                 </Form>
                 <Button block style={{ marginTop: 12 }} type="link" onClick={goLogin}>
-                  返回登录
+                  {t("register.back")}
                 </Button>
               </>
             ) : null}

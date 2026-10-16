@@ -4,7 +4,7 @@ import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
 import Fastify from "fastify";
 
-import { safeMessages, toApiError } from "./apiErrors.js";
+import { toApiError } from "./apiErrors.js";
 import type { Config } from "./configTypes.js";
 import { incomingTraceId } from "./traceTypes.js";
 import { writeSpan } from "./writeSpan.js";
@@ -99,7 +99,7 @@ export async function baseServer(config: Config) {
 
   app.get("/health", () => ({ status: "ok" }));
   app.setNotFoundHandler((req, reply) => {
-    void reply.code(404).send({ code: "NOT_FOUND", message: safeMessages.NOT_FOUND, requestId: req.traceId });
+    void reply.code(404).send({ code: "NOT_FOUND", requestId: req.traceId });
   });
   app.setErrorHandler((error, req, reply) => {
     const { status, body } = toApiError(error);

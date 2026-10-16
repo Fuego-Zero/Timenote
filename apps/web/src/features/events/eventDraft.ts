@@ -11,9 +11,49 @@ import {
   type Recurrence,
 } from "@timenote/contracts";
 
+import { i18n, localeRegistry } from "../../i18n/index.js";
+import { translateDetail } from "../../i18n/translateMessage.js";
 import type { EventTagTone } from "./EventTag.js";
 
-export const kindLabels: Record<EventKind, string> = { birthday: "生日", anniversary: "纪念日", event: "普通事件" };
+const templateKeys = [
+  "birthdayYears",
+  "birthday",
+  "anniversaryYears",
+  "anniversary",
+  "event",
+  "everyNYears",
+  "weekly",
+  "monthly",
+  "other",
+  "milestone",
+] as const;
+
+function templateText(key: (typeof templateKeys)[number], lng?: string) {
+  return i18n.t(`templates.${key}`, { ns: "events", lng });
+}
+
+function knownDefaultTemplates() {
+  const templates = new Set<string>([
+    ...Object.values(defaultTitleTemplates).flatMap(pair => [pair.withYears, pair.withoutYears]),
+    ...Object.values(defaultRecurrenceTemplates),
+    defaultMilestoneTemplate,
+  ]);
+  for (const locale of localeRegistry) {
+    for (const key of templateKeys) {
+      templates.add(templateText(key, locale.code));
+    }
+  }
+
+  return templates;
+}
+
+export function kindLabels(): Record<EventKind, string> {
+  return {
+    birthday: i18n.t("kind.birthday", { ns: "events" }),
+    anniversary: i18n.t("kind.anniversary", { ns: "events" }),
+    event: i18n.t("kind.event", { ns: "events" }),
+  };
+}
 
 export const kindTagTones: Record<EventKind, EventTagTone> = {
   birthday: "birthday",
@@ -23,12 +63,24 @@ export const kindTagTones: Record<EventKind, EventTagTone> = {
 
 const defaultPrefixes: Record<EventKind, string> = { birthday: "🎂", anniversary: "💞", event: "" };
 
+function defaultKindTemplate(kind: EventKind) {
+  if (kind === "birthday") {
+    return templateText("birthdayYears");
+  }
+
+  if (kind === "anniversary") {
+    return templateText("anniversaryYears");
+  }
+
+  return templateText("event");
+}
+
 export function newDraft(kind: EventKind, timeZone: string, now = new Date()): EventInput {
   const [year, month, day] = todayIn(now, timeZone).split("-").map(Number);
   return {
     kind,
     name: "",
-    titleTemplate: defaultTitleTemplates[kind].withYears,
+    titleTemplate: defaultKindTemplate(kind),
     titlePrefix: defaultPrefixes[kind],
     note: "",
     date: { calendar: "gregorian", year, month, day, leapMonth: false },
@@ -38,7 +90,7 @@ export function newDraft(kind: EventKind, timeZone: string, now = new Date()): E
     recurrence: { unit: "year", interval: 1, end: { type: "never" } },
     gregorianMissingDay: "lastDay",
     milestones: [],
-    milestoneTemplate: defaultMilestoneTemplate,
+    milestoneTemplate: templateText("milestone"),
   };
 }
 
@@ -77,37 +129,59 @@ export function draftFromEvent(event: CalendarEvent): EventInput {
 
 export const yearlyRecurrence: Recurrence = { unit: "year", interval: 1, end: { type: "never" } };
 
-const recurrenceTemplates: readonly string[] = Object.values(defaultRecurrenceTemplates);
-
 function isDefaultTemplate(template: string) {
-  return (
-    recurrenceTemplates.includes(template) ||
-    Object.values(defaultTitleTemplates).some(pair => pair.withYears === template || pair.withoutYears === template)
-  );
+  return knownDefaultTemplates().has(template);
+}
+
+/** 已保存的默认模板属于哪种界面语言；自定义模板返回 undefined。 */
+function templateLocale(template: string) {
+  for (const locale of localeRegistry) {
+    for (const key of templateKeys) {
+      if (templateText(key, locale.code) === template) {
+        return locale.code;
+      }
+    }
+  }
+
+  return undefined;
 }
 
 /** 默认标题：纪念日非「每 1 年」且年份已知时按周期选 {{count}} 模板，其余沿用类型默认。 */
-function defaultTemplate(draft: Pick<EventInput, "date" | "kind" | "recurrence">) {
+function defaultTemplate(draft: Pick<EventInput, "date" | "kind" | "recurrence">, lng?: string) {
   const yearKnown = draft.date.year !== null;
   const { unit, interval } = draft.recurrence;
   if (draft.kind === "anniversary" && yearKnown && !isYearlyEveryYear(draft.recurrence)) {
     if (unit === "year") {
-      return defaultRecurrenceTemplates.everyNYears;
+      return templateText("everyNYears", lng);
     }
 
     if (interval === 1 && unit === "week") {
-      return defaultRecurrenceTemplates.weekly;
+      return templateText("weekly", lng);
     }
 
-    return interval === 1 && unit === "month" ? defaultRecurrenceTemplates.monthly : defaultRecurrenceTemplates.other;
+    return interval === 1 && unit === "month" ? templateText("monthly", lng) : templateText("other", lng);
   }
 
-  return yearKnown ? defaultTitleTemplates[draft.kind].withYears : defaultTitleTemplates[draft.kind].withoutYears;
+  const withYears = yearKnown;
+  if (draft.kind === "birthday") {
+    return templateText(withYears ? "birthdayYears" : "birthday", lng);
+  }
+
+  if (draft.kind === "anniversary") {
+    return templateText(withYears ? "anniversaryYears" : "anniversary", lng);
+  }
+
+  return templateText("event", lng);
 }
 
-/** 只在模板仍是默认值时随规则切换，自定义模板保持不变。 */
+/** 只在模板仍是默认值时随规则切换，并留在该模板原来的语言里。 */
 function retitle(draft: EventInput): EventInput {
-  return isDefaultTemplate(draft.titleTemplate) ? { ...draft, titleTemplate: defaultTemplate(draft) } : draft;
+  if (!isDefaultTemplate(draft.titleTemplate)) {
+    return draft;
+  }
+
+  // 已保存的默认句留在原来的语言里，不跟当前界面语言走。
+  return { ...draft, titleTemplate: defaultTemplate(draft, templateLocale(draft.titleTemplate)) };
 }
 
 /**
@@ -159,15 +233,20 @@ export function draftIssues(draft: EventInput): Record<string, string> {
   if (!parsed.success) {
     const fields: Record<string, string> = {};
     for (const issue of parsed.error.issues) {
-      fields[issue.path.join(".")] ??= issue.message;
+      fields[issue.path.join(".")] ??= translateDetail(issue.message);
     }
 
     return fields;
   }
 
   try {
-    return eventDateIssues(parsed.data);
+    return Object.fromEntries(
+      Object.entries(eventDateIssues(parsed.data)).map(([path, message]) => [path, translateDetail(message)])
+    );
   } catch (error) {
-    return { "date.year": error instanceof Error ? error.message : "日期超出支持范围" };
+    return {
+      "date.year":
+        error instanceof Error ? translateDetail(error.message) : i18n.t("draft.dateOutOfRange", { ns: "events" }),
+    };
   }
 }

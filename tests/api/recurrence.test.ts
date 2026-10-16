@@ -106,10 +106,7 @@ describe("重复规则与订阅", () => {
     expect(kept.status).toBe(201);
     const over = await b.request<{ code: string; message: string }>("POST", "/api/events", { ...extra, name: "再加" });
     expect(over.status).toBe(422);
-    expect(over.json).toMatchObject({
-      code: "RECURRENCE_LIMIT",
-      message: "重复和里程碑总量超出上限，请减少按天/周/月重复的事件或里程碑",
-    });
+    expect(over.json).toMatchObject({ code: "RECURRENCE_LIMIT" });
 
     // 修改同样检查：把这条改成按天重复（+72）会超出上限，返回 422 且库里保持原样。
     const before = h.repo.events.getEvent(ownerId, kept.json.event.id);
@@ -164,11 +161,11 @@ describe("重复规则与订阅", () => {
     const again = await b.request<BackupFile>("GET", "/api/backup");
     expect(again.json.events).toEqual(exported.json.events);
 
-    const v1 = await b.request<{ code: string; fields: Record<string, string> }>("POST", "/api/backup", {
+    const v1 = await b.request<{ code: string; fields: Record<string, { detail: string }> }>("POST", "/api/backup", {
       ...exported.json,
       version: 1,
     });
     expect(v1.status).toBe(400);
-    expect(Object.values(v1.json.fields ?? {})).toContain("不再支持 v1 备份文件，请用升级前的版本重新导出");
+    expect(Object.values(v1.json.fields ?? {}).map(field => field.detail)).toContain("backup_v1");
   });
 });

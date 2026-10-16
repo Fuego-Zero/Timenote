@@ -8,7 +8,6 @@ import {
   isStrongAdminPassword,
   type OpenedRepository,
   type StoredUser,
-  strongAdminPasswordMessage,
 } from "@timenote/runtime";
 
 import { recordLogin } from "./authService.js";
@@ -26,7 +25,7 @@ export async function createInitialAdmin(
 ): Promise<StoredUser> {
   if (config.env === "production" && !isStrongAdminPassword(input.password)) {
     throw new BusinessError("INVALID_INPUT", {
-      fields: { password: strongAdminPasswordMessage() },
+      fields: { password: "weak_admin_password" },
     });
   }
 
@@ -36,7 +35,7 @@ export async function createInitialAdmin(
   try {
     return repo.transaction(() => {
       if (repo.users.listUsers().length) {
-        throw new BusinessError("FORBIDDEN", { message: "已有用户，无法再次引导创建管理员" });
+        throw new BusinessError("FORBIDDEN", { detail: "setup_closed" });
       }
 
       const user: StoredUser = {
@@ -58,7 +57,7 @@ export async function createInitialAdmin(
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (/UNIQUE|unique/i.test(message)) {
-      throw new BusinessError("FORBIDDEN", { message: "已有用户，无法再次引导创建管理员" });
+      throw new BusinessError("FORBIDDEN", { detail: "setup_closed" });
     }
 
     throw error;

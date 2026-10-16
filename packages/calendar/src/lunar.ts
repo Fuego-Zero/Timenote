@@ -1,4 +1,4 @@
-import type { EventInput } from "@timenote/contracts";
+import { type EventInput, issueDetail } from "@timenote/contracts";
 import { Lunar, LunarMonth, LunarYear, Solar } from "lunar-typescript";
 
 import { type IsoDate, parseIsoDate } from "./dates.js";
@@ -8,8 +8,8 @@ export const LUNAR_MIN_YEAR = 1900;
 export const LUNAR_MAX_YEAR = 2100;
 
 export class CalendarRangeError extends Error {
-  constructor(year: number) {
-    super(`农历仅支持 ${LUNAR_MIN_YEAR}-${LUNAR_MAX_YEAR} 年，${year} 年超出范围`);
+  constructor(public year: number) {
+    super(issueDetail("lunar_range", { min: LUNAR_MIN_YEAR, max: LUNAR_MAX_YEAR, year }));
     this.name = "CalendarRangeError";
   }
 }
@@ -77,12 +77,12 @@ export function lunarDateIssue(
   }
 
   if (date.leapMonth && leapMonthOf(date.year) !== date.month) {
-    return { field: "leapMonth", message: `农历 ${date.year} 年没有闰${date.month}月` };
+    return { field: "leapMonth", message: issueDetail("no_leap_month", { year: date.year, month: date.month }) };
   }
 
   const days = monthLength(date.year, date.month, date.leapMonth);
   if (days === undefined || date.day > days) {
-    return { field: "day", message: `该农历月只有 ${days ?? 0} 天` };
+    return { field: "day", message: issueDetail("lunar_month_days", { n: days ?? 0 }) };
   }
 
   return null;

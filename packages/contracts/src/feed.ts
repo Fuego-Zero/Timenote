@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { issueDetail } from "./error.js";
+
 export const feedEventScopes = ["all", "selected"] as const;
 export type FeedEventScope = (typeof feedEventScopes)[number];
 
@@ -35,7 +37,7 @@ export const feedTokenSchema = z.object({
 export type FeedToken = z.infer<typeof feedTokenSchema>;
 
 export const createFeedTokenInputSchema = z.object({
-  name: z.string().trim().min(1, "请填写名称").max(30),
+  name: z.string().trim().min(1, issueDetail("name_required")).max(30),
   /** 可选；空串/省略均不写入，渲染走默认「显示名|用户名的纪念日」。 */
   calendarName: calendarNameInputSchema,
   eventScope: z.enum(feedEventScopes).default("all"),
@@ -44,7 +46,7 @@ export const createFeedTokenInputSchema = z.object({
 export type CreateFeedTokenInput = z.infer<typeof createFeedTokenInputSchema>;
 
 export const updateFeedTokenInputSchema = z.object({
-  name: z.string().trim().min(1, "请填写名称").max(30).optional(),
+  name: z.string().trim().min(1, issueDetail("name_required")).max(30).optional(),
   /**
    * 省略：保持原值；null（含空串经 preprocess）：清空自定义，恢复默认拼装；
    * 非空字符串：写入自定义日历显示名。

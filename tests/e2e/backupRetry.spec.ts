@@ -25,7 +25,7 @@ test("导入失败时确认框保持打开，可直接重试", async ({ page }) 
       await route.fulfill({
         status: 500,
         contentType: "application/json",
-        body: JSON.stringify({ code: "INTERNAL_ERROR", message: "服务暂时不可用" }),
+        body: JSON.stringify({ code: "INTERNAL_ERROR" }),
       });
       return;
     }

@@ -22,7 +22,8 @@ async function postRaw(url: string, payload: string) {
 it.each(["/api/auth/login", "/api/setup/admin", "/api/events"])("%s 收到格式错误的 JSON 返回 400", async url => {
   const res = await postRaw(url, '{"username":"admin",');
   expect(res.statusCode).toBe(400);
-  expect(res.json()).toMatchObject({ code: "INVALID_INPUT", message: "请求无效" });
+  expect(res.json()).toMatchObject({ code: "INVALID_INPUT" });
+  expect(res.json()).not.toHaveProperty("message");
 });
 
 it("格式正确的 JSON 仍按原流程处理", async () => {

@@ -30,7 +30,7 @@ export async function createUser(repo: OpenedRepository, input: CreateUserInput,
   };
   repo.transaction(() => {
     if (repo.users.getUserByUsername(user.username)) {
-      throw new BusinessError("USERNAME_TAKEN", { fields: { username: "用户名已被使用" } });
+      throw new BusinessError("USERNAME_TAKEN", { fields: { username: "username_taken" } });
     }
 
     repo.users.putUser(user);
@@ -42,7 +42,7 @@ export function updateUser(repo: OpenedRepository, actor: StoredUser, id: string
   return repo.transaction(() => {
     const target = existingUser(repo, id);
     if (target.id === actor.id && (input.disabled === true || input.role === "user")) {
-      throw new BusinessError("FORBIDDEN", { message: "不能停用自己或取消自己的管理员身份" });
+      throw new BusinessError("FORBIDDEN", { detail: "cannot_change_self" });
     }
 
     const next: StoredUser = {
@@ -77,7 +77,7 @@ export function deleteUser(repo: OpenedRepository, actor: StoredUser, id: string
   repo.transaction(() => {
     const target = existingUser(repo, id);
     if (target.id === actor.id) {
-      throw new BusinessError("FORBIDDEN", { message: "不能删除当前登录的账号" });
+      throw new BusinessError("FORBIDDEN", { detail: "cannot_delete_self" });
     }
 
     assertKeepsAdmin(repo, target, null);

@@ -8,6 +8,7 @@ import { serveBuiltAsset } from "./assets.js";
 import { serveIndexHtml } from "./html.js";
 import { proxyToApi } from "./proxy.js";
 import type { WebLogging } from "./types.js";
+import { manifestForLanguage, manifestLanguage } from "./webManifest.js";
 
 export async function dispatchWebRequest(
   req: IncomingMessage,
@@ -29,6 +30,13 @@ export async function dispatchWebRequest(
   }
 
   const { pathname } = new URL(req.url ?? "/", "http://127.0.0.1");
+  if (pathname === "/site.webmanifest") {
+    const body = manifestForLanguage(manifestLanguage(req.url ?? "/", req.headers["accept-language"]));
+    res.writeHead(200, { "Content-Type": "application/manifest+json", "Cache-Control": "no-cache" });
+    res.end(JSON.stringify(body));
+    return;
+  }
+
   if (pathname === "/" || pathname === "/index.html") {
     await serveIndexHtml(req, res, options.root, options.built, options.port, options.vite);
     return;
@@ -57,7 +65,7 @@ async function handleApi(req: IncomingMessage, res: ServerResponse, apiUrl: stri
     }
 
     if (!res.writableEnded) {
-      res.end(JSON.stringify({ code: "INTERNAL_ERROR", message: "请求失败", requestId: traceId }));
+      res.end(JSON.stringify({ code: "INTERNAL_ERROR", requestId: traceId }));
     }
   }
 }

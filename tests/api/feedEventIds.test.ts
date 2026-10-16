@@ -57,13 +57,13 @@ describe("订阅保存时严格校验 eventIds（任务 4）", () => {
       eventIds: [...ids, deleted],
     });
     expect(withDeleted.status).toBe(400);
-    expect(withDeleted.json).toMatchObject({ code: "INVALID_INPUT", message: "部分事件已被删除，请刷新后重选" });
+    expect(withDeleted.json).toMatchObject({ code: "INVALID_INPUT", detail: "events_deleted" });
 
     const patched = await b.request("PATCH", `/api/feed-tokens/${created.json.feed.id}`, {
       eventIds: [ids[0], deleted],
     });
     expect(patched.status).toBe(400);
-    expect(patched.json).toMatchObject({ message: "部分事件已被删除，请刷新后重选" });
+    expect(patched.json).toMatchObject({ detail: "events_deleted" });
 
     await b.request("POST", "/api/admin/users", {
       username: "bob",

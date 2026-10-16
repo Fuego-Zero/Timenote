@@ -32,7 +32,7 @@ export function assertOwnedEventIds(repo: OpenedRepository, ownerId: string, eve
   }
 
   if (repo.events.listEventsByIds(ownerId, unique).length !== unique.length) {
-    throw new BusinessError("INVALID_INPUT", { message: "部分事件已被删除，请刷新后重选" });
+    throw new BusinessError("INVALID_INPUT", { detail: "events_deleted" });
   }
 }
 

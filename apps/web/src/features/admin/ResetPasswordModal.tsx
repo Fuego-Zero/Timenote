@@ -1,6 +1,7 @@
 import type { PublicUser } from "@timenote/contracts";
 import { Input, Modal } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export function ResetPasswordModal({
   user,
@@ -11,15 +12,16 @@ export function ResetPasswordModal({
   onCancel: () => void;
   onReset: (password: string) => Promise<void>;
 }) {
+  const { t } = useTranslation("admin");
   const [newPassword, setNewPassword] = useState("");
 
   return (
     <Modal
       destroyOnHidden
       okButtonProps={{ disabled: newPassword.length < 8 }}
-      okText="重置"
+      okText={t("reset.ok")}
       open={Boolean(user)}
-      title={`重置 ${user?.username ?? ""} 的密码`}
+      title={t("reset.title", { name: user?.username ?? "" })}
       onCancel={() => {
         setNewPassword("");
         onCancel();
@@ -32,9 +34,9 @@ export function ResetPasswordModal({
     >
       <Input.Password
         autoComplete="new-password"
-        placeholder="至少 8 位"
+        placeholder={t("reset.placeholder")}
         value={newPassword}
-        aria-label="新密码"
+        aria-label={t("reset.aria")}
         onChange={event => setNewPassword(event.target.value)}
       />
     </Modal>

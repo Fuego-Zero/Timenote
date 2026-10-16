@@ -1,14 +1,15 @@
-import { apiErrorSchema, type ErrorCode } from "@timenote/contracts";
+import { apiErrorSchema, type ErrorCode, type FieldError } from "@timenote/contracts";
 
-/** API 失败统一转成带 code 与字段定位的错误，界面据此提示或标红字段。 */
+/** API 失败统一转成带 code、detail 与字段定位的错误，界面据此生成文案。 */
 export class ApiRequestError extends Error {
   constructor(
     public status: number,
     public code: ErrorCode,
-    message: string,
-    public fields: Record<string, string> = {}
+    public detail?: string,
+    public params?: Record<string, string | number>,
+    public fields: Record<string, FieldError> = {}
   ) {
-    super(message);
+    super(detail ?? code);
     this.name = "ApiRequestError";
   }
 }
@@ -16,8 +17,14 @@ export class ApiRequestError extends Error {
 export async function responseError(response: Response) {
   const parsed = apiErrorSchema.safeParse(await response.json().catch(() => undefined));
   if (parsed.success) {
-    return new ApiRequestError(response.status, parsed.data.code, parsed.data.message, parsed.data.fields);
+    return new ApiRequestError(
+      response.status,
+      parsed.data.code,
+      parsed.data.detail,
+      parsed.data.params,
+      parsed.data.fields
+    );
   }
 
-  return new ApiRequestError(response.status, "INTERNAL_ERROR", "服务暂时不可用");
+  return new ApiRequestError(response.status, "INTERNAL_ERROR");
 }

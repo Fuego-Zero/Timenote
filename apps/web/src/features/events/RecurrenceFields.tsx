@@ -12,6 +12,7 @@ import {
 import { Checkbox, DatePicker, Form, Input, InputNumber, Radio, Select, Space } from "antd";
 import dayjs from "dayjs";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { withRecurrence } from "./eventDraft.js";
 import { fieldStatus } from "./fieldStatus.js";
@@ -40,14 +41,6 @@ function parseDays(values: string[]) {
   return values.map(Number).filter(value => Number.isInteger(value) && value >= 1 && value <= maxMilestoneDays);
 }
 
-function yearOnly(date: EventInput["date"]) {
-  if (date.calendar === "lunar") {
-    return "农历日期只能按年重复";
-  }
-
-  return date.year === null ? "年份未知时只能每年重复" : undefined;
-}
-
 /** 纪念日的重复规则、结束条件与里程碑；只对纪念日显示。农历或年份未知时只能按年。 */
 export function RecurrenceFields({
   draft,
@@ -58,9 +51,16 @@ export function RecurrenceFields({
   errors: Record<string, string>;
   onChange: (draft: EventInput) => void;
 }) {
+  const { t } = useTranslation("events");
   const { recurrence, date } = draft;
   const [custom, setCustom] = useState(() => presetOf(recurrence) === "custom");
-  const yearOnlyReason = yearOnly(date);
+  let yearOnlyReason: string | undefined;
+  if (date.calendar === "lunar") {
+    yearOnlyReason = t("recurrence.lunarYearOnly");
+  } else if (date.year === null) {
+    yearOnlyReason = t("recurrence.yearUnknownOnly");
+  }
+
   const preset = custom ? "custom" : presetOf(recurrence);
   const setRecurrence = (patch: Partial<Recurrence>) => onChange(withRecurrence(draft, { ...recurrence, ...patch }));
   const start = date.calendar === "gregorian" && date.year !== null ? isoDate(date.year, date.month, date.day) : "";
@@ -69,24 +69,25 @@ export function RecurrenceFields({
   const customDays = draft.milestones.filter(days => !milestonePresets.includes(days));
   const setMilestones = (milestones: number[]) =>
     onChange({ ...draft, milestones: [...new Set(milestones)].sort((left, right) => left - right) });
+  const unitLabels = recurrenceUnitLabels();
 
   return (
     <>
       <Form.Item
         extra={yearOnlyReason}
-        label="重复"
+        label={t("recurrence.label")}
         {...fieldStatus(errors, "recurrence", "recurrence.unit", "recurrence.interval")}
       >
         <Space orientation="vertical" style={{ width: "100%" }}>
           <Select<Preset>
             options={[
-              { label: "每年", value: "yearly" },
-              { label: "每月", value: "monthly", disabled: Boolean(yearOnlyReason) },
-              { label: "每周", value: "weekly", disabled: Boolean(yearOnlyReason) },
-              { label: "自定义", value: "custom", disabled: date.year === null },
+              { label: t("recurrence.yearly"), value: "yearly" },
+              { label: t("recurrence.monthly"), value: "monthly", disabled: Boolean(yearOnlyReason) },
+              { label: t("recurrence.weekly"), value: "weekly", disabled: Boolean(yearOnlyReason) },
+              { label: t("recurrence.custom"), value: "custom", disabled: date.year === null },
             ]}
             value={preset}
-            aria-label="重复"
+            aria-label={t("recurrence.aria")}
             onChange={value => {
               setCustom(value === "custom");
               if (value !== "custom") {
@@ -100,20 +101,20 @@ export function RecurrenceFields({
                 max={maxInterval[recurrence.unit]}
                 min={1}
                 precision={0}
-                prefix="每"
+                prefix={t("recurrence.everyPrefix")}
                 value={recurrence.interval}
-                aria-label="间隔"
+                aria-label={t("recurrence.intervalAria")}
                 onChange={value => setRecurrence({ interval: value ?? 1 })}
               />
               <Select<RecurrenceUnit>
                 options={recurrenceUnits.map(unit => ({
-                  label: recurrenceUnitLabels[unit],
+                  label: unitLabels[unit],
                   value: unit,
                   disabled: unit !== "year" && Boolean(yearOnlyReason),
                 }))}
                 style={{ minWidth: 80 }}
                 value={recurrence.unit}
-                aria-label="间隔单位"
+                aria-label={t("recurrence.unitAria")}
                 onChange={unit => setRecurrence({ unit, interval: Math.min(recurrence.interval, maxInterval[unit]) })}
               />
             </Space.Compact>
@@ -121,29 +122,29 @@ export function RecurrenceFields({
         </Space>
       </Form.Item>
       {showMissingDay ? (
-        <Form.Item label="当月没有这一天" {...fieldStatus(errors, "gregorianMissingDay")}>
+        <Form.Item label={t("recurrence.missingDay")} {...fieldStatus(errors, "gregorianMissingDay")}>
           <Select
             options={[
-              { label: "改在当月最后一天", value: "lastDay" },
-              { label: "跳过这一次", value: "skip" },
+              { label: t("recurrence.useMonthLast"), value: "lastDay" },
+              { label: t("recurrence.skipOnce"), value: "skip" },
             ]}
             value={draft.gregorianMissingDay}
-            aria-label="当月没有这一天"
+            aria-label={t("recurrence.missingDayAria")}
             onChange={gregorianMissingDay => onChange({ ...draft, gregorianMissingDay })}
           />
         </Form.Item>
       ) : null}
       <Form.Item
-        label="结束"
+        label={t("recurrence.end")}
         {...fieldStatus(errors, "recurrence.end", "recurrence.end.count", "recurrence.end.until")}
       >
         <Space orientation="vertical">
           <Radio.Group
             disabled={date.year === null}
             options={[
-              { label: "永不", value: "never" },
-              { label: "共 N 个周期", value: "count" },
-              { label: "截止到", value: "until" },
+              { label: t("recurrence.never"), value: "never" },
+              { label: t("recurrence.countCycles"), value: "count" },
+              { label: t("recurrence.until"), value: "until" },
             ]}
             value={recurrence.end.type}
             onChange={event => {
@@ -162,10 +163,10 @@ export function RecurrenceFields({
               max={maxRecurrenceCount}
               min={1}
               precision={0}
-              prefix="共"
-              suffix="个周期"
+              prefix={t("recurrence.countPrefix") || undefined}
+              suffix={t("recurrence.countSuffix")}
               value={recurrence.end.count}
-              aria-label="周期数"
+              aria-label={t("recurrence.countAria")}
               onChange={value => setRecurrence({ end: { type: "count", count: value ?? 1 } })}
             />
           ) : null}
@@ -175,7 +176,7 @@ export function RecurrenceFields({
               disabledDate={current => start !== "" && current.isBefore(dayjs(start), "day")}
               format="YYYY-MM-DD"
               value={dayjs(recurrence.end.until)}
-              aria-label="截止日期"
+              aria-label={t("recurrence.untilAria")}
               onChange={value => {
                 if (value) {
                   setRecurrence({ end: { type: "until", until: value.format("YYYY-MM-DD") } });
@@ -187,15 +188,20 @@ export function RecurrenceFields({
       </Form.Item>
       <Form.Item
         extra={
-          date.year === null ? "年份未知时不能设置里程碑" : `第 N 天从开始日（第 0 天）算起，最多 ${maxMilestones} 个`
+          date.year === null
+            ? t("recurrence.milestonesYearUnknown")
+            : t("recurrence.milestonesExtra", { max: maxMilestones })
         }
-        label="里程碑"
+        label={t("recurrence.milestones")}
         {...fieldStatus(errors, "milestones", ...draft.milestones.map((_, index) => `milestones.${index}`))}
       >
         <Space orientation="vertical" style={{ width: "100%" }}>
           <Checkbox.Group
             disabled={date.year === null}
-            options={milestonePresets.map(days => ({ label: `${days} 天`, value: days }))}
+            options={milestonePresets.map(days => ({
+              label: t("recurrence.milestoneDays", { count: days }),
+              value: days,
+            }))}
             value={presetDays}
             onChange={values => setMilestones([...values, ...customDays])}
           />
@@ -203,9 +209,9 @@ export function RecurrenceFields({
             disabled={date.year === null}
             mode="tags"
             open={false}
-            placeholder="输入其他天数后回车"
+            placeholder={t("recurrence.milestonePlaceholder")}
             value={customDays.map(String)}
-            aria-label="自定义里程碑天数"
+            aria-label={t("recurrence.milestoneCustomAria")}
             onChange={(values: string[]) => setMilestones([...presetDays, ...parseDays(values)])}
           />
         </Space>
@@ -213,14 +219,14 @@ export function RecurrenceFields({
       {draft.milestones.length ? (
         <Form.Item
           required
-          extra="可用 {{name}} 与 {{days}}（第几天）"
-          label="里程碑标题模板"
+          extra={t("recurrence.milestoneTemplateExtra")}
+          label={t("recurrence.milestoneTemplate")}
           {...fieldStatus(errors, "milestoneTemplate")}
         >
           <Input
             maxLength={100}
             value={draft.milestoneTemplate}
-            aria-label="里程碑标题模板"
+            aria-label={t("recurrence.milestoneTemplateAria")}
             onChange={event => onChange({ ...draft, milestoneTemplate: event.target.value })}
           />
         </Form.Item>

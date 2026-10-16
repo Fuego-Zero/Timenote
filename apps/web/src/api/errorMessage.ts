@@ -1,9 +1,19 @@
+import { i18n } from "../i18n/index.js";
+import { translateApiMessage, translateDetail } from "../i18n/translateMessage.js";
 import { ApiRequestError } from "./apiRequestError.js";
 
 export function errorMessage(error: unknown) {
   if (error instanceof ApiRequestError) {
-    return error.message;
+    return translateApiMessage(error.code, error.detail, error.params);
   }
 
-  return error instanceof Error && error.name === "TimeoutError" ? "请求超时，请稍后重试" : "网络异常，请稍后重试";
+  if (error instanceof Error && error.name === "TimeoutError") {
+    return i18n.t("timeoutError", { ns: "common" });
+  }
+
+  if (error instanceof Error && error.message) {
+    return translateDetail(error.message);
+  }
+
+  return i18n.t("networkError", { ns: "common" });
 }

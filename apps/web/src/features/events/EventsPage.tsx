@@ -1,6 +1,7 @@
 import { type EventInput, eventPageQuerySchema, type PublicUser } from "@timenote/contracts";
 import { Alert, App, Button, Space, Typography } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
 import { useUrlState } from "../../ui/useUrlState.js";
@@ -17,6 +18,7 @@ interface EditorState {
 const eventsUrlSchema = eventPageQuerySchema.omit({ ids: true });
 
 export function EventsPage({ user }: { user: PublicUser }) {
+  const { t } = useTranslation("events");
   const { message } = App.useApp();
   const [query, setQuery] = useUrlState(eventsUrlSchema);
   const events = useEvents(query);
@@ -36,10 +38,10 @@ export function EventsPage({ user }: { user: PublicUser }) {
     <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       <Space wrap style={{ justifyContent: "space-between", width: "100%" }}>
         <Typography.Title level={4} style={{ margin: 0 }}>
-          我的事件
+          {t("pageTitle")}
         </Typography.Title>
         <Button type="primary" onClick={() => setEditor({ initial: newDraft("birthday", user.timeZone) })}>
-          新建事件
+          {t("newEvent")}
         </Button>
       </Space>
       {events.error ? <Alert showIcon title={errorMessage(events.error)} type="error" /> : null}
@@ -61,7 +63,7 @@ export function EventsPage({ user }: { user: PublicUser }) {
           onSave={async draft => {
             await events.save(draft, editor.id);
             setEditor(undefined);
-            void message.success("已保存，订阅地址不变，日历刷新后同步");
+            void message.success(t("saved"));
           }}
         />
       ) : null}

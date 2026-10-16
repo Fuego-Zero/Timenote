@@ -1,0 +1,13 @@
+{
+  "title": "备份与恢复",
+  "intro": "导出当前账号的全部事件（含原始日期、规则、模板和提醒）。导入只新增或覆盖同 ID 的本人事件，不会删除现有数据；导入前会先显示将新增和覆盖的数量，确认后才写入。",
+  "export": "导出 JSON",
+  "import": "导入 JSON",
+  "pickFile": "选择备份文件",
+  "confirmTitle": "确认导入",
+  "confirmBody": "将新增 {{created}}、覆盖 {{updated}} 个事件。覆盖的事件会被备份中的内容替换，无法撤销。",
+  "importOk": "导入",
+  "done": "导入完成：新增 {{created}}，更新 {{updated}}",
+  "invalidJson": "文件不是有效的 JSON",
+  "invalidBackup": "文件不是有效的岁时记（Timenote）备份"
+}

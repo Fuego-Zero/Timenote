@@ -1,12 +1,12 @@
 import { App as AntdApp, ConfigProvider, type ThemeConfig } from "antd";
-import zhCN from "antd/locale/zh_CN";
 import dayjs from "dayjs";
+import "dayjs/locale/en";
 import "dayjs/locale/zh-cn";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
+import { I18nextProvider } from "react-i18next";
 
+import { i18n, resolveLocale } from "../i18n/index.js";
 import { readCspNonce } from "../lib/nonce.js";
-
-dayjs.locale("zh-cn");
 
 // 事件 Tag 的语义色作为自定义 token 声明为必选键，EventTag 通过 theme.useToken() 读取。
 declare module "antd/es/theme/interface" {
@@ -56,10 +56,31 @@ export const appTheme: ThemeConfig = {
   },
 };
 
+function useUiLocale() {
+  const [code, setCode] = useState(() => i18n.language);
+  useEffect(() => {
+    const onChange = (lng: string) => setCode(lng);
+    i18n.on("languageChanged", onChange);
+    return () => {
+      i18n.off("languageChanged", onChange);
+    };
+  }, []);
+  return resolveLocale(code);
+}
+
 export function AppProviders({ children }: { children: ReactNode }) {
+  const locale = useUiLocale();
+
+  useEffect(() => {
+    // eslint-disable-next-line import-x/no-named-as-default-member -- dayjs 官方用法为 dayjs.locale()
+    dayjs.locale(locale.dayjs);
+  }, [locale.dayjs]);
+
   return (
-    <ConfigProvider csp={{ nonce: readCspNonce() }} locale={zhCN} theme={appTheme}>
-      <AntdApp notification={{ placement: "topRight", maxCount: 3 }}>{children}</AntdApp>
-    </ConfigProvider>
+    <I18nextProvider i18n={i18n}>
+      <ConfigProvider csp={{ nonce: readCspNonce() }} locale={locale.antd} theme={appTheme}>
+        <AntdApp notification={{ placement: "topRight", maxCount: 3 }}>{children}</AntdApp>
+      </ConfigProvider>
+    </I18nextProvider>
   );
 }

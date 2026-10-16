@@ -2,6 +2,7 @@ import { addDays, daysBetween, isoDate } from "@timenote/calendar";
 import { type EventInput, maxDurationDays, minCycleDays } from "@timenote/contracts";
 import { DatePicker, Form, InputNumber, Select } from "antd";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 import { fieldStatus } from "./fieldStatus.js";
 
@@ -15,6 +16,7 @@ export function ScheduleFields({
   errors: Record<string, string>;
   onChange: (draft: EventInput) => void;
 }) {
+  const { t } = useTranslation("events");
   const { date } = draft;
   const start = date.year === null ? undefined : isoDate(date.year, date.month, date.day);
   const yearly = draft.recurrence.unit === "year";
@@ -27,13 +29,17 @@ export function ScheduleFields({
   return (
     <>
       {draft.kind === "event" && start ? (
-        <Form.Item extra={`共 ${draft.durationDays} 天`} label="最后一天" {...fieldStatus(errors, "durationDays")}>
+        <Form.Item
+          extra={t("schedule.totalDays", { count: draft.durationDays })}
+          label={t("schedule.lastDay")}
+          {...fieldStatus(errors, "durationDays")}
+        >
           <DatePicker
             allowClear={false}
             disabledDate={current => current.isBefore(dayjs(start), "day")}
             format="YYYY-MM-DD"
             value={dayjs(addDays(start, draft.durationDays - 1))}
-            aria-label="最后一天"
+            aria-label={t("schedule.lastDayAria")}
             onChange={value => {
               if (value) {
                 // 结束日早于开始时算出无效天数，交给统一校验提示，而不是静默纠正
@@ -43,25 +49,25 @@ export function ScheduleFields({
           />
         </Form.Item>
       ) : (
-        <Form.Item label="持续天数" {...fieldStatus(errors, "durationDays")}>
+        <Form.Item label={t("schedule.duration")} {...fieldStatus(errors, "durationDays")}>
           <InputNumber
             max={maxDays}
             min={1}
             precision={0}
-            suffix="天"
+            suffix={t("schedule.daySuffix")}
             value={draft.durationDays}
-            aria-label="持续天数"
+            aria-label={t("schedule.durationAria")}
             onChange={value => onChange({ ...draft, durationDays: value ?? 1 })}
           />
         </Form.Item>
       )}
       {showFeb29 ? (
-        <Form.Item label="平年的 2 月 29 日" {...fieldStatus(errors, "rules.feb29")}>
+        <Form.Item label={t("schedule.feb29")} {...fieldStatus(errors, "rules.feb29")}>
           <Select
             options={[
-              { label: "改在 2 月 28 日", value: "feb28" },
-              { label: "改在 3 月 1 日", value: "mar1" },
-              { label: "跳过该年", value: "skip" },
+              { label: t("schedule.feb28"), value: "feb28" },
+              { label: t("schedule.mar1"), value: "mar1" },
+              { label: t("schedule.skipYear"), value: "skip" },
             ]}
             value={draft.rules.feb29}
             onChange={feb29 => onChange({ ...draft, rules: { ...draft.rules, feb29 } })}
@@ -69,11 +75,11 @@ export function ScheduleFields({
         </Form.Item>
       ) : null}
       {showLeap ? (
-        <Form.Item label="没有对应闰月的年份" {...fieldStatus(errors, "rules.leapMonth")}>
+        <Form.Item label={t("schedule.noLeapMonth")} {...fieldStatus(errors, "rules.leapMonth")}>
           <Select
             options={[
-              { label: "使用同名普通月", value: "regular" },
-              { label: "跳过该年", value: "skip" },
+              { label: t("schedule.useRegularMonth"), value: "regular" },
+              { label: t("schedule.skipYear"), value: "skip" },
             ]}
             value={draft.rules.leapMonth}
             onChange={leapMonth => onChange({ ...draft, rules: { ...draft.rules, leapMonth } })}
@@ -81,11 +87,11 @@ export function ScheduleFields({
         </Form.Item>
       ) : null}
       {showMissingDay ? (
-        <Form.Item label="遇到只有 29 天的小月" {...fieldStatus(errors, "rules.missingDay")}>
+        <Form.Item label={t("schedule.shortMonth")} {...fieldStatus(errors, "rules.missingDay")}>
           <Select
             options={[
-              { label: "使用该月最后一天", value: "lastDay" },
-              { label: "跳过该年", value: "skip" },
+              { label: t("schedule.useLastDay"), value: "lastDay" },
+              { label: t("schedule.skipYear"), value: "skip" },
             ]}
             value={draft.rules.missingDay}
             onChange={missingDay => onChange({ ...draft, rules: { ...draft.rules, missingDay } })}

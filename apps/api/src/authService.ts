@@ -47,7 +47,7 @@ export async function changeOwnPassword(
   keepSessionId: string | undefined
 ) {
   if (!(await verifyPassword(input.currentPassword, user.passwordHash))) {
-    throw new BusinessError("INVALID_INPUT", { fields: { currentPassword: "当前密码不正确" } });
+    throw new BusinessError("INVALID_INPUT", { fields: { currentPassword: "current_password" } });
   }
 
   const passwordHash = await hashPassword(input.newPassword);
@@ -91,7 +91,7 @@ export async function registerPublicUser(
   };
   repo.transaction(() => {
     if (repo.users.getUserByUsername(user.username)) {
-      throw new BusinessError("USERNAME_TAKEN", { fields: { username: "用户名已被使用" } });
+      throw new BusinessError("USERNAME_TAKEN", { fields: { username: "username_taken" } });
     }
 
     repo.users.putUser(user);

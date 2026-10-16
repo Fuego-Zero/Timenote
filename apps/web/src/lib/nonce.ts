@@ -27,3 +27,6 @@ export function nonceRuntimeStyles(nonce: string) {
     return element;
   };
 }
+
+// 必须在加载会插入 style 的模块之前执行，否则那些样式赶在补丁之前创建，会被 CSP 丢掉。
+nonceRuntimeStyles(readCspNonce());

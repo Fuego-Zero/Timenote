@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { issueDetail } from "./error.js";
 import { anonSignSchema } from "./requestSign.js";
 
 export const roles = ["admin", "user"] as const;
@@ -14,13 +15,13 @@ export function isTimeZone(value: string) {
   }
 }
 
-export const timeZoneSchema = z.string().refine(isTimeZone, "请选择有效的 IANA 时区");
+export const timeZoneSchema = z.string().refine(isTimeZone, issueDetail("timezone_invalid"));
 export const usernameSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .regex(/^[a-z0-9][a-z0-9_.-]{2,31}$/, "用户名为 3-32 位小写字母、数字或 _.-");
-export const passwordSchema = z.string().min(8, "密码至少 8 位").max(128, "密码最多 128 位");
+  .regex(/^[a-z0-9][a-z0-9_.-]{2,31}$/, issueDetail("username_pattern"));
+export const passwordSchema = z.string().min(8, issueDetail("password_min")).max(128, issueDetail("password_max"));
 const displayNameSchema = z.string().trim().max(40);
 
 export const publicUserSchema = z.object({
@@ -74,6 +75,8 @@ export const registerInputSchema = z.object({
   username: usernameSchema,
   password: passwordSchema,
   displayName: displayNameSchema.optional(),
+  /** 浏览器算完的 ALTCHA 结果。开关关闭或尚未完成引导时可以不带。 */
+  altcha: z.string().optional(),
 });
 
 export const setupAdminInputSchema = z.object({

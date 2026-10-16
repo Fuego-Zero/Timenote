@@ -3,6 +3,7 @@ import type { EventInput } from "@timenote/contracts";
 import { Alert, Checkbox, DatePicker, Flex, Form, InputNumber, Segmented, Select, Space } from "antd";
 import dayjs from "dayjs";
 import { type CSSProperties, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { dateLabels, dayOptions, lunarMonthOptions, monthOptions } from "./dateFieldOptions.js";
 import { withYear } from "./eventDraft.js";
@@ -20,9 +21,11 @@ export function OriginalDateFields({
   errors: Record<string, string>;
   onChange: (draft: EventInput) => void;
 }) {
+  const { t } = useTranslation("events");
   const { date } = draft;
   const [notice, setNotice] = useState<string>();
   const setDate = (patch: Partial<EventInput["date"]>) => onChange({ ...draft, date: { ...date, ...patch } });
+  const labels = dateLabels();
 
   function switchCalendar(calendar: EventInput["date"]["calendar"]) {
     const result = switchCalendarDate(date, calendar);
@@ -42,11 +45,11 @@ export function OriginalDateFields({
   return (
     <>
       {draft.kind !== "event" ? (
-        <Form.Item label="重复依据" {...fieldStatus(errors, "date.calendar")}>
+        <Form.Item label={t("originalDate.basis")} {...fieldStatus(errors, "date.calendar")}>
           <Segmented<EventInput["date"]["calendar"]>
             options={[
-              { label: "公历", value: "gregorian" },
-              { label: "农历", value: "lunar" },
+              { label: t("gregorian"), value: "gregorian" },
+              { label: t("lunar"), value: "lunar" },
             ]}
             value={date.calendar}
             onChange={value => switchCalendar(value)}
@@ -65,7 +68,7 @@ export function OriginalDateFields({
       ) : null}
       <Form.Item
         required
-        label={dateLabels[draft.kind]}
+        label={labels[draft.kind]}
         {...fieldStatus(errors, "date.year", "date.month", "date.day", "date.leapMonth", "date")}
       >
         <Space orientation="vertical" style={{ width: "100%" }}>
@@ -76,7 +79,7 @@ export function OriginalDateFields({
                 onChange(withYear(draft, event.target.checked ? null : Number(new Date().getFullYear())))
               }
             >
-              年份未知（只记住每年的日期，不显示岁数或周年数）
+              {t("originalDate.yearUnknown")}
             </Checkbox>
           ) : null}
           {!lunar && date.year !== null ? (
@@ -84,7 +87,7 @@ export function OriginalDateFields({
               allowClear={false}
               format="YYYY-MM-DD"
               value={dayjs(isoDate(date.year, date.month, date.day))}
-              aria-label="日期"
+              aria-label={t("originalDate.dateAria")}
               onChange={value => {
                 if (value) {
                   setDate({ year: value.year(), month: value.month() + 1, day: value.date() });
@@ -98,31 +101,31 @@ export function OriginalDateFields({
                   max={LUNAR_MAX_YEAR}
                   min={LUNAR_MIN_YEAR}
                   style={rowItemStyle}
-                  suffix="年"
+                  suffix={t("originalDate.yearSuffix") || undefined}
                   value={date.year}
-                  aria-label="农历年"
+                  aria-label={t("originalDate.lunarYearAria")}
                   onChange={value => setDate({ year: value ?? date.year })}
                 />
               ) : null}
               <Select
-                options={lunar ? lunarMonthOptions : monthOptions}
+                options={lunar ? lunarMonthOptions() : monthOptions()}
                 style={rowItemStyle}
                 value={date.month}
-                aria-label="月"
+                aria-label={t("originalDate.monthAria")}
                 onChange={month => setDate({ month })}
               />
               <Select
                 options={dayOptions(lunar, date.month)}
                 style={rowItemStyle}
                 value={date.day}
-                aria-label="日"
+                aria-label={t("originalDate.dayAria")}
                 onChange={day => setDate({ day })}
               />
             </Flex>
           )}
           {lunar ? (
             <Checkbox checked={date.leapMonth} onChange={event => setDate({ leapMonth: event.target.checked })}>
-              闰月
+              {t("originalDate.leapMonth")}
             </Checkbox>
           ) : null}
         </Space>

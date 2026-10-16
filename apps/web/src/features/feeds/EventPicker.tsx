@@ -1,6 +1,7 @@
 import { type CalendarEvent, maxQueryLength, type PageResult } from "@timenote/contracts";
 import { Alert, Button, Checkbox, Empty, Flex, Input, Space, Table, type TableColumnsType, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { apiPath } from "../../api/apiPath.js";
 import { errorMessage } from "../../api/client.js";
@@ -11,15 +12,6 @@ import { EventTag } from "../events/EventTag.js";
 
 const pageSizeOptions = [10, 20, 50, 100];
 const searchDebounceMs = 300;
-
-const columns: TableColumnsType<CalendarEvent> = [
-  { key: "name", title: "名称", render: (_value, event) => event.name },
-  {
-    key: "kind",
-    title: "类型",
-    render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{kindLabels[event.kind]}</EventTag>,
-  },
-];
 
 interface SelectedSnapshot {
   error?: unknown;
@@ -42,6 +34,16 @@ export function EventPicker({
   /** 变化时重新拉取当前页（例如保存因事件已删除返回 400 之后）。 */
   reloadKey?: number;
 }) {
+  const { t } = useTranslation(["feeds", "common", "events"]);
+  const labels = kindLabels();
+  const columns: TableColumnsType<CalendarEvent> = [
+    { key: "name", title: t("common:name"), render: (_value, event) => event.name },
+    {
+      key: "kind",
+      title: t("common:type"),
+      render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{labels[event.kind]}</EventTag>,
+    },
+  ];
   const [search, setSearch] = useState("");
   const [q, setQ] = useState<string>();
   const [paging, setPaging] = useState({ page: 1, pageSize: 10 });
@@ -96,31 +98,31 @@ export function EventPicker({
   const found = new Set(selected.events?.map(event => event.id));
   const missing = onlySelected && selected.events ? value.filter(id => !found.has(id)) : [];
   const error = onlySelected ? selected.error : browse.error;
-  let emptyText = "没有匹配的事件";
+  let emptyText = t("picker.emptyMatch");
   if (onlySelected) {
-    emptyText = "还没有选择事件";
+    emptyText = t("picker.emptySelected");
   } else if (q === undefined) {
-    emptyText = "暂无事件，保存后将生成空日历";
+    emptyText = t("picker.emptyAll");
   }
 
   return (
     <Space orientation="vertical" size="small" style={{ width: "100%" }}>
       <Flex wrap align="center" gap="small">
-        <Typography.Text>{`已选 ${value.length} 项`}</Typography.Text>
+        <Typography.Text>{t("picker.selectedCount", { count: value.length })}</Typography.Text>
         <Checkbox checked={onlySelected} onChange={event => void toggleOnlySelected(event.target.checked)}>
-          只看已选
+          {t("picker.onlySelected")}
         </Checkbox>
         <Button disabled={!value.length} size="small" type="link" onClick={() => onChange([])}>
-          清空
+          {t("picker.clear")}
         </Button>
         <Input
           allowClear
           disabled={onlySelected}
           maxLength={maxQueryLength}
-          placeholder="搜索名称"
+          placeholder={t("common:searchName")}
           style={{ maxWidth: 200 }}
           value={search}
-          aria-label="搜索事件"
+          aria-label={t("picker.searchAria")}
           onChange={event => setSearch(event.target.value)}
         />
       </Flex>
@@ -130,10 +132,10 @@ export function EventPicker({
           showIcon
           action={
             <Button size="small" onClick={() => onChange(value.filter(id => found.has(id)))}>
-              移除
+              {t("picker.remove")}
             </Button>
           }
-          title={`${missing.length} 个已选事件已被删除`}
+          title={t("picker.missing", { count: missing.length })}
           type="warning"
         />
       ) : null}
@@ -159,7 +161,7 @@ export function EventPicker({
           selections: [
             Table.SELECTION_ALL,
             Table.SELECTION_INVERT,
-            { key: "clear", text: "清空全部已选", onSelect: () => onChange([]) },
+            { key: "clear", text: t("picker.clearAll"), onSelect: () => onChange([]) },
           ],
           onChange: keys => onChange(keys.map(String)),
         }}

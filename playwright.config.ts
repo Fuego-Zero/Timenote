@@ -15,6 +15,7 @@ export default defineConfig({
   workers: 1,
   use: {
     baseURL: webOrigin,
+    locale: "zh-CN",
     channel: "msedge",
     screenshot: "only-on-failure",
     trace: "off",

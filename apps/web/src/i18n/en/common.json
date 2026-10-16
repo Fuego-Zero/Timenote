@@ -1,0 +1,32 @@
+{
+  "brand": "Timenote",
+  "loading": "Loading",
+  "retry": "Retry",
+  "serviceUnavailable": "Unable to connect to the service",
+  "networkError": "Network error. Please try again later.",
+  "timeoutError": "Request timed out. Please try again later.",
+  "save": "Save",
+  "cancel": "Cancel",
+  "edit": "Edit",
+  "delete": "Delete",
+  "create": "Create",
+  "confirm": "Confirm",
+  "searchName": "Search by name",
+  "actions": "Actions",
+  "name": "Name",
+  "type": "Type",
+  "nav": {
+    "events": "Events",
+    "feeds": "Feeds",
+    "backup": "Backup",
+    "users": "Accounts",
+    "account": "Account settings",
+    "password": "Change password",
+    "logout": "Log out"
+  },
+  "locale": {
+    "label": "Language",
+    "zhCN": "中文",
+    "en": "English"
+  }
+}

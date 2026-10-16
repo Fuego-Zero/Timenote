@@ -25,7 +25,7 @@ export async function serveIndexHtml(
   res.setHeader("Cache-Control", "no-store");
   res.setHeader(
     "Content-Security-Policy",
-    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'nonce-${nonce}'; style-src-attr 'unsafe-inline'; connect-src 'self'${built ? "" : ` ws://127.0.0.1:${port} ws://localhost:${port}`}; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`
+    `default-src 'self'; script-src 'self' 'nonce-${nonce}'; worker-src 'self' blob:; style-src 'self' 'nonce-${nonce}'; style-src-attr 'unsafe-inline'; connect-src 'self'${built ? "" : ` ws://127.0.0.1:${port} ws://localhost:${port}`}; img-src 'self' data:; font-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`
   );
   res.end(html);
 }

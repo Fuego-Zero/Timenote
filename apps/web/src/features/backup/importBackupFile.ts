@@ -1,6 +1,7 @@
 import { type BackupFile, backupFileSchema, type ImportResult } from "@timenote/contracts";
 
 import { api } from "../../api/client.js";
+import { i18n } from "../../i18n/index.js";
 
 export class BackupImportError extends Error {
   constructor(message: string) {
@@ -15,12 +16,12 @@ export async function readBackupFile(file: File): Promise<BackupFile> {
   try {
     raw = JSON.parse(await file.text());
   } catch {
-    throw new BackupImportError("文件不是有效的 JSON");
+    throw new BackupImportError(i18n.t("invalidJson", { ns: "backup" }));
   }
 
   const parsed = backupFileSchema.safeParse(raw);
   if (!parsed.success) {
-    throw new BackupImportError("文件不是有效的岁时记（Timenote）备份");
+    throw new BackupImportError(i18n.t("invalidBackup", { ns: "backup" }));
   }
 
   return parsed.data;

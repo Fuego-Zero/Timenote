@@ -8,6 +8,7 @@ import { registerFeeds } from "./http/feeds.js";
 import { registerFeedTokens } from "./http/feedTokens.js";
 import { registerSetup } from "./http/setup.js";
 import { registerUsers } from "./http/users.js";
+import { RegisterChallenges } from "./registerChallenge.js";
 import { registerRequestSign } from "./requestSign.js";
 import { registerSession } from "./session.js";
 
@@ -18,6 +19,7 @@ export async function createApiServer(config: Config, repo: OpenedRepository, op
     config,
     repo,
     now: options.now ?? Date.now,
+    registerChallenges: new RegisterChallenges(config.signMasterKey),
     requestSign: new RequestSignRegistry(config.signMasterKey),
   };
   await registerSession(ctx);

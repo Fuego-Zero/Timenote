@@ -1,4 +1,4 @@
-import { templateIssue, templateVariables, usedVariables } from "@timenote/contracts";
+import { issueDetail, templateIssue, templateVariables, usedVariables } from "@timenote/contracts";
 
 export interface TitleSource {
   name: string;
@@ -13,11 +13,13 @@ export interface TitleValues {
 
 function variableValue(variable: "count" | "days" | "years", value: number | null | undefined) {
   if (value === null || value === undefined) {
-    throw new Error(variable === "years" ? "年份未知时模板不能使用 {{years}}" : `模板变量 {{${variable}}} 没有取值`);
+    throw new Error(
+      variable === "years" ? issueDetail("years_unknown") : issueDetail("missing_template_var", { name: variable })
+    );
   }
 
   if (variable === "years" && (!Number.isInteger(value) || value < 1)) {
-    throw new Error("周年数必须是正整数");
+    throw new Error(issueDetail("anniversary_count"));
   }
 
   return String(value);

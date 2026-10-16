@@ -117,7 +117,10 @@ describe("首次引导 setup", () => {
         prod.clock.now
       );
       expect(res.statusCode).toBe(400);
-      expect(res.json()).toMatchObject({ code: "INVALID_INPUT", fields: { password: expect.any(String) } });
+      expect(res.json()).toMatchObject({
+        code: "INVALID_INPUT",
+        fields: { password: { detail: "weak_admin_password" } },
+      });
 
       const ok = await signedSetupAdmin(
         prod.app,

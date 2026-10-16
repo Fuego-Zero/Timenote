@@ -1,6 +1,7 @@
 import { pageQuerySchema, type PublicUser } from "@timenote/contracts";
 import { Alert, App, Button, Space, Typography } from "antd";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
 import { useUrlState } from "../../ui/useUrlState.js";
@@ -11,6 +12,7 @@ import { useUsers } from "./useUsers.js";
 
 /** 管理员后台：账号的创建、停用/启用、角色、重置密码与删除；不展示其他账号的事件和订阅。 */
 export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
+  const { t } = useTranslation("admin");
   const { message } = App.useApp();
   const [query, setQuery] = useUrlState(pageQuerySchema);
   const users = useUsers(query);
@@ -40,10 +42,10 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
     <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       <Space wrap style={{ justifyContent: "space-between", width: "100%" }}>
         <Typography.Title level={4} style={{ margin: 0 }}>
-          账号管理
+          {t("title")}
         </Typography.Title>
         <Button type="primary" onClick={() => setCreating(true)}>
-          新建账号
+          {t("create")}
         </Button>
       </Space>
       {users.error ? <Alert showIcon title={errorMessage(users.error)} type="error" /> : null}
@@ -53,16 +55,16 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
         page={users.page}
         query={query}
         onQueryChange={setQuery}
-        onRemove={user => void run(() => remove(user.id), "账号已删除")}
+        onRemove={user => void run(() => remove(user.id), t("deleted"))}
         onResetPassword={user => setResetting(user)}
         onToggleDisabled={user =>
           void run(
             () => users.update(user.id, { disabled: !user.disabled }),
-            user.disabled ? "已启用" : "已停用，该账号的登录与订阅立即失效"
+            user.disabled ? t("enabled") : t("disabled")
           )
         }
         onToggleRole={user =>
-          void run(() => users.update(user.id, { role: user.role === "admin" ? "user" : "admin" }), "角色已更新")
+          void run(() => users.update(user.id, { role: user.role === "admin" ? "user" : "admin" }), t("roleUpdated"))
         }
       />
       <UserFormModal
@@ -73,7 +75,7 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
           await users.create(input);
           setCreating(false);
           setQuery({ page: 1 });
-          void message.success("账号已创建");
+          void message.success(t("created"));
         }}
       />
       <ResetPasswordModal
@@ -83,7 +85,7 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
           run(async () => {
             await users.resetPassword(resetting!.id, password);
             setResetting(undefined);
-          }, "密码已重置，该账号需要重新登录")
+          }, t("passwordReset"))
         }
       />
     </Space>

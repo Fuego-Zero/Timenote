@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { issueDetail } from "./error.js";
 import {
   calendarSystems,
   eventKinds,
@@ -21,7 +22,7 @@ import { templateIssue, type TemplateVariable, usedVariables } from "./titleTemp
 
 export const alarmSchema = z.object({
   daysBefore: z.int().min(0).max(365),
-  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "时间格式为 HH:mm"),
+  time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, issueDetail("time_format")),
 });
 
 export const originalDateSchema = z.object({
@@ -56,21 +57,28 @@ export const recurrenceSchema = z.object({
 });
 export type Recurrence = z.infer<typeof recurrenceSchema>;
 
-const templateSchema = plainText(100, { multiline: false }).pipe(z.string().trim().min(1, "请填写标题模板"));
+const templateSchema = plainText(100, { multiline: false }).pipe(
+  z.string().trim().min(1, issueDetail("title_template_required"))
+);
 
 const eventFields = z.object({
   kind: z.enum(eventKinds),
-  name: plainText(60, { multiline: true }).pipe(z.string().trim().min(1, "请填写名称")),
+  name: plainText(60, { multiline: true }).pipe(z.string().trim().min(1, issueDetail("name_required"))),
   titleTemplate: templateSchema,
   titlePrefix: plainText(16, { multiline: false }).pipe(z.string().trim()),
   note: plainText(500, { multiline: true }),
   date: originalDateSchema,
-  durationDays: z.int().min(1, "最后一天不能早于开始日期").max(maxDurationDays, `最多持续 ${maxDurationDays} 天`),
+  durationDays: z
+    .int()
+    .min(1, issueDetail("duration_before_start"))
+    .max(maxDurationDays, issueDetail("duration_max", { n: maxDurationDays })),
   rules: eventRulesSchema,
   alarms: z.array(alarmSchema).max(maxAlarms),
   recurrence: recurrenceSchema,
   gregorianMissingDay: z.enum(gregorianMissingDayPolicies),
-  milestones: z.array(z.int().min(1).max(maxMilestoneDays)).max(maxMilestones, `最多 ${maxMilestones} 个里程碑`),
+  milestones: z
+    .array(z.int().min(1).max(maxMilestoneDays))
+    .max(maxMilestones, issueDetail("milestones_max", { n: maxMilestones })),
   milestoneTemplate: templateSchema,
 });
 
@@ -114,14 +122,14 @@ export const milestoneVariables: readonly TemplateVariable[] = ["name", "days"];
 
 function yearsProblem(value: EventFields) {
   if (value.kind === "event") {
-    return "普通事件没有周年数，模板不能使用 {{years}}";
+    return issueDetail("years_not_for_event");
   }
 
   if (value.date.year === null) {
-    return "年份未知时模板不能使用 {{years}}";
+    return issueDetail("years_unknown");
   }
 
-  return "只有每 1 年重复时模板才能使用 {{years}}";
+  return issueDetail("years_only_yearly");
 }
 
 function refineTemplates(value: EventFields, issue: (path: (string | number)[], message: string) => void) {
@@ -143,35 +151,35 @@ function refineTemplates(value: EventFields, issue: (path: (string | number)[], 
 function refineRecurrence(value: EventFields, issue: (path: (string | number)[], message: string) => void) {
   const { recurrence } = value;
   if (value.kind !== "anniversary" && !isDefaultRecurrence(recurrence)) {
-    issue(["recurrence"], "只有纪念日可以设置重复规则");
+    issue(["recurrence"], issueDetail("recurrence_anniversary_only"));
   }
 
   if (value.kind !== "anniversary" && value.milestones.length) {
-    issue(["milestones"], "只有纪念日可以设置里程碑");
+    issue(["milestones"], issueDetail("milestones_anniversary_only"));
   }
 
   if (recurrence.interval > maxInterval[recurrence.unit]) {
-    issue(["recurrence", "interval"], `间隔最多 ${maxInterval[recurrence.unit]}`);
+    issue(["recurrence", "interval"], issueDetail("interval_max", { n: maxInterval[recurrence.unit] }));
   }
 
   if (value.date.calendar === "lunar" && recurrence.unit !== "year") {
-    issue(["recurrence", "unit"], "农历日期只能按年重复");
+    issue(["recurrence", "unit"], issueDetail("lunar_yearly_only"));
   }
 
   if (value.date.year === null) {
     if (!isDefaultRecurrence(recurrence)) {
-      issue(["recurrence"], "年份未知时只能每年重复且永不结束");
+      issue(["recurrence"], issueDetail("unknown_year_recurrence"));
     }
 
     if (value.milestones.length) {
-      issue(["milestones"], "年份未知时不能设置里程碑");
+      issue(["milestones"], issueDetail("unknown_year_milestones"));
     }
   }
 
   if (recurrence.end.type === "until" && value.date.calendar === "gregorian" && value.date.year !== null) {
     const start = `${String(value.date.year).padStart(4, "0")}-${String(value.date.month).padStart(2, "0")}-${String(value.date.day).padStart(2, "0")}`;
     if (recurrence.end.until < start) {
-      issue(["recurrence", "end", "until"], "截止日期不能早于开始日期");
+      issue(["recurrence", "end", "until"], issueDetail("until_before_start"));
     }
   }
 
@@ -179,18 +187,18 @@ function refineRecurrence(value: EventFields, issue: (path: (string | number)[],
   if (recurrence.unit !== "year") {
     const cycle = Math.min(minCycleDays[recurrence.unit], maxDurationDays);
     if (value.durationDays > cycle) {
-      issue(["durationDays"], `最多持续 ${cycle} 天`);
+      issue(["durationDays"], issueDetail("duration_max", { n: cycle }));
     }
 
     value.alarms.forEach((alarm, index) => {
       if (alarm.daysBefore >= cycle) {
-        issue(["alarms", index, "daysBefore"], `提前天数必须小于 ${cycle}`);
+        issue(["alarms", index, "daysBefore"], issueDetail("alarm_before_cycle", { n: cycle }));
       }
     });
   }
 
   if (new Set(value.milestones).size !== value.milestones.length) {
-    issue(["milestones"], "里程碑天数不能重复");
+    issue(["milestones"], issueDetail("milestones_duplicate"));
   }
 }
 
@@ -200,24 +208,24 @@ function refineEvent(value: EventFields, ctx: z.RefinementCtx) {
   refineRecurrence(value, issue);
   if (value.kind === "event") {
     if (value.date.calendar !== "gregorian") {
-      issue(["date", "calendar"], "普通事件只支持公历日期");
+      issue(["date", "calendar"], issueDetail("event_gregorian_only"));
     }
 
     if (value.date.year === null) {
-      issue(["date", "year"], "普通事件必须填写年份");
+      issue(["date", "year"], issueDetail("event_year_required"));
     }
   }
 
   if (value.date.calendar === "gregorian") {
     if (value.date.leapMonth) {
-      issue(["date", "leapMonth"], "公历日期没有闰月");
+      issue(["date", "leapMonth"], issueDetail("no_gregorian_leap"));
     }
 
     if (value.date.day > daysInGregorianMonth(value.date.year, value.date.month)) {
-      issue(["date", "day"], "该月没有这一天");
+      issue(["date", "day"], issueDetail("gregorian_day_missing"));
     }
   } else if (value.date.day > 30) {
-    issue(["date", "day"], "农历每月最多 30 天");
+    issue(["date", "day"], issueDetail("lunar_day_max"));
   }
 }
 
