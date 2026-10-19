@@ -20,7 +20,7 @@
   "withinDays": "Within {{count}} days",
   "noTimeLimit": "Any time",
   "emptyFiltered": "No matching events",
-  "empty": "No events yet. Click New to add a birthday or anniversary.",
+  "empty": "No events yet. Click New event at the top right to add a birthday, anniversary, or general event.",
   "searchAria": "Search events",
   "sortAria": "Sort",
   "nextWithinAria": "Occurrence window",

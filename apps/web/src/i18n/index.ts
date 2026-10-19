@@ -8,6 +8,7 @@ import enCommon from "./en/common.json";
 import enErrors from "./en/errors.json";
 import enEvents from "./en/events.json";
 import enFeeds from "./en/feeds.json";
+import enGuide from "./en/guide.json";
 import {
   defaultLocaleCode,
   isRegisteredLocale,
@@ -22,6 +23,7 @@ import zhCommon from "./zh-CN/common.json";
 import zhErrors from "./zh-CN/errors.json";
 import zhEvents from "./zh-CN/events.json";
 import zhFeeds from "./zh-CN/feeds.json";
+import zhGuide from "./zh-CN/guide.json";
 
 export const localeStorageKey = "timenote.locale";
 
@@ -37,6 +39,7 @@ const resources = {
     errors: zhErrors,
     admin: zhAdmin,
     backup: zhBackup,
+    guide: zhGuide,
   },
   en: {
     common: enCommon,
@@ -46,6 +49,7 @@ const resources = {
     errors: enErrors,
     admin: enAdmin,
     backup: enBackup,
+    guide: enGuide,
   },
 } as const;
 
@@ -108,7 +112,7 @@ void i18next.use(initReactI18next).init({
   lng: initial,
   fallbackLng: defaultLocaleCode,
   defaultNS: "common",
-  ns: ["common", "auth", "events", "feeds", "admin", "backup", "errors"],
+  ns: ["common", "auth", "events", "feeds", "admin", "backup", "errors", "guide"],
   interpolation: { escapeValue: false },
   returnNull: false,
 });

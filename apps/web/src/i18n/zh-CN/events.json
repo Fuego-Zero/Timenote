@@ -20,7 +20,7 @@
   "withinDays": "{{count}} 天内",
   "noTimeLimit": "不限时间",
   "emptyFiltered": "没有匹配的事件",
-  "empty": "还没有事件，点击「新建」添加生日或纪念日",
+  "empty": "还没有事件。点击右上角「新建事件」添加生日、纪念日或普通事件。",
   "searchAria": "搜索事件",
   "sortAria": "排序",
   "nextWithinAria": "发生时间范围",

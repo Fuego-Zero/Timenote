@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
+import { guideTargets } from "../guide/guideTargets.js";
 import { EventPicker } from "./EventPicker.js";
 
 export interface FeedDraft {
@@ -73,6 +74,8 @@ export function FeedFormModal({
     <Modal
       open
       confirmLoading={saving}
+      // 引导高亮整张弹窗，用户才能在遮罩下点到「创建」。
+      modalRender={node => <div data-guide={feed ? undefined : guideTargets.feedForm}>{node}</div>}
       okButtonProps={{ disabled: !draft.name.trim() }}
       okText={feed ? t("common:save") : t("common:create")}
       title={title}

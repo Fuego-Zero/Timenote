@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
 import { useUrlState } from "../../ui/useUrlState.js";
+import { guideTargets } from "../guide/guideTargets.js";
+import { useGuide } from "../guide/useGuide.js";
 import { type FeedDraft, FeedFormModal } from "./FeedFormModal.js";
 import { FeedsTable } from "./FeedsTable.js";
 import { useFeedTokens } from "./useFeedTokens.js";
@@ -16,6 +18,7 @@ interface FormState {
 export function FeedsPage({ user }: { user: PublicUser }) {
   const { t } = useTranslation("feeds");
   const { message } = App.useApp();
+  const guide = useGuide();
   const [query, setQuery] = useUrlState(pageQuerySchema);
   const feeds = useFeedTokens(query);
   const [form, setForm] = useState<FormState>();
@@ -42,6 +45,7 @@ export function FeedsPage({ user }: { user: PublicUser }) {
 
   async function revoke(id: string) {
     await feeds.revoke(id);
+    void guide.refresh();
     // 撤销当前页最后一条且不在第一页时退回上一页，避免停在空页。
     if (feeds.page?.items.length === 1 && query.page > 1) {
       setQuery({ page: query.page - 1 });
@@ -56,6 +60,7 @@ export function FeedsPage({ user }: { user: PublicUser }) {
       await feeds.update(feed.id, draft);
     } else {
       await feeds.create(draft);
+      void guide.refresh();
       setQuery({ page: 1 });
     }
 
@@ -69,20 +74,20 @@ export function FeedsPage({ user }: { user: PublicUser }) {
         <Typography.Title level={4} style={{ margin: 0 }}>
           {t("pageTitle")}
         </Typography.Title>
-        <Button type="primary" onClick={() => setForm({})}>
+        <Button type="primary" data-guide={guideTargets.feedsCreate} onClick={() => setForm({})}>
           {t("create")}
         </Button>
       </Flex>
       <Typography.Paragraph style={{ marginBottom: 0 }} type="secondary">
-        {t("intro")}
-      </Typography.Paragraph>
-      <Typography.Paragraph style={{ marginBottom: 0 }} type="secondary">
-        <Typography.Text strong>{t("appleStrong")}</Typography.Text>
-        {t("appleHint")}
-      </Typography.Paragraph>
-      <Typography.Paragraph type="secondary">
-        <Typography.Text strong>{t("otherStrong")}</Typography.Text>
-        {t("otherHint")}
+        {t("intro")}{" "}
+        <Button
+          style={{ padding: 0, height: "auto" }}
+          type="link"
+          aria-haspopup="dialog"
+          onClick={() => guide.openHelp("calendar")}
+        >
+          {t("howToAdd")}
+        </Button>
       </Typography.Paragraph>
       {feeds.error ? <Alert showIcon title={errorMessage(feeds.error)} type="error" /> : null}
       <FeedsTable

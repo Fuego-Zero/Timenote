@@ -2,16 +2,74 @@ English | [中文](README.zh-CN.md)
 
 # Timenote
 
-Timenote (岁时记) is a self-hosted service for birthdays and anniversaries. Enter birthdays, anniversaries, and one-off events in the web app. Each year they expand by Gregorian or lunar rules, and a private ICS URL subscribes them to any calendar that supports ICS or webcal (Apple Calendar, Google Calendar, Outlook).
+Timenote (岁时记) keeps track of your family's birthdays and anniversaries. Enter the original date once. Timenote works out every future occurrence by the Gregorian or Chinese lunar calendar and puts them, with your reminders, into the calendar you already use on your phone or computer through a private feed URL. Your data stays on a server you run yourself.
 
-- Multiple accounts: on an empty database, create the first admin in the web setup flow (`POST /api/setup/admin`). There is no `INITIAL_ADMIN` environment variable. Public self-registration is off by default (`PUBLIC_REGISTER_ENABLED`). When it is on, `REGISTER_DEFAULT_DISABLED` decides whether new accounts start disabled (the default; an admin must enable them). Admins create, enable, disable, reset passwords, and delete accounts under Accounts. Each account's events and feed URLs are isolated.
-- Event types: birthdays (age N), anniversaries (Nth year), and one-off events. Supports an unknown year, February 29, lunar leap months and the 30th, multi-day events, and up to two reminders.
-- Preview the next 5 occurrences before saving. Preview, subscription, and export share one rules engine (`packages/calendar`).
-- One feed URL per device. Rotate or revoke it at any time; the old URL returns 404 immediately. The URL does not contain names, birthdays, or dates.
+[![Demo video cover: the New event drawer with Lily's birthday filled in and the next 5 birthdays previewed on the right. Click to open the demo video, under 1 minute](docs/media/en/core-flow-cover.png)](docs/media/en/core-flow.webm)
 
-Product behavior is informed by TimeMark (read-only; see `.cursor/rules/02-timemark-readonly.mdc`). The engineering setup follows mm-agent: a pnpm workspace, TypeScript strict, Fastify + SQLite, React + Ant Design, Vitest + Playwright. Architecture, data flow, and the UID strategy are in the [architecture notes](docs/architecture.md) (Chinese).
+Click the image to open the demo video (WebM, under 1 minute, silent, with English captions): add a birthday → check the preview → turn on a reminder → create a feed URL → add it to a calendar. GitHub cannot play it inline; clicking opens it in a new tab or downloads it. In the video the recording script fetches the feed in place of a calendar app, and the caption says so.
 
-## Start from an empty environment
+## What it does
+
+- **Birthdays, anniversaries, and one-off events**: birthdays show the age, anniversaries show the year count, and one-off events happen once and can span several days.
+- **Gregorian and lunar dates**: a lunar birthday is converted to that year's Gregorian date. Leap months, the 30th, February 29, and unknown birth years all follow clear rules you can change before saving.
+- **Preview before saving**: while you edit, the next 5 dates, titles, and reminder times update on the right. That is exactly what your calendar will show.
+- **Works with the calendar you already use**: Apple Calendar, Google Calendar, Outlook, and any client that subscribes to ICS or webcal. New or edited events sync the next time the calendar refreshes; you never resubscribe.
+- **One private URL per device**: the URL contains no names or dates. If it leaks, rotate it and the old URL stops working immediately.
+- **For the whole family**: an admin creates an account for each person, and each account's events and feeds stay separate.
+
+## A quick look
+
+Events, sorted by next occurrence, with lunar dates and reminders marked.
+
+![Event list: Beach trip, Mom's 59th birthday (lunar), Our wedding's 11th anniversary, Lily's 8th birthday, and Grandma's birthday (year unknown), each with type, calendar, and reminder tags](docs/media/en/events.png)
+
+Editing an event: fill in the form on the left and check the next 5 occurrences on the right.
+
+![Event editor drawer: Lily's birthday on June 8, with 2027 to 2031 listed on the right, each with the age and an 08:00 reminder](docs/media/en/editor.png)
+
+Feeds: on Apple devices click Open in Calendar or scan the QR code; for Google or Outlook click Copy URL and add it in the calendar. Last fetched shows when a calendar last fetched the feed.
+
+![Feeds page: one feed URL that a calendar has already fetched, with the row expanded to show its QR code (blurred in this example) and scanning tips](docs/media/en/feeds.png)
+
+<img src="docs/media/en/mobile.png" alt="Event list at phone width, with Help and the account menu still in the header" width="280">
+
+It works in a phone browser too; swipe the table sideways to see more columns.
+
+## Getting started
+
+After you sign in, a three-step Get started checklist appears at the top. A new account with no events also starts the two guides automatically (add your first event, then put it on a calendar), and only once: after you close, pause, or finish them, a refresh or another sign-in will not start them again. Restart either guide from the checklist or from Help in the top right. Each step ticks itself when done, and the checklist goes away once all three are done. Click Don't show again to hide it early.
+
+![Get started checklist: Add your first event, Create a feed URL, Subscribe in your calendar app, each with Show me or How?](docs/media/en/first-run.png)
+
+1. **Add your first event**: click New event, pick a type, enter a name and date, check the preview on the right, and save.
+2. **Create a feed URL**: on the Feeds page, click Create feed URL and name it after the device.
+3. **Subscribe in your calendar app**:
+   - Apple iPhone / iPad / Mac: open this site on the device you want to subscribe, click Open in Calendar, and confirm. You can also expand the row and scan the QR code with the camera.
+   - Google Calendar: click Copy URL, open Google Calendar on the web on a computer, click + next to Other calendars → From URL, and paste.
+   - Outlook: click Copy URL, then in Outlook on the web choose Add calendar → Subscribe from web, and paste.
+
+   Step 3 ticks itself the first time a calendar fetches the feed. Google Calendar and Outlook fetch from their own servers, so they need a public HTTPS address, and the first sync can take from a few hours to more than a day.
+
+Each step has a Show me button that highlights where to click. The guide only highlights and explains; you do the typing, saving, copying, and opening yourself. Closing the form midway pauses the guide, and you can resume later. [Watch the guide demo](docs/media/en/guide-tour.webm) (WebM, about 25 seconds).
+
+![Guide step 4, Check the preview: the guide card points to the preview while the form stays editable](docs/media/en/guide-tour-step.png)
+
+## When something goes wrong
+
+Help in the top right has step-by-step instructions for each calendar app with links to their official help, plus an FAQ:
+
+- **How long until events show up?** The calendar app decides how often it refreshes. Apple Calendar can be pulled down to refresh; Google Calendar and Outlook fetch on their own schedule. Last fetched on the Feeds page shows when a calendar last fetched.
+- **No reminder on my phone?** First check that Calendar reminders is on for the event. iPhone may strip alerts from subscribed calendars by default: Settings → Calendar → Accounts → Subscribed Calendars, pick this calendar, and turn off Remove Alerts.
+- **My feed URL leaked.** On the Feeds page click Rotate. The old URL stops working immediately; subscribe again with the new one.
+- **How do I back up?** The Backup page exports JSON with the current account's events. Import first shows how many events will be added or overwritten and writes only after you confirm.
+
+![Help drawer, Add to a calendar app: step-by-step instructions for Apple, Google Calendar, and Outlook with official help links](docs/media/en/help.png)
+
+Precise rules for lunar dates, leap months, the 30th, and February 29 are in [anniversary rules](docs/anniversary-rules.md) (Chinese).
+
+## Self-hosting
+
+### Try it locally
 
 Install Node.js 22.21.1 (or a newer Node 22 / Node 24), then run:
 
@@ -23,7 +81,7 @@ pnpm env:init
 pnpm dev
 ```
 
-`env:init` writes a basic `.env` only when that file does not exist; it does not overwrite an existing file. `.env` is gitignored. Open [Timenote](http://127.0.0.1:8720). On an empty database, create the admin account in the first-run setup. All variables are in [environment variables](docs/environment-variables.md) (Chinese).
+`env:init` writes a basic `.env` only when that file does not exist; it does not overwrite an existing file. `.env` is gitignored. Open [Timenote](http://127.0.0.1:8720). On an empty database, create the admin account on the first-run setup page.
 
 | Service                       | Address                      |
 | ----------------------------- | ---------------------------- |
@@ -39,30 +97,21 @@ pnpm build
 pnpm start
 ```
 
-## How to use
+### Accounts and registration
 
-1. The admin creates accounts for other people under Accounts (time zone is optional; reminders use the account time zone).
-2. Under Events, create a birthday, anniversary, or one-off event. The form shows the next 5 dates, titles, and reminder times as you edit.
-3. Under Feeds, create a feed URL for a device. The URL stays in the list and can be copied later. If it leaks, rotate or revoke it; the old URL stops working immediately.
-4. Add that URL as a subscribed calendar in the calendar app. Client-specific steps are in [docs/subscription-acceptance.md](docs/subscription-acceptance.md) (Chinese).
-5. Backup exports and imports JSON for the current account only. Import first shows how many events will be added or overwritten, and writes only after you confirm. For a database-level backup, run `pnpm db:backup`.
+- On an empty database, create the first admin on the web setup page (`POST /api/setup/admin`). There is no `INITIAL_ADMIN` environment variable.
+- Public self-registration is off by default (`PUBLIC_REGISTER_ENABLED`). When it is on, `REGISTER_DEFAULT_DISABLED` decides whether new accounts start disabled (the default; an admin must enable them).
+- Admins create, enable, disable, reset passwords for, and delete accounts under Accounts, and can set each account's time zone; reminders use the account time zone. Admins cannot read other accounts' events.
+- For a database-level backup, run `pnpm db:backup`.
 
-Precise rules for the lunar calendar, leap months, the 30th, and February 29 are in [anniversary rules](docs/anniversary-rules.md) (Chinese).
+All settings are in [environment variables](docs/environment-variables.md) (Chinese).
 
-## Quality checks
+### Deploy to a server
 
-```sh
-pnpm check        # typecheck, lint, format:check, Vitest, build
-pnpm test:e2e     # Playwright (local Microsoft Edge); starts pnpm dev against a temporary SQLite file
-pnpm verify       # all of the above, and writes source hashes, exit codes, logs, and test JSON under .tmp/verification-results/latest
-```
+A single Docker instance with a named volume for persistence. GitHub Actions publishes it: after a pull request is merged into `main`, the workflow builds an image, pushes it to `ghcr.io/fuego-zero/timenote`, then SSHs to the server to pull and start it. The server does not clone the repository. HTTPS and certificates are the deployer's responsibility (see [deploy/nginx.example.conf](deploy/nginx.example.conf)); calendar subscriptions need a public HTTPS address. Secrets, the first cutover, and rollback are in the [deployment notes](docs/deployment.md) (Chinese). Security constraints are in the [security notes](docs/security.md) (Chinese). Real-device checks for each calendar app are in the [subscription acceptance checklist](docs/subscription-acceptance.md) (Chinese).
 
-Test databases, screenshots, and reports go under `.tmp/`. Automated tests cover the rules engine, ICS round-trips, API permission boundaries, log redaction, and end-to-end flows. They do not replace checking a real device: each calendar app's refresh interval, reminder alerts, and display still need a manual pass against the [acceptance checklist](docs/subscription-acceptance.md) (Chinese).
+## Contributing
 
-## Deployment
+Structure, data flow, and the UID strategy are in the [architecture notes](docs/architecture.md) (Chinese). Quality checks, end-to-end tests, and AI tooling are in the [development notes](docs/development.md) (Chinese). How to regenerate the screenshots and demo videos on this page is in [guide and demo media](docs/guide-media.md) (Chinese).
 
-A single Docker instance with a named volume for persistence. GitHub Actions publishes it: after a pull request is merged into `main`, the workflow builds an image, pushes it to `ghcr.io/fuego-zero/timenote`, then SSHs to the server to pull and start it. The server does not clone the repository. HTTPS and certificates are the deployer's responsibility (see [deploy/nginx.example.conf](deploy/nginx.example.conf)). Secrets, the first cutover, and rollback are in the [deployment notes](docs/deployment.md) (Chinese). Security constraints are in the [security notes](docs/security.md) (Chinese).
-
-## AI engineering
-
-Rules live in `.cursor/rules/`. The overview is `AGENTS.md` (Chinese). Cursor uses `.cursor/hooks.json`. Codex uses `.codex/hooks.json`. Both share `.cursor/hooks/afterAgent.mjs`, which runs Prettier on files changed in that turn. The first time Codex uses a hook, or after the hook definition changes, review and trust it in the CLI `/hooks` menu.
+Product behavior is informed by TimeMark (read-only; see `.cursor/rules/02-timemark-readonly.mdc`). Stack: a pnpm workspace, TypeScript strict, Fastify + SQLite, React + Ant Design, Vitest + Playwright.
