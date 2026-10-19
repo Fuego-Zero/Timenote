@@ -2,16 +2,74 @@
 
 # 岁时记
 
-岁时记（Timenote）是自托管的生日与纪念日订阅服务：在网页里录入生日、纪念日和普通事件，按公历或农历规则自动展开每年的发生日，并以私密 ICS 地址订阅到任何支持 ICS/webcal 订阅的日历客户端（如苹果日历、Google 日历、Outlook）。
+岁时记（Timenote）帮你记住家人的生日和纪念日。录入一次原始日期，它会按公历或农历算出以后每一年的日子，通过私密订阅地址出现在手机或电脑自带的日历里，并带上你设定的提醒。数据保存在你自己部署的服务器上。
 
-- 多账号：空库时在 Web 首次引导页创建首个管理员（`POST /api/setup/admin`），不经 `INITIAL_ADMIN` 等环境变量；公开自助注册默认关闭（`PUBLIC_REGISTER_ENABLED`），开启后新号是否停用由 `REGISTER_DEFAULT_DISABLED` 决定（默认停用，须管理员启用）；管理员在「账号管理」中创建、启停、重置密码和删除账号；各账号的事件与订阅地址互相隔离。
-- 事件类型：生日（N 岁）、纪念日（第 N 周年）、普通事件（只发生一次）；支持年份未知、2 月 29 日、农历闰月与三十、跨天事件和最多两条提醒。
-- 保存前预览「未来 5 次」发生日，预览、订阅和导出共用同一套规则引擎（`packages/calendar`）。
-- 每台设备一个订阅地址，可随时轮换或撤销，旧地址立即返回 404；地址里不含姓名、生日或日期。
+[![演示视频封面：新建事件抽屉里填写「妈妈」的农历生日，右侧预览未来 5 次生日。点击打开不到 1 分钟的演示视频](docs/media/zh-CN/core-flow-cover.png)](docs/media/zh-CN/core-flow.webm)
 
-功能参考自 TimeMark（只读，见 `.cursor/rules/02-timemark-readonly.mdc`），工程体系照搬 mm-agent：pnpm 工作区、TypeScript strict、Fastify + SQLite、React + Ant Design、Vitest + Playwright。架构、数据流和 UID 策略见[架构说明](docs/architecture.md)。
+点击上图打开演示视频（WebM，不到 1 分钟，无声，画面带中文字幕）：录入生日 → 预览 → 打开提醒 → 创建订阅地址 → 添加到日历。GitHub 页面里不能直接播放，点击后会在新标签页打开或下载。视频中「日历拉取订阅」这一步由录制脚本代替日历 App 完成，字幕里有标注。
 
-## 从空环境启动
+## 它能做什么
+
+- **生日、纪念日、普通事件**：生日显示「N 岁」，纪念日显示「第 N 周年」，普通事件只发生一次，也可以跨好几天。
+- **公历和农历**：农历生日每年换算成当年的公历日期；闰月、三十、2 月 29 日、年份未知都有明确规则，保存前可以改。
+- **保存前先预览**：编辑时右侧实时列出未来 5 次的日期、标题和提醒时间，日历里看到的就是这些。
+- **放进你已经在用的日历**：苹果日历、Google 日历、Outlook 等支持 ICS / webcal 订阅的客户端都能用。之后新增或修改事件，日历刷新后自动同步，不用重新订阅。
+- **每台设备一个私密地址**：地址里不含姓名和日期；泄露时一键轮换，旧地址立即失效。
+- **全家共用**：管理员为每位家人创建账号，各自的事件和订阅互相隔离。
+
+## 看看界面
+
+事件列表：按下次发生排序，农历、提醒一目了然。
+
+![事件列表：海边旅行、妈妈 59 岁生日（农历）、结婚第 11 周年、小雨 8 岁生日、外婆生日（年份未知），各自带类型、历法和提醒标签](docs/media/zh-CN/events.png)
+
+编辑事件：左侧填写，右侧预览未来 5 次。
+
+![事件编辑抽屉：妈妈的农历生日，右侧列出 2027 至 2031 年的公历日期、岁数和前一天 09:00 的提醒](docs/media/zh-CN/editor.png)
+
+订阅页：苹果设备点「日历打开」或扫码，Google、Outlook 点「复制地址」后到日历里添加；「最近拉取」显示日历最后一次来取的时间。
+
+![订阅页：一行订阅地址，已被日历拉取过；展开行显示二维码（示例中已模糊）和扫码说明](docs/media/zh-CN/feeds.png)
+
+<img src="docs/media/zh-CN/mobile.png" alt="手机宽度下的事件列表，顶栏保留帮助和账号入口" width="280">
+
+手机浏览器同样可用；表格可以左右滑动查看更多列。
+
+## 第一次使用
+
+登录后，页面上方会出现「开始使用」三步清单。还没有事件的新用户会自动开始两段引导（添加第一个事件、放进日历），只自动一次：关掉、暂停或完成后，刷新和再次登录都不会再自动开始，需要时从清单或右上角「帮助」重新开始。完成一步打勾一步，全部完成后清单不再出现；不需要时点「不再显示」。
+
+![「开始使用」清单：添加第一个事件、创建订阅地址、在日历 App 里订阅，每步下面有「带我做」或「怎么添加？」](docs/media/zh-CN/first-run.png)
+
+1. **添加第一个事件**：点「新建事件」，选择类型、填写名称和日期，确认右侧预览后保存。
+2. **创建订阅地址**：在「订阅」页点「创建订阅地址」，为这台设备起个名字。
+3. **在日历 App 里订阅**：
+   - 苹果 iPhone / iPad / Mac：在要订阅的设备上打开网页，点「日历打开」，按系统提示确认；也可以展开那一行，用相机扫码。
+   - Google 日历：点「复制地址」，在电脑上打开 Google 日历网页版，「其他日历」旁的 ＋ →「通过网址添加」，粘贴。
+   - Outlook：点「复制地址」，在 Outlook 网页版「添加日历」→「从 Web 中订阅」，粘贴。
+
+   日历第一次来拉取后，第 3 步会自动打勾。Google 日历和 Outlook 从它们自己的服务器拉取，只能访问公网 HTTPS 地址，首次同步可能要几个小时到一天以上。
+
+每一步都可以点「带我做」，让引导高亮要点的位置。引导只高亮和说明，填写、保存、复制地址和打开日历都由你自己完成；中途关掉表单会暂停，之后可以继续。[观看引导演示](docs/media/zh-CN/guide-tour.webm)（WebM，约 25 秒）。
+
+![引导第 4 步「核对预览」：说明卡片指向右侧预览，表单可以照常填写](docs/media/zh-CN/guide-tour-step.png)
+
+## 遇到问题
+
+右上角「帮助」里有各日历客户端的详细步骤和官方帮助链接，以及常见问题：
+
+- **多久出现在日历里？** 刷新频率由日历 App 决定。苹果日历可以下拉刷新；Google 日历和 Outlook 由它们的服务器定时拉取。订阅页的「最近拉取」显示日历最后一次来取的时间。
+- **手机上没弹提醒？** 先确认事件里打开了「日历提醒」。iPhone 可能默认移除订阅日历的提醒：「设置」→「日历」→「账户」→「已订阅的日历」，选中这个日历，关闭「移除提醒」。
+- **订阅地址泄露了？** 在「订阅」里点「轮换」，旧地址立即失效，用新地址重新订阅。
+- **怎么备份？** 「备份」页可以导出 JSON，只含当前账号的事件；导入前先显示将新增和覆盖的数量，确认后才写入。
+
+![帮助抽屉的「添加到日历 App」部分：苹果、Google 日历、Outlook 的分步说明和官方帮助链接](docs/media/zh-CN/help.png)
+
+农历、闰月、三十、2 月 29 日的精确规则见[纪念日规则](docs/anniversary-rules.md)。
+
+## 自己部署
+
+### 本机试用
 
 安装 Node.js 22.21.1（或更新的 Node 22 / Node 24），然后运行：
 
@@ -23,7 +81,7 @@ pnpm env:init
 pnpm dev
 ```
 
-`env:init` 只在 `.env` 不存在时生成基础配置，不覆盖已有文件；`.env` 已被 Git 忽略。打开 [岁时记](http://127.0.0.1:8720)，空库时用首次引导创建管理员账号。全部变量见[环境变量](docs/environment-variables.md)。
+`env:init` 只在 `.env` 不存在时生成基础配置，不覆盖已有文件；`.env` 已被 Git 忽略。打开 [岁时记](http://127.0.0.1:8720)，空库时按首次设置页创建管理员账号。
 
 | 服务                | 地址                         |
 | ------------------- | ---------------------------- |
@@ -39,30 +97,21 @@ pnpm build
 pnpm start
 ```
 
-## 使用流程
+### 账号与注册
 
-1. 管理员在「账号管理」为家人创建账号（可选时区，提醒按账号时区换算）。
-2. 在「事件」里新建生日/纪念日/普通事件，表单下方实时显示未来 5 次的日期、标题和提醒时间。
-3. 在「订阅」里为设备创建订阅地址。地址会留在列表里，可以随时复制；泄露后轮换或撤销，旧地址立即失效。
-4. 在日历客户端里用订阅地址添加订阅日历（各客户端步骤见 [docs/subscription-acceptance.md](docs/subscription-acceptance.md)）。
-5. 「备份」可导出/导入 JSON（只含自己的事件；导入前先显示将新增和覆盖的数量，确认后才写入）；数据库级备份用 `pnpm db:backup`。
+- 空库时在 Web 首次设置页创建首个管理员（`POST /api/setup/admin`），不经 `INITIAL_ADMIN` 等环境变量。
+- 公开自助注册默认关闭（`PUBLIC_REGISTER_ENABLED`）；开启后新号是否停用由 `REGISTER_DEFAULT_DISABLED` 决定（默认停用，须管理员启用）。
+- 管理员在「账号管理」中创建、启停、重置密码和删除账号，可为账号设置时区，提醒按账号时区换算。管理员不能读取其他账号的事件。
+- 数据库级备份用 `pnpm db:backup`。
 
-农历、闰月、三十、2 月 29 日等规则的精确定义见[纪念日规则](docs/anniversary-rules.md)。
+全部配置项见[环境变量](docs/environment-variables.md)。
 
-## 质量检查
+### 部署到服务器
 
-```sh
-pnpm check        # typecheck、lint、format:check、Vitest、build
-pnpm test:e2e     # Playwright（本机 Microsoft Edge），自动以临时 SQLite 启动 pnpm dev
-pnpm verify       # 以上全部，并在 .tmp/verification-results/latest 保存源码哈希、退出码、日志与测试 JSON
-```
+单实例 Docker + 命名卷持久化。发布由 GitHub Actions 完成：Pull Request 合并进 `main` 后编译镜像并推到 `ghcr.io/fuego-zero/timenote`，再 SSH 到服务器拉取启动。服务器上不克隆仓库。HTTPS / 证书由部署方自理（示例见 [deploy/nginx.example.conf](deploy/nginx.example.conf)）；日历订阅需要公网 HTTPS 地址。密钥、首次切换和回滚见[部署说明](docs/deployment.md)，安全约束见[安全说明](docs/security.md)，各日历客户端的真机验收见[订阅验收清单](docs/subscription-acceptance.md)。
 
-测试数据库、截图和报告都写在 `.tmp/` 下。自动化测试覆盖规则引擎、ICS 往返解析、接口权限边界、日志脱敏与端到端流程，但不能替代真机验收：各日历客户端的刷新周期、提醒弹出和显示效果需按[验收清单](docs/subscription-acceptance.md)手工确认。
+## 参与开发
 
-## 部署
+工程结构、数据流和 UID 策略见[架构说明](docs/architecture.md)；质量检查、端到端测试和 AI 工程配置见[开发说明](docs/development.md)；本页截图和演示视频的重新生成方式见[引导与演示素材](docs/guide-media.md)。
 
-单实例 Docker + 命名卷持久化。发布由 GitHub Actions 完成：Pull Request 合并进 `main` 后编译镜像并推到 `ghcr.io/fuego-zero/timenote`，再 SSH 到服务器拉取启动。服务器上不克隆仓库。HTTPS / 证书由部署方自理（示例见 [deploy/nginx.example.conf](deploy/nginx.example.conf)）。密钥、首次切换和回滚见[部署说明](docs/deployment.md)，安全约束见[安全说明](docs/security.md)。
-
-## AI 工程
-
-规则在 `.cursor/rules/`，总览见 `AGENTS.md`。Cursor 使用 `.cursor/hooks.json`；Codex 使用 `.codex/hooks.json`，两者共用 `.cursor/hooks/afterAgent.mjs`，在每轮结束时用 Prettier 格式化本轮修改的文件。Codex 首次使用或修改 hook 定义后，需要在 CLI 的 `/hooks` 中审阅并信任。
+功能参考自 TimeMark（只读，见 `.cursor/rules/02-timemark-readonly.mdc`）。技术栈：pnpm 工作区、TypeScript strict、Fastify + SQLite、React + Ant Design、Vitest + Playwright。

@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { ApiRequestError, errorMessage } from "../../api/client.js";
 import { translateFieldError } from "../../i18n/translateMessage.js";
+import { guideTargets } from "../guide/guideTargets.js";
 import { draftIssues } from "./eventDraft.js";
 import { EventForm } from "./EventForm.js";
 import { EventPreview } from "./EventPreview.js";
@@ -65,7 +66,7 @@ export function EventEditor({
       footer={
         <Space style={{ width: "100%", justifyContent: "flex-end" }}>
           <Button onClick={onClose}>{t("common:cancel")}</Button>
-          <Button loading={saving} type="primary" onClick={() => void save()}>
+          <Button loading={saving} type="primary" data-guide={guideTargets.eventSave} onClick={() => void save()}>
             {t("common:save")}
           </Button>
         </Space>
@@ -101,6 +102,7 @@ export function EventEditor({
                 ? { paddingInlineStart: token.paddingXS, borderInlineStart: `1px solid ${token.colorBorderSecondary}` }
                 : undefined
             }
+            data-guide={guideTargets.eventPreview}
           >
             <Typography.Title level={5} styles={{ root: { marginTop: 0 } }}>
               {t("preview.title", { timeZone })}

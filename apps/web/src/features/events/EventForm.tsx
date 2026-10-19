@@ -2,6 +2,7 @@ import { type EventInput, eventKinds } from "@timenote/contracts";
 import { App, Form, Input, Segmented } from "antd";
 import { useTranslation } from "react-i18next";
 
+import { guideTargets } from "../guide/guideTargets.js";
 import { AlarmFields } from "./AlarmFields.js";
 import { kindLabels, normalizeRecurrence, withKind } from "./eventDraft.js";
 import { fieldStatus } from "./fieldStatus.js";
@@ -36,31 +37,38 @@ export function EventForm({
 
   return (
     <Form component="div" layout="vertical">
-      <Form.Item label={t("form.kind")}>
-        <Segmented
-          block
-          options={eventKinds.map(kind => ({ label: labels[kind], value: kind }))}
-          value={draft.kind}
-          onChange={kind => onChange(withKind(draft, kind, timeZone))}
-        />
-      </Form.Item>
-      <Form.Item
-        required
-        label={draft.kind === "birthday" ? t("form.personName") : t("form.name")}
-        {...fieldStatus(errors, "name")}
-      >
-        <Input
-          maxLength={60}
-          value={draft.name}
-          aria-label={t("form.nameAria")}
-          onChange={event => onChange({ ...draft, name: event.target.value })}
-        />
-      </Form.Item>
-      <OriginalDateFields draft={draft} errors={errors} onChange={change} />
+      <div data-guide={guideTargets.eventKind}>
+        {/* 引导这一步同时介绍类型和名称，两者放在同一个定位容器里。 */}
+        <Form.Item label={t("form.kind")}>
+          <Segmented
+            block
+            options={eventKinds.map(kind => ({ label: labels[kind], value: kind }))}
+            value={draft.kind}
+            onChange={kind => onChange(withKind(draft, kind, timeZone))}
+          />
+        </Form.Item>
+        <Form.Item
+          required
+          label={draft.kind === "birthday" ? t("form.personName") : t("form.name")}
+          {...fieldStatus(errors, "name")}
+        >
+          <Input
+            maxLength={60}
+            value={draft.name}
+            aria-label={t("form.nameAria")}
+            onChange={event => onChange({ ...draft, name: event.target.value })}
+          />
+        </Form.Item>
+      </div>
+      <div data-guide={guideTargets.eventDate}>
+        <OriginalDateFields draft={draft} errors={errors} onChange={change} />
+      </div>
       {draft.kind === "anniversary" ? <RecurrenceFields draft={draft} errors={errors} onChange={change} /> : null}
       <ScheduleFields draft={draft} errors={errors} onChange={change} />
       <TitleFields draft={draft} errors={errors} onChange={change} />
-      <AlarmFields draft={draft} errors={errors} onChange={change} />
+      <div data-guide={guideTargets.eventAlarm}>
+        <AlarmFields draft={draft} errors={errors} onChange={change} />
+      </div>
       <Form.Item label={t("form.note")} {...fieldStatus(errors, "note")}>
         <Input.TextArea
           autoSize={{ minRows: 2, maxRows: 5 }}

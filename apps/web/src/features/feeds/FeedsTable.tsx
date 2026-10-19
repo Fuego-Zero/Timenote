@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import { resolveLocale } from "../../i18n/index.js";
 import { type RowAction, RowActions } from "../../ui/RowActions.js";
+import { guideTargets } from "../guide/guideTargets.js";
 
 const searchDebounceMs = 300;
 
@@ -84,7 +85,8 @@ export function FeedsTable({
     { key: "scope", title: t("colScope"), width: 100, render: (_value, feed) => scopeLabel(feed) },
     {
       key: "lastFetchedAt",
-      title: t("colLastFetched"),
+      // 表格会把标题克隆进隐藏的测量行；真实表头在 DOM 中排在前面，引导定位取到的是它。
+      title: <span data-guide={guideTargets.feedLastFetched}>{t("colLastFetched")}</span>,
       width: 180,
       render: (_value, feed) => (feed.lastFetchedAt === null ? t("neverFetched") : dateTime(feed.lastFetchedAt, intl)),
     },
@@ -108,7 +110,7 @@ export function FeedsTable({
       title: t("common:actions"),
       // 编辑 + 复制地址 + 复制 webcal + 日历打开 + 轮换 + 撤销
       width: 450,
-      render: (_value, feed) => {
+      render: (_value, feed, index) => {
         const { url, webcalUrl } = feed;
         const actions: RowAction[] = [{ key: "edit", label: t("common:edit"), onClick: () => onEdit(feed) }];
         if (url) {
@@ -154,7 +156,11 @@ export function FeedsTable({
             onClick: () => onRevoke(feed.id),
           }
         );
-        return <RowActions actions={actions} />;
+        return (
+          <div data-guide={index === 0 ? guideTargets.feedActions : undefined}>
+            <RowActions actions={actions} />
+          </div>
+        );
       },
     },
   ];

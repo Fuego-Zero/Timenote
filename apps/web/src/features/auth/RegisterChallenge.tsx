@@ -39,7 +39,7 @@ export function RegisterChallenge({
       language={language.startsWith("zh") ? "zh-cn" : "en"}
       style={{ display: "block", marginBottom: 16 }}
       type="checkbox"
-      workers="2"
+      workers={2}
     />
   );
 }

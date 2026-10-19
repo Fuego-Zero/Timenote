@@ -1,0 +1,186 @@
+{
+  "helpButton": "Help",
+  "checklist": {
+    "title": "Get started with Timenote",
+    "subtitle": "Three steps to put birthdays and anniversaries in your calendar, every year from now on.",
+    "close": "Close Get started",
+    "dismiss": "Don't show again",
+    "start": "Show me",
+    "resume": "Continue",
+    "again": "Show again",
+    "howTo": "How?",
+    "adminTip": "You are an admin: create accounts for family members under Accounts. Each account's events and feed URLs are kept separate.",
+    "event": {
+      "title": "Add your first event",
+      "content": "Enter a birthday or anniversary and check the upcoming dates before saving."
+    },
+    "feed": {
+      "title": "Create a feed URL",
+      "content": "Generate a private URL for your phone or computer."
+    },
+    "fetched": {
+      "title": "Subscribe in your calendar app",
+      "content": "This step is checked automatically once a calendar first fetches the feed."
+    },
+    "doneTitle": "You're all set",
+    "doneBody": "A calendar has fetched your feed. New or edited events sync the next time the calendar refreshes.",
+    "doneClose": "Close"
+  },
+  "tour": {
+    "prev": "Back",
+    "next": "Next",
+    "finish": "Done",
+    "skipToExisting": "View existing URL",
+    "waiting": "Continues once you do this",
+    "progress": "{{current}} / {{total}}",
+    "announce": "{{title}}. {{description}}",
+    "paused": "Guide paused. Continue from Get started or Help.",
+    "unavailable": "Could not read your account data. Try the guide again later.",
+    "event": {
+      "done": "Your first event is added. Next: create a feed URL to put it in your calendar.",
+      "new": {
+        "title": "Add your first event",
+        "description": "Click New event. The guide continues once the form opens."
+      },
+      "kind": {
+        "title": "Pick a type and enter a name",
+        "description": "Birthdays show the age, anniversaries show the year count, and general events happen once. You can keep filling in the form while the guide is open."
+      },
+      "date": {
+        "title": "Enter the original date",
+        "description": "Choose Gregorian or Lunar, then enter the birth or first date. It defaults to today, so change it to the real date. If you don't know the year, check Year unknown."
+      },
+      "preview": {
+        "title": "Check the preview",
+        "description": "Once the name and date are filled in, this lists the next 5 occurrences from your settings. Your calendar shows the same titles and dates."
+      },
+      "alarm": {
+        "title": "Turn on reminders if you want them",
+        "description": "Reminders are written into the feed and fire at the time you set, a number of days ahead, in your account time zone."
+      },
+      "save": {
+        "title": "Save",
+        "description": "When everything looks right, click Save. Cancelling or closing the form pauses the guide."
+      }
+    },
+    "feed": {
+      "done": "Guide finished. After you add the feed in your calendar app, step 3 of Get started completes on its own.",
+      "tab": {
+        "title": "Put it in your calendar",
+        "description": "Click the Feeds tab."
+      },
+      "create": {
+        "title": "Create a feed URL",
+        "description": "Use one URL per device so you can turn each off separately. Click Create feed URL."
+      },
+      "form": {
+        "title": "Fill in and create",
+        "description": "The device name only labels the row in this list; the event scope defaults to all events. Then click Create."
+      },
+      "actions": {
+        "title": "Add it to your calendar app",
+        "description": "Apple devices: click Open in Calendar, or Copy webcal and open it on your iPhone; you can also click + at the start of the row to scan a QR code. Google or Outlook: click Copy URL and use “Add by URL” in that calendar. On a phone, swipe the table sideways to see every action."
+      },
+      "fetched": {
+        "title": "Confirm the subscription works",
+        "description": "Once a calendar app fetches the feed for the first time, the time shows here. Each calendar app decides how often it fetches."
+      }
+    }
+  },
+  "help": {
+    "title": "Help",
+    "intro": {
+      "title": "What Timenote does",
+      "body": "Timenote remembers birthdays and anniversaries for you. Enter the original date once; it works out every future year by the Gregorian or lunar calendar and puts them in the calendar on your phone or computer through a private feed URL, with the reminders you choose.",
+      "steps": [
+        "Under Events, add a birthday, anniversary, or general event and preview the next 5 dates before saving.",
+        "Under Feeds, create a private feed URL for each device.",
+        "Add that URL in your calendar app. Later edits sync when the calendar refreshes; you never resubscribe."
+      ],
+      "editorAlt": "Event editor drawer: type, name, and date of birth on the left; the next 5 dates, titles, and reminders update live on the right"
+    },
+    "tours": {
+      "title": "Restart a guide",
+      "body": "Guides only highlight and explain. They never fill in, save, or open external links for you.",
+      "event": "Add your first event",
+      "feed": "Put it in your calendar",
+      "showChecklist": "Show Get started again"
+    },
+    "calendar": {
+      "title": "Add to a calendar app",
+      "body": "Create a URL under Feeds first. Calendar apps usually require HTTPS. Google Calendar and Outlook fetch from their own servers, so they can only reach public addresses; LAN or plain http addresses do not work.",
+      "official": "Official help",
+      "screenshotAlt": "Feeds page: one feed URL row expanded to show its QR code (blurred in this example), with Copy URL, Copy webcal, and Open in Calendar actions",
+      "clients": [
+        {
+          "title": "Apple iPhone / iPad / Mac",
+          "steps": [
+            "Open this page on the device you want to subscribe, click Open in Calendar in the feed list, and confirm the subscription.",
+            "Or click Copy webcal, send it to your iPhone or iPad, and open it in Safari or Calendar. You can also expand the row and scan the QR code with the camera.",
+            "To add it by hand: on iPhone, Calendar app → Calendars → Add Calendar → Add Subscription Calendar, then paste the URL. On Mac, Calendar app → File → New Calendar Subscription."
+          ],
+          "url": "https://support.apple.com/guide/iphone/iph3d1110d4/ios"
+        },
+        {
+          "title": "Google Calendar",
+          "steps": [
+            "Click Copy URL in the feed list to get the HTTPS URL.",
+            "On a computer, open Google Calendar on the web, click + next to Other calendars → From URL, and paste the URL.",
+            "Google fetches updates on its own schedule and cannot be refreshed by hand. Google Calendar on your phone shows it once the same account syncs."
+          ],
+          "url": "https://support.google.com/calendar/answer/37100?hl=en"
+        },
+        {
+          "title": "Outlook",
+          "steps": [
+            "Click Copy URL in the feed list to get the HTTPS URL.",
+            "In Outlook on the web, choose Add calendar → Subscribe from web, and paste the URL.",
+            "The first sync and later updates can take more than 24 hours."
+          ],
+          "url": "https://support.microsoft.com/en-us/office/cff1429c-5af6-41ec-a5b4-74f2c278e98c"
+        }
+      ]
+    },
+    "faq": {
+      "title": "FAQ",
+      "items": [
+        {
+          "q": "How long until events show up? Why hasn't an edit appeared yet?",
+          "a": "Your calendar app decides how often it refreshes. Apple Calendar can be pulled down to refresh, and the fetch frequency for subscribed calendars is in system settings. Google Calendar and Outlook fetch from their servers on their own schedule, which can take hours to more than a day. Last fetched on the Feeds page shows when a calendar last fetched."
+        },
+        {
+          "q": "Do I need to resubscribe after adding or editing events?",
+          "a": "No. The feed URL stays the same; additions, edits, and deletions sync the next time the calendar refreshes."
+        },
+        {
+          "q": "How are lunar birthdays calculated? What about leap months and the 30th?",
+          "a": "Choose Lunar and enter the lunar year, month, and day; each year is converted to the Gregorian date for that lunar year. If the original date is in a leap month that a year does not have, the regular month of the same name is used by default. If the original day is the 30th and that month has only 29 days, the last day of the month is used by default. Either case can be set to skip that year instead. The preview lists the exact dates before you save."
+        },
+        {
+          "q": "What if someone was born on February 29?",
+          "a": "In common years it falls on February 28 by default; you can choose March 1 or skip that year instead. Leap years keep February 29."
+        },
+        {
+          "q": "What if I don't know the birth year?",
+          "a": "Check Year unknown. The date still appears every year, and the title omits the age or year count."
+        },
+        {
+          "q": "Why didn't my phone show a reminder?",
+          "a": "First make sure Calendar reminders is on for the event. An iPhone may remove alerts from subscribed calendars by default: go to Settings → Calendar → Accounts → Subscribed Calendars, pick this calendar, and turn off Remove Alerts. Reminder times use your account time zone, which you can change under Account settings at the top right."
+        },
+        {
+          "q": "What if my feed URL leaks?",
+          "a": "Treat the feed URL like a password. Click Rotate under Feeds to get a new URL; the old one stops working immediately, so resubscribe on your devices with the new one. Revoke any URL you no longer use."
+        },
+        {
+          "q": "How do family members get access?",
+          "a": "An admin creates an account for each person under Accounts. Each account's events and feed URLs are kept separate, and everyone subscribes to their own calendar."
+        },
+        {
+          "q": "How do I back up my data?",
+          "a": "Export JSON on the Backup page; it contains only the current account's events. Before importing, it shows how many events will be added or overwritten and writes only after you confirm."
+        }
+      ]
+    }
+  }
+}
