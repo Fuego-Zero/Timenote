@@ -37,7 +37,8 @@ describe("事件列表查询契约", () => {
   });
 
   it("筛选枚举与 nextWithinDays 范围", () => {
-    expect(eventPageQuerySchema.safeParse({ kind: "holiday" }).success).toBe(false);
+    expect(eventPageQuerySchema.safeParse({ kind: "holiday" }).success).toBe(true);
+    expect(eventPageQuerySchema.safeParse({ kind: "x".repeat(33) }).success).toBe(false);
     expect(eventPageQuerySchema.safeParse({ calendar: "lunar", nextWithinDays: "366" }).success).toBe(true);
     expect(eventPageQuerySchema.safeParse({ nextWithinDays: "367" }).success).toBe(false);
   });

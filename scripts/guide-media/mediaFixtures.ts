@@ -170,12 +170,13 @@ export const mediaScripts: Record<MediaLanguage, MediaScript> = {
 
 function event(language: MediaLanguage, input: Partial<EventInput> & Pick<EventInput, "date" | "kind" | "name">) {
   const { templates } = uiCopy[language].events;
-  const titleTemplate = {
-    birthday: input.date.year === null ? templates.birthday : templates.birthdayYears,
-    anniversary: input.date.year === null ? templates.anniversary : templates.anniversaryYears,
-    event: templates.event,
-  }[input.kind];
-  const titlePrefix = { birthday: "🎂", anniversary: "💞", event: "" }[input.kind];
+  const titleTemplate =
+    {
+      birthday: input.date.year === null ? templates.birthday : templates.birthdayYears,
+      anniversary: input.date.year === null ? templates.anniversary : templates.anniversaryYears,
+      event: templates.event,
+    }[input.kind] ?? templates.event;
+  const titlePrefix = { birthday: "🎂", anniversary: "💞", event: "" }[input.kind] ?? "";
   return {
     id: randomUUID(),
     event: {
@@ -185,7 +186,7 @@ function event(language: MediaLanguage, input: Partial<EventInput> & Pick<EventI
       durationDays: 1,
       rules: { feb29: "feb28", leapMonth: "regular", missingDay: "lastDay" },
       alarms: [],
-      recurrence: { unit: "year", interval: 1, end: { type: "never" } },
+      recurrence: input.kind === "event" ? null : { unit: "year", interval: 1, end: { type: "never" } },
       gregorianMissingDay: "lastDay",
       milestones: [],
       milestoneTemplate: templates.milestone,
@@ -218,7 +219,7 @@ export function showcaseBackup(language: MediaLanguage): BackupFile {
   });
   return backupFileSchema.parse({
     format: "timenote-backup",
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     events: [
       event(language, {

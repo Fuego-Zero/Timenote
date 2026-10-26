@@ -3,13 +3,13 @@ import { z } from "zod";
 import { issueDetail } from "./error.js";
 import {
   calendarSystems,
-  eventKinds,
   feb29Policies,
   gregorianMissingDayPolicies,
   leapMonthPolicies,
   maxAlarms,
   maxDurationDays,
   maxInterval,
+  maxKindLength,
   maxMilestoneDays,
   maxMilestones,
   maxRecurrenceCount,
@@ -62,7 +62,8 @@ const templateSchema = plainText(100, { multiline: false }).pipe(
 );
 
 const eventFields = z.object({
-  kind: z.enum(eventKinds),
+  /** 界面预设标识。展开与校验不读取它。 */
+  kind: plainText(maxKindLength, { multiline: false }).pipe(z.string().trim().min(1, issueDetail("kind_required"))),
   name: plainText(60, { multiline: true }).pipe(z.string().trim().min(1, issueDetail("name_required"))),
   titleTemplate: templateSchema,
   titlePrefix: plainText(16, { multiline: false }).pipe(z.string().trim()),
@@ -74,7 +75,8 @@ const eventFields = z.object({
     .max(maxDurationDays, issueDetail("duration_max", { n: maxDurationDays })),
   rules: eventRulesSchema,
   alarms: z.array(alarmSchema).max(maxAlarms),
-  recurrence: recurrenceSchema,
+  /** null 表示只发生一次；有对象时按单位、间隔和结束条件重复。 */
+  recurrence: recurrenceSchema.nullable(),
   gregorianMissingDay: z.enum(gregorianMissingDayPolicies),
   milestones: z
     .array(z.int().min(1).max(maxMilestoneDays))
@@ -93,7 +95,7 @@ function daysInGregorianMonth(year: number | null, month: number) {
   return [4, 6, 9, 11].includes(month) ? 30 : 31;
 }
 
-/** 是否为默认规则「每 1 年、永不结束」；生日、普通事件和年份未知的事件只能用它。 */
+/** 是否为「每 1 年」。年份已知时可用 {{years}}。 */
 export function isYearlyEveryYear(recurrence: Recurrence) {
   return recurrence.unit === "year" && recurrence.interval === 1;
 }
@@ -102,29 +104,20 @@ function isDefaultRecurrence(recurrence: Recurrence) {
   return isYearlyEveryYear(recurrence) && recurrence.end.type === "never";
 }
 
-/** 标题模板在该事件规则下可用的变量：{{years}} 只用于每 1 年且年份已知，{{count}} 只用于纪念日非每 1 年且年份已知。 */
-export function titleVariables(value: Pick<EventFields, "kind" | "date" | "recurrence">): TemplateVariable[] {
+/** 标题模板在该日程下可用的变量：{{years}} 只用于每 1 年且年份已知，{{count}} 只用于其他重复且年份已知。 */
+export function titleVariables(value: Pick<EventFields, "date" | "recurrence">): TemplateVariable[] {
   const variables: TemplateVariable[] = ["name"];
-  if (value.kind === "event" || value.date.year === null) {
+  if (value.recurrence === null || value.date.year === null) {
     return variables;
   }
 
-  if (isYearlyEveryYear(value.recurrence)) {
-    variables.push("years");
-  } else if (value.kind === "anniversary") {
-    variables.push("count");
-  }
-
+  variables.push(isYearlyEveryYear(value.recurrence) ? "years" : "count");
   return variables;
 }
 
 export const milestoneVariables: readonly TemplateVariable[] = ["name", "days"];
 
 function yearsProblem(value: EventFields) {
-  if (value.kind === "event") {
-    return issueDetail("years_not_for_event");
-  }
-
   if (value.date.year === null) {
     return issueDetail("years_unknown");
   }
@@ -149,13 +142,17 @@ function refineTemplates(value: EventFields, issue: (path: (string | number)[], 
 }
 
 function refineRecurrence(value: EventFields, issue: (path: (string | number)[], message: string) => void) {
-  const { recurrence } = value;
-  if (value.kind !== "anniversary" && !isDefaultRecurrence(recurrence)) {
-    issue(["recurrence"], issueDetail("recurrence_anniversary_only"));
+  if (new Set(value.milestones).size !== value.milestones.length) {
+    issue(["milestones"], issueDetail("milestones_duplicate"));
   }
 
-  if (value.kind !== "anniversary" && value.milestones.length) {
-    issue(["milestones"], issueDetail("milestones_anniversary_only"));
+  const { recurrence } = value;
+  if (recurrence === null) {
+    if (value.date.year === null) {
+      issue(["date", "year"], issueDetail("event_year_required"));
+    }
+
+    return;
   }
 
   if (recurrence.interval > maxInterval[recurrence.unit]) {
@@ -196,25 +193,12 @@ function refineRecurrence(value: EventFields, issue: (path: (string | number)[],
       }
     });
   }
-
-  if (new Set(value.milestones).size !== value.milestones.length) {
-    issue(["milestones"], issueDetail("milestones_duplicate"));
-  }
 }
 
 function refineEvent(value: EventFields, ctx: z.RefinementCtx) {
   const issue = (path: (string | number)[], message: string) => ctx.addIssue({ code: "custom", path, message });
   refineTemplates(value, issue);
   refineRecurrence(value, issue);
-  if (value.kind === "event") {
-    if (value.date.calendar !== "gregorian") {
-      issue(["date", "calendar"], issueDetail("event_gregorian_only"));
-    }
-
-    if (value.date.year === null) {
-      issue(["date", "year"], issueDetail("event_year_required"));
-    }
-  }
 
   if (value.date.calendar === "gregorian") {
     if (value.date.leapMonth) {

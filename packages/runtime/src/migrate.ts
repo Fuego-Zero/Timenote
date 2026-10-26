@@ -11,6 +11,7 @@ export const migrationNames = [
   "0003_feed_event_ids_cleanup",
   "0004_list_indexes",
   "0005_recurrence",
+  "0006_once_recurrence",
 ] as const;
 
 function sqlPath(name: string) {

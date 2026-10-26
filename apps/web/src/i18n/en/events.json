@@ -20,14 +20,16 @@
   "withinDays": "Within {{count}} days",
   "noTimeLimit": "Any time",
   "emptyFiltered": "No matching events",
-  "empty": "No events yet. Click New event at the top right to add a birthday, anniversary, or general event.",
+  "empty": "No events yet. Click New event at the top right to add a birthday, anniversary, festival, general event, or custom repeat.",
   "searchAria": "Search events",
   "sortAria": "Sort",
   "nextWithinAria": "Occurrence window",
   "kind": {
     "birthday": "Birthday",
     "anniversary": "Anniversary",
-    "event": "General event"
+    "holiday": "Festival",
+    "event": "General event",
+    "custom": "Custom"
   },
   "form": {
     "kind": "Type",
@@ -36,7 +38,19 @@
     "nameAria": "Title",
     "note": "Notes",
     "noteAria": "Notes",
-    "lunarYearOnlyReset": "Lunar dates or unknown years can only repeat yearly; reset to every year."
+    "lunarYearOnlyReset": "Lunar dates or unknown years can only repeat yearly; reset to every year.",
+    "switchTitle": "Change type",
+    "switchBody": "Changing to \"{{kind}}\" will {{changes}}.",
+    "switchOk": "Change",
+    "switch": {
+      "once": "make it happen once",
+      "yearly": "repeat it every year",
+      "recurrence": "replace the current repeat rule",
+      "milestones": "clear milestones",
+      "yearCleared": "stop recording the year",
+      "yearSet": "fill in a year",
+      "gregorian": "switch to the Gregorian calendar"
+    }
   },
   "preview": {
     "title": "Upcoming ({{timeZone}})",
@@ -69,7 +83,23 @@
     "prefix": "Title prefix",
     "prefixExtra": "Optional emoji or short text; skipped if already present",
     "prefixAria": "Title prefix",
-    "noPrefix": "None"
+    "noPrefix": "None",
+    "allPatterns": "All patterns",
+    "guideTitle": "How to write a title",
+    "guideVariables": "Variables",
+    "guideExamples": "Copy these",
+    "unavailable": "Not available now",
+    "unavailableMark": " (not available now)",
+    "varName": "{{name}}: the name, always available",
+    "varYears": "{{years}}: age or anniversary count, every 1 year with a known year",
+    "varCount": "{{count}}: occurrence number starting at 1. Use it for weeks, months, and times; available when it is not every 1 year and the year is known",
+    "varDays": "{{days}}: days since the start date, milestone titles only",
+    "exampleWeekly": "Weekly: {{name}} week {{count}}",
+    "exampleMonthly": "Monthly: {{name}} month {{count}}",
+    "exampleOther": "Every N days, N years, or another interval: {{name}} #{{count}}",
+    "exampleYearly": "Yearly: {{name}} {{years}} anniversary, or {{name}} age {{years}}",
+    "exampleMilestone": "Milestone: {{name}} day {{days}}",
+    "exampleName": "Name only: {{name}}"
   },
   "schedule": {
     "lastDay": "Last day",
@@ -79,6 +109,7 @@
     "durationAria": "Duration in days",
     "daySuffix": "days",
     "feb29": "Feb 29 in non-leap years",
+    "feb29Hint": "This day exists only in leap years. Choose how a common year is handled.",
     "feb28": "Use Feb 28",
     "mar1": "Use Mar 1",
     "skipYear": "Skip that year",
@@ -90,6 +121,7 @@
   "originalDate": {
     "basis": "Repeat by",
     "yearUnknown": "Year unknown (remember the annual date only; hide age/anniversary count)",
+    "feb29Hint": "The 29th exists only in leap years.",
     "dateAria": "Date",
     "yearSuffix": "",
     "lunarYearAria": "Lunar year",
@@ -105,7 +137,9 @@
     "labels": {
       "birthday": "Date of birth",
       "anniversary": "First date",
-      "event": "Start date"
+      "holiday": "Festival date",
+      "event": "Start date",
+      "custom": "Date"
     }
   },
   "alarm": {
@@ -126,6 +160,7 @@
     "suffix": "days before"
   },
   "recurrence": {
+    "once": "Does not repeat",
     "label": "Repeat",
     "aria": "Repeat",
     "yearly": "Every year",

@@ -23,9 +23,9 @@ function milestoneOrigin(event: Pick<EventInput, "date" | "rules">): IsoDate | n
   return lunarStart(date, { ...event.rules, leapMonth: "regular", missingDay: "lastDay" }, date.year);
 }
 
-/** 第 N 天 = 起点 + N 天；只给纪念日，不受结束条件和缺日影响，按天数升序。 */
-export function milestoneDates(event: Pick<EventInput, "date" | "kind" | "milestones" | "rules">): MilestoneDate[] {
-  if (event.kind !== "anniversary" || !event.milestones.length) {
+/** 第 N 天 = 起点 + N 天；有起点即可，不受结束条件和缺日影响，按天数升序。 */
+export function milestoneDates(event: Pick<EventInput, "date" | "milestones" | "rules">): MilestoneDate[] {
+  if (!event.milestones.length) {
     return [];
   }
 

@@ -35,8 +35,11 @@ export function buildFeed(input: FeedInput): string {
     const updated = new Date(Math.floor(event.updatedAt / 1000) * 1000);
     for (const occurrence of expandEvent(event, input.window, input.timeZone, input.today)) {
       calendar.createEvent({
-        // 按年为「ID-逻辑年份」，按天/周/月为「ID-k序号」，里程碑为「ID-m天数」；普通事件只有一次，保留稳定事件 ID。
-        id: event.kind === "event" ? `${event.id}@timenote` : `${event.id}-${occurrence.key}@timenote`,
+        // 按年为「ID-逻辑年份」，按天/周/月为「ID-k序号」，里程碑为「ID-m天数」；只发生一次时主条目保留稳定事件 ID。
+        id:
+          event.recurrence === null && !occurrence.key.startsWith("m")
+            ? `${event.id}@timenote`
+            : `${event.id}-${occurrence.key}@timenote`,
         allDay: true,
         start: occurrence.start,
         end: occurrence.end,

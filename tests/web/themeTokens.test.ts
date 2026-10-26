@@ -11,6 +11,10 @@ const tagTokens = {
   tagBirthdayBg: "#fbe4ee",
   tagAnniversaryColor: "#7a2e8a",
   tagAnniversaryBg: "#f3e6f5",
+  tagHolidayColor: "#8a3b12",
+  tagHolidayBg: "#f8ebdf",
+  tagCustomColor: "#1d3e68",
+  tagCustomBg: "#e6eef8",
   tagGeneralColor: "#6b6266",
   tagGeneralBg: "#f1eeef",
   tagSolarColor: "#46637f",
@@ -50,7 +54,7 @@ it("appTheme 只含定稿列出的键", () => {
   expect(appTheme.components?.Layout).toEqual({ headerBg: "#fff", headerPadding: "12px 16px", headerHeight: "auto" });
 });
 
-it("事件 Tag 的 14 个 token 与定稿色值一致", () => {
+it("事件 Tag 的 18 个 token 与定稿色值一致", () => {
   for (const [key, value] of Object.entries(tagTokens)) {
     expect(appTheme.token).toHaveProperty(key, value);
   }

@@ -137,6 +137,25 @@ describe("按年与结束条件", () => {
 });
 
 describe("里程碑", () => {
+  it("年份为空的每年重复在窗口内每年一条，标题没有周年数", () => {
+    const event = eventInput({
+      kind: "holiday",
+      name: "春节",
+      titleTemplate: "{{name}}",
+      date: { calendar: "lunar", year: null, month: 1, day: 1 },
+    });
+    const result = expandEvent(event, { fromYear: 2026, toYear: 2027 }, tz, "2026-01-01");
+    expect(result.map(item => item.title)).toEqual(["春节", "春节"]);
+    expect(result.every(item => item.years === null)).toBe(true);
+  });
+
+  it("有起点就能输出里程碑，不要求标识是纪念日", () => {
+    const dates = milestoneDates(
+      eventInput({ kind: "birthday", date: { year: 2026, month: 1, day: 1 }, milestones: [100] })
+    );
+    expect(dates).toEqual([{ days: 100, start: "2026-04-11" }]);
+  });
+
   it("第 N 天 = 起始日 + N 天，起始日为第 0 天；农历先换算公历起点", () => {
     expect(milestoneDates(anniversary({ date: { year: 2026, month: 1, day: 1 }, milestones: [520, 100] }))).toEqual([
       { days: 100, start: "2026-04-11" },

@@ -2,7 +2,7 @@
   "helpButton": "Help",
   "checklist": {
     "title": "Get started with Timenote",
-    "subtitle": "Three steps to put birthdays and anniversaries in your calendar, every year from now on.",
+    "subtitle": "Three steps to put a date in your calendar. After that it appears by its rule.",
     "close": "Close Get started",
     "dismiss": "Don't show again",
     "start": "Show me",
@@ -12,7 +12,7 @@
     "adminTip": "You are an admin: create accounts for family members under Accounts. Each account's events and feed URLs are kept separate.",
     "event": {
       "title": "Add your first event",
-      "content": "Enter a birthday or anniversary and check the upcoming dates before saving."
+      "content": "Enter a date and check the upcoming occurrences before saving."
     },
     "feed": {
       "title": "Create a feed URL",
@@ -44,11 +44,11 @@
       },
       "kind": {
         "title": "Pick a type and enter a name",
-        "description": "Birthdays show the age, anniversaries show the year count, and general events happen once. You can keep filling in the form while the guide is open."
+        "description": "Birthdays include the age, anniversaries include the year or occurrence count, festivals repeat the same month and day, general events happen once, and Custom lets you set the repeat. You can keep filling in the form while the guide is open."
       },
       "date": {
         "title": "Enter the original date",
-        "description": "Choose Gregorian or Lunar, then enter the birth or first date. It defaults to today, so change it to the real date. If you don't know the year, check Year unknown."
+        "description": "Birthdays and anniversaries can use the Gregorian or lunar calendar; check Year unknown if you don't know the year. Festivals are a month and day every year, with no year. General events are one Gregorian date, with a start and a last day. The form starts on today, so change it to the real date."
       },
       "preview": {
         "title": "Check the preview",
@@ -91,13 +91,13 @@
     "title": "Help",
     "intro": {
       "title": "What Timenote does",
-      "body": "Timenote remembers birthdays and anniversaries for you. Enter the original date once; it works out every future year by the Gregorian or lunar calendar and puts them in the calendar on your phone or computer through a private feed URL, with the reminders you choose.",
+      "body": "Timenote keeps birthdays, anniversaries, and festivals, plus one-time events and repeats you set yourself. A festival is the same month and day every year, without an age or anniversary count. A general event appears only on the date you save. Dates follow the Gregorian or lunar calendar and show up, with your reminders, in the calendar on your phone or computer through a private feed URL.",
       "steps": [
-        "Under Events, add a birthday, anniversary, or general event and preview the next 5 dates before saving.",
+        "Under Events, add a birthday, anniversary, festival, general event, or custom repeat, and preview the next 5 dates before saving.",
         "Under Feeds, create a private feed URL for each device.",
         "Add that URL in your calendar app. Later edits sync when the calendar refreshes; you never resubscribe."
       ],
-      "editorAlt": "Event editor drawer: type, name, and date of birth on the left; the next 5 dates, titles, and reminders update live on the right"
+      "editorAlt": "Event editor drawer: type, name, and date on the left; the next 5 dates, titles, and reminders update live on the right"
     },
     "tours": {
       "title": "Restart a guide",
@@ -157,12 +157,16 @@
           "a": "Choose Lunar and enter the lunar year, month, and day; each year is converted to the Gregorian date for that lunar year. If the original date is in a leap month that a year does not have, the regular month of the same name is used by default. If the original day is the 30th and that month has only 29 days, the last day of the month is used by default. Either case can be set to skip that year instead. The preview lists the exact dates before you save."
         },
         {
-          "q": "What if someone was born on February 29?",
-          "a": "In common years it falls on February 28 by default; you can choose March 1 or skip that year instead. Leap years keep February 29."
+          "q": "What about February 29?",
+          "a": "Gregorian February offers the 29th. The 30th and 31st are not listed. When the 29th repeats every year, a common year falls on February 28 by default; you can choose March 1 or skip that year instead. Leap years keep February 29."
         },
         {
-          "q": "What if I don't know the birth year?",
-          "a": "Check Year unknown. The date still appears every year, and the title omits the age or year count."
+          "q": "What if I don't know the year?",
+          "a": "Birthdays and anniversaries can use Year unknown. They still appear every year, and the title omits the age or anniversary count. Festivals do not store a year. A general event needs a year and happens once."
+        },
+        {
+          "q": "What do the braces in a title mean?",
+          "a": "The question mark beside the title lists {{name}}, {{years}}, {{count}}, and {{days}}. Week, month, and occurrence counts keep those words in the text and use {{count}} for the number. The lines under the title show what this event can use right now."
         },
         {
           "q": "Why didn't my phone show a reminder?",

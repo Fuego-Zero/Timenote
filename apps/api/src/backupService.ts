@@ -9,7 +9,7 @@ import { parseEventInput } from "./parseEventInput.js";
 export function exportBackup(repo: OpenedRepository, ownerId: string, now: number): BackupFile {
   return {
     format: "timenote-backup",
-    version: 2,
+    version: 3,
     exportedAt: new Date(now).toISOString(),
     events: repo.events.listEvents(ownerId).map(event => ({ id: event.id, event: editableFields(event) })),
   };

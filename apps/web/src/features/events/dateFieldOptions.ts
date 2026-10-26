@@ -1,5 +1,4 @@
 import { formatLunarMonthDay } from "@timenote/calendar";
-import type { EventInput } from "@timenote/contracts";
 
 import { i18n, resolveLocale } from "../../i18n/index.js";
 
@@ -24,14 +23,6 @@ export function lunarMonthOptions() {
       value: month,
     };
   });
-}
-
-export function dateLabels(): Record<EventInput["kind"], string> {
-  return {
-    birthday: i18n.t("originalDate.labels.birthday", { ns: "events" }),
-    anniversary: i18n.t("originalDate.labels.anniversary", { ns: "events" }),
-    event: i18n.t("originalDate.labels.event", { ns: "events" }),
-  };
 }
 
 function dayLabel(lunar: boolean, month: number, day: number) {
@@ -61,11 +52,25 @@ export function formatLunarDateLabel(month: number, day: number, leapMonth: bool
   });
 }
 
+/** 公历下拉能选到的最后一天。2 月含 29 日，平年怎么处理由事件规则说明。 */
+export function gregorianDayCount(month: number) {
+  if (month === 2) {
+    return 29;
+  }
+
+  return [4, 6, 9, 11].includes(month) ? 30 : 31;
+}
+
+/** 换月后把日收到该月还能选的最后一天。农历三十仍保留，交给小月规则。 */
+export function clampSelectedDay(lunar: boolean, month: number, day: number) {
+  const last = lunar ? 30 : gregorianDayCount(month);
+  return Math.min(day, last);
+}
+
 export function dayOptions(lunar: boolean, month: number) {
-  return Array.from({ length: 31 }, (_value, index) => index + 1)
-    .filter(day => (lunar ? day <= 30 : true))
-    .map(day => ({
-      label: dayLabel(lunar, month, day),
-      value: day,
-    }));
+  const last = lunar ? 30 : gregorianDayCount(month);
+  return Array.from({ length: last }, (_value, index) => index + 1).map(day => ({
+    label: dayLabel(lunar, month, day),
+    value: day,
+  }));
 }

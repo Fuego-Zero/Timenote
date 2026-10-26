@@ -15,10 +15,14 @@ declare module "antd/es/theme/interface" {
     tagAnniversaryColor: string;
     tagBirthdayBg: string;
     tagBirthdayColor: string;
+    tagCustomBg: string;
+    tagCustomColor: string;
     tagDurationBg: string;
     tagDurationColor: string;
     tagGeneralBg: string;
     tagGeneralColor: string;
+    tagHolidayBg: string;
+    tagHolidayColor: string;
     tagLunarBg: string;
     tagLunarColor: string;
     tagReminderBg: string;
@@ -40,6 +44,10 @@ export const appTheme: ThemeConfig = {
     tagBirthdayBg: "#fbe4ee",
     tagAnniversaryColor: "#7a2e8a",
     tagAnniversaryBg: "#f3e6f5",
+    tagHolidayColor: "#8a3b12",
+    tagHolidayBg: "#f8ebdf",
+    tagCustomColor: "#1d3e68",
+    tagCustomBg: "#e6eef8",
     tagGeneralColor: "#6b6266",
     tagGeneralBg: "#f1eeef",
     tagSolarColor: "#46637f",

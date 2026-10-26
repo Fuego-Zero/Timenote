@@ -54,7 +54,12 @@ it("草稿有错误时不计算预览", () => {
 it("已经过去的普通事件仍显示它唯一的那一次，与订阅输出一致", () => {
   render(
     <EventPreview
-      draft={eventInput({ kind: "event", titleTemplate: "{{name}}", date: { year: 2020, month: 1, day: 1 } })}
+      draft={eventInput({
+        kind: "event",
+        titleTemplate: "{{name}}",
+        recurrence: null,
+        date: { year: 2020, month: 1, day: 1 },
+      })}
       now={now}
       timeZone="Asia/Shanghai"
     />

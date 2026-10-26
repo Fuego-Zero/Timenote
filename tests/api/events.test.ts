@@ -80,7 +80,7 @@ describe("事件", () => {
       fields: { "date.year": { detail: "lunar_range", params: { min: 1900, max: 2100, year: 1800 } } },
     });
 
-    const plain = await b.request("POST", "/api/events", eventInput({ kind: "event", date: { year: null } }));
+    const plain = await b.request("POST", "/api/events", eventInput({ recurrence: null, date: { year: null } }));
     expect(plain.json).toMatchObject({ fields: { "date.year": { detail: "event_year_required" } } });
 
     const control = await b.request("POST", "/api/events", eventInput({ titlePrefix: "\u0007" }));
@@ -121,7 +121,7 @@ describe("备份", () => {
     const exported = await admin.request<BackupFile>("GET", "/api/backup");
     expect(exported.headers["cache-control"]).toBe("no-store");
     expect(exported.headers["content-disposition"]).toBe('attachment; filename="timenote-backup-20261002.json"');
-    expect(exported.json).toMatchObject({ format: "timenote-backup", version: 2 });
+    expect(exported.json).toMatchObject({ format: "timenote-backup", version: 3 });
     expect(exported.json.events).toHaveLength(2);
     expect(JSON.stringify(exported.json)).not.toMatch(/ownerId|revision|passwordHash/);
 
@@ -141,7 +141,7 @@ describe("备份", () => {
     await b.login();
     const broken = {
       format: "timenote-backup",
-      version: 2,
+      version: 3,
       exportedAt: new Date().toISOString(),
       events: [
         { id: crypto.randomUUID(), event: eventInput() },

@@ -2,8 +2,6 @@ import {
   type CalendarEvent,
   type CalendarSystem,
   calendarSystems,
-  type EventKind,
-  eventKinds,
   maxQueryLength,
   type PageResult,
 } from "@timenote/contracts";
@@ -13,7 +11,7 @@ import { useTranslation } from "react-i18next";
 
 import { errorMessage } from "../../api/client.js";
 import { RowActions } from "../../ui/RowActions.js";
-import { kindLabels, kindTagTones } from "./eventDraft.js";
+import { kindLabel, kindLabels, kindTone, presetIds } from "./eventDraft.js";
 import { EventTag } from "./EventTag.js";
 import { nextOccurrence } from "./nextOccurrence.js";
 import { rangeText } from "./occurrenceText.js";
@@ -91,8 +89,8 @@ export function EventsList({
       title: t("common:type"),
       filterMultiple: false,
       filteredValue: query.kind ? [query.kind] : null,
-      filters: eventKinds.map(kind => ({ text: labels[kind], value: kind })),
-      render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{labels[event.kind]}</EventTag>,
+      filters: presetIds.map(kind => ({ text: labels[kind], value: kind })),
+      render: (_value, event) => <EventTag tone={kindTone(event.kind)}>{kindLabel(event.kind)}</EventTag>,
     },
     {
       key: "calendar",
@@ -214,7 +212,7 @@ export function EventsList({
         rowKey="id"
         scroll={{ x: "max-content" }}
         onChange={(pagination, filters) => {
-          const kind = firstFilter(filters.kind) as EventKind | undefined;
+          const kind = firstFilter(filters.kind);
           const calendar = firstFilter(filters.calendar) as CalendarSystem | undefined;
           const alarm = firstFilter(filters.hasAlarm);
           const hasAlarm = alarm === undefined ? undefined : alarm === "true";

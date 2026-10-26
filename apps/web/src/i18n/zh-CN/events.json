@@ -20,14 +20,16 @@
   "withinDays": "{{count}} 天内",
   "noTimeLimit": "不限时间",
   "emptyFiltered": "没有匹配的事件",
-  "empty": "还没有事件。点击右上角「新建事件」添加生日、纪念日或普通事件。",
+  "empty": "还没有事件。点击右上角「新建事件」添加生日、纪念日、节日、普通事件或自定义重复。",
   "searchAria": "搜索事件",
   "sortAria": "排序",
   "nextWithinAria": "发生时间范围",
   "kind": {
     "birthday": "生日",
     "anniversary": "纪念日",
-    "event": "普通事件"
+    "holiday": "节日",
+    "event": "普通事件",
+    "custom": "自定义"
   },
   "form": {
     "kind": "类型",
@@ -36,7 +38,19 @@
     "nameAria": "名称",
     "note": "备注",
     "noteAria": "备注",
-    "lunarYearOnlyReset": "农历或年份未知时只能按年重复，已改回每年"
+    "lunarYearOnlyReset": "农历或年份未知时只能按年重复，已改回每年",
+    "switchTitle": "切换类型",
+    "switchBody": "切换为「{{kind}}」会{{changes}}。",
+    "switchOk": "切换",
+    "switch": {
+      "once": "改为只发生一次",
+      "yearly": "改为每年重复",
+      "recurrence": "改掉当前的重复规则",
+      "milestones": "清除里程碑",
+      "yearCleared": "不再记录年份",
+      "yearSet": "补上年份",
+      "gregorian": "改为公历"
+    }
   },
   "preview": {
     "title": "未来几次（{{timeZone}}）",
@@ -69,7 +83,23 @@
     "prefix": "标题前缀",
     "prefixExtra": "可选 Emoji 或短文本，已包含时不会重复添加",
     "prefixAria": "标题前缀",
-    "noPrefix": "不加"
+    "noPrefix": "不加",
+    "allPatterns": "全部写法",
+    "guideTitle": "可以这样写",
+    "guideVariables": "变量",
+    "guideExamples": "照抄",
+    "unavailable": "当前不可用",
+    "unavailableMark": "（当前不可用）",
+    "varName": "{{name}}：名称，始终可用",
+    "varYears": "{{years}}：岁数或周年数，每 1 年且年份已知",
+    "varCount": "{{count}}：第几次，从 1 计。周、月、次都用它；不是每 1 年且年份已知时可用",
+    "varDays": "{{days}}：从起始日算起的第几天，只用于里程碑标题",
+    "exampleWeekly": "每周：{{name}}第 {{count}} 周",
+    "exampleMonthly": "每月：{{name}}第 {{count}} 个月",
+    "exampleOther": "每 N 天、每 N 年或其他间隔：{{name}}第 {{count}} 次",
+    "exampleYearly": "每年：{{name}}第 {{years}} 周年，或 {{name}} {{years}} 岁",
+    "exampleMilestone": "里程碑：{{name}}第 {{days}} 天",
+    "exampleName": "只要名称：{{name}}"
   },
   "schedule": {
     "lastDay": "最后一天",
@@ -79,6 +109,7 @@
     "durationAria": "持续天数",
     "daySuffix": "天",
     "feb29": "平年的 2 月 29 日",
+    "feb29Hint": "这一天只在闰年出现，平年按这里处理。",
     "feb28": "改在 2 月 28 日",
     "mar1": "改在 3 月 1 日",
     "skipYear": "跳过该年",
@@ -90,6 +121,7 @@
   "originalDate": {
     "basis": "重复依据",
     "yearUnknown": "年份未知（只记住每年的日期，不显示岁数或周年数）",
+    "feb29Hint": "29 日只在闰年出现。",
     "dateAria": "日期",
     "yearSuffix": "年",
     "lunarYearAria": "农历年",
@@ -103,7 +135,9 @@
     "labels": {
       "birthday": "出生日期",
       "anniversary": "首次日期",
-      "event": "开始日期"
+      "holiday": "节日日期",
+      "event": "开始日期",
+      "custom": "日期"
     }
   },
   "alarm": {
@@ -124,6 +158,7 @@
     "suffix": "天"
   },
   "recurrence": {
+    "once": "不重复",
     "label": "重复",
     "aria": "重复",
     "yearly": "每年",

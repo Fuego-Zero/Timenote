@@ -1,11 +1,10 @@
 import { issueDetail } from "./error.js";
-import type { EventKind } from "./eventEnums.js";
 
 /** 标题模板可用的全部变量；每个模板实际可用哪些由事件规则决定，其他 `{{…}}` 或孤立花括号一律拒绝。 */
 export const templateVariables = ["name", "years", "count", "days"] as const;
 export type TemplateVariable = (typeof templateVariables)[number];
 
-export const defaultTitleTemplates: Record<EventKind, { withYears: string; withoutYears: string }> = {
+export const defaultTitleTemplates = {
   birthday: { withYears: "{{name}} {{years}} 岁生日", withoutYears: "{{name}}生日" },
   anniversary: { withYears: "{{name}}第 {{years}} 周年", withoutYears: "{{name}}纪念日" },
   event: { withYears: "{{name}}", withoutYears: "{{name}}" },
