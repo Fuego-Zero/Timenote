@@ -69,11 +69,13 @@ function build(
   };
 }
 
+type RepeatingEvent = Omit<EventInput, "recurrence"> & { recurrence: NonNullable<EventInput["recurrence"]> };
+
 /** 按年重复（含隔 N 年）的某个逻辑年份；不在重复序列或超出结束条件时返回 null。 */
-function yearlyOccurrence(event: EventInput, logicalYear: number, timeZone: string): Occurrence | null {
+function yearlyOccurrence(event: RepeatingEvent, logicalYear: number, timeZone: string): Occurrence | null {
   const { date, recurrence } = event;
   let years: number | null = null;
-  if (event.kind !== "event" && date.year !== null) {
+  if (date.year !== null) {
     years = logicalYear - date.year;
     // 周年从第 1 年开始生成，不生成第 0 周年或原始日期之前的年份。
     if (years < 1 || years % recurrence.interval !== 0) {
@@ -90,7 +92,7 @@ function yearlyOccurrence(event: EventInput, logicalYear: number, timeZone: stri
   }
 
   const count = years === null ? null : years / recurrence.interval;
-  if (event.kind !== "event" && count !== null && !withinEnd(recurrence, count, start)) {
+  if (count !== null && !withinEnd(recurrence, count, start)) {
     return null;
   }
 
@@ -103,7 +105,7 @@ function yearlyOccurrence(event: EventInput, logicalYear: number, timeZone: stri
   );
 }
 
-function cycleOccurrence(event: EventInput, k: number, start: IsoDate, timeZone: string): Occurrence {
+function cycleOccurrence(event: RepeatingEvent, k: number, start: IsoDate, timeZone: string): Occurrence {
   return build(
     event,
     {
@@ -119,7 +121,7 @@ function cycleOccurrence(event: EventInput, k: number, start: IsoDate, timeZone:
 }
 
 /** 按天/周/月：从 from 起（最后一天 ≥ from）依次产出，直到 shouldStop 或结束条件。 */
-function* cycles(event: EventInput, from: IsoDate) {
+function* cycles(event: RepeatingEvent, from: IsoDate) {
   const { recurrence } = event;
   for (let k = firstCycleAtOrAfter(event, addDays(from, -event.durationDays)); ; k += 1) {
     const start = cycleStart(event, k);
@@ -158,7 +160,7 @@ function inWindow(start: IsoDate, window: YearWindow) {
 /**
  * 按天/周/月：窗口内开始的次数，以今天为界最多保留过去 maxPastOccurrences 次、未来 maxFutureOccurrences 次。
  */
-function windowCycles(event: EventInput, window: YearWindow, today: IsoDate, timeZone: string): Occurrence[] {
+function windowCycles(event: RepeatingEvent, window: YearWindow, today: IsoDate, timeZone: string): Occurrence[] {
   const past: Occurrence[] = [];
   const future: Occurrence[] = [];
   const windowEnd = isoDate(window.toYear, 12, 31);
@@ -185,38 +187,57 @@ function windowCycles(event: EventInput, window: YearWindow, today: IsoDate, tim
   return [...past, ...future];
 }
 
+/** 只发生一次：发生日就是保存的那一天，不从下一年起算。 */
+function onceOccurrence(event: EventInput, timeZone: string): Occurrence | null {
+  const { date } = event;
+  if (date.year === null) {
+    throw new Error(issueDetail("event_year_required"));
+  }
+
+  const start =
+    date.calendar === "lunar" ? lunarStart(date, event.rules, date.year) : gregorianStart(date, event.rules, date.year);
+  if (start === null) {
+    return null;
+  }
+
+  return build(
+    event,
+    { key: "once", logicalYear: date.year, start, durationDays: event.durationDays, template: event.titleTemplate },
+    {},
+    timeZone
+  );
+}
+
 /**
  * 原始事件展开为窗口内的发生日；展开结果只用于输出，不写回原始事件。
- * 普通事件只有保存的那一次，不受周年窗口影响。里程碑在窗口内全部输出。
+ * 只发生一次时输出保存的那一次，不受周年窗口影响。里程碑在窗口内全部输出。
  * today（用户时区的今天）只用于按天/周/月的过去/未来截断，由调用方显式传入。
  */
 export function expandEvent(event: EventInput, window: YearWindow, timeZone: string, today: IsoDate): Occurrence[] {
-  if (event.kind === "event") {
-    if (event.date.year === null) {
-      throw new Error(issueDetail("event_year_required"));
-    }
-
-    const single = yearlyOccurrence(event, event.date.year, timeZone);
-    return single ? [single] : [];
+  const milestones = milestoneOccurrences(event, timeZone).filter(item => inWindow(item.start, window));
+  if (event.recurrence === null) {
+    const single = onceOccurrence(event, timeZone);
+    return single ? [single, ...milestones] : milestones;
   }
 
+  const repeating: RepeatingEvent = { ...event, recurrence: event.recurrence };
   const occurrences: Occurrence[] = [];
-  if (event.recurrence.unit === "year") {
+  if (repeating.recurrence.unit === "year") {
     for (let year = window.fromYear; year <= window.toYear; year += 1) {
-      const occurrence = yearlyOccurrence(event, year, timeZone);
+      const occurrence = yearlyOccurrence(repeating, year, timeZone);
       if (occurrence) {
         occurrences.push(occurrence);
       }
     }
   } else {
-    occurrences.push(...windowCycles(event, window, today, timeZone));
+    occurrences.push(...windowCycles(repeating, window, today, timeZone));
   }
 
-  occurrences.push(...milestoneOccurrences(event, timeZone).filter(item => inWindow(item.start, window)));
+  occurrences.push(...milestones);
   return occurrences;
 }
 
-function upcomingYearly(event: EventInput, now: Date, timeZone: string, count: number, today: IsoDate) {
+function upcomingYearly(event: RepeatingEvent, now: Date, timeZone: string, count: number, today: IsoDate) {
   const result: Occurrence[] = [];
   // 农历年可能落在下一公历年初，因此从上一年开始找；2 月 29 日跳过策略最多每 8 年才发生一次，隔 N 年再乘 N。
   const fromYear = currentYearIn(now, timeZone) - 1;
@@ -232,7 +253,7 @@ function upcomingYearly(event: EventInput, now: Date, timeZone: string, count: n
   return result;
 }
 
-function upcomingCycles(event: EventInput, count: number, today: IsoDate, timeZone: string) {
+function upcomingCycles(event: RepeatingEvent, count: number, today: IsoDate, timeZone: string) {
   const result: Occurrence[] = [];
   for (const { k, start } of cycles(event, today)) {
     if (result.length >= count) {
@@ -247,18 +268,23 @@ function upcomingCycles(event: EventInput, count: number, today: IsoDate, timeZo
 
 /**
  * 从今天（用户时区）起最近的若干次发生，包括仍在持续中的那一次，里程碑按日期混排；用于编辑预览和下次发生。
- * 普通事件始终返回唯一那一次（即使已经过去），与订阅里输出的内容一致。
+ * 只发生一次时始终包含那一次（即使已经过去），与订阅里输出的内容一致。
  */
 export function upcomingOccurrences(event: EventInput, now: Date, timeZone: string, count: number): Occurrence[] {
   const today = todayIn(now, timeZone);
-  if (event.kind === "event") {
-    return expandEvent(event, { fromYear: 0, toYear: 0 }, timeZone, today);
+  if (event.recurrence === null) {
+    const single = onceOccurrence(event, timeZone);
+    const milestones = milestoneOccurrences(event, timeZone).filter(item => compareIsoDate(item.lastDay, today) >= 0);
+    return [...(single ? [single] : []), ...milestones]
+      .sort((left, right) => compareIsoDate(left.start, right.start))
+      .slice(0, count);
   }
 
+  const repeating: RepeatingEvent = { ...event, recurrence: event.recurrence };
   const regular =
-    event.recurrence.unit === "year"
-      ? upcomingYearly(event, now, timeZone, count, today)
-      : upcomingCycles(event, count, today, timeZone);
+    repeating.recurrence.unit === "year"
+      ? upcomingYearly(repeating, now, timeZone, count, today)
+      : upcomingCycles(repeating, count, today, timeZone);
   const milestones = milestoneOccurrences(event, timeZone).filter(item => compareIsoDate(item.lastDay, today) >= 0);
   return [...regular, ...milestones].sort((left, right) => compareIsoDate(left.start, right.start)).slice(0, count);
 }

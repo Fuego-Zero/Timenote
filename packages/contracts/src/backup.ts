@@ -7,7 +7,7 @@ export const backupEventSchema = z.object({ id: z.uuid(), event: eventInputSchem
 
 export const backupFileSchema = z.object({
   format: z.literal("timenote-backup"),
-  version: z.literal(2, { error: issueDetail("backup_v1") }),
+  version: z.literal(3, { error: issueDetail("backup_v1") }),
   exportedAt: z.iso.datetime(),
   events: z.array(backupEventSchema).max(5000),
 });

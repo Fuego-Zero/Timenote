@@ -14,13 +14,14 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { withRecurrence } from "./eventDraft.js";
+import { withRecurrence, yearlyRecurrence } from "./eventDraft.js";
 import { fieldStatus } from "./fieldStatus.js";
 import { milestonePresets, recurrenceUnitLabels } from "./recurrenceText.js";
 
-type Preset = "custom" | "monthly" | "weekly" | "yearly";
+type RepeatChoice = "custom" | "monthly" | "weekly" | "yearly";
+type Preset = RepeatChoice | "once";
 
-const presetRules: Record<Exclude<Preset, "custom">, Pick<Recurrence, "interval" | "unit">> = {
+const presetRules: Record<Exclude<RepeatChoice, "custom">, Pick<Recurrence, "interval" | "unit">> = {
   yearly: { unit: "year", interval: 1 },
   monthly: { unit: "month", interval: 1 },
   weekly: { unit: "week", interval: 1 },
@@ -33,6 +34,18 @@ function presetOf(recurrence: Recurrence): Preset {
   return match ? presetFromKey(match[0]) : "custom";
 }
 
+function chosenPreset(once: boolean, custom: boolean, recurrence: Recurrence | null): Preset {
+  if (once || recurrence === null) {
+    return "once";
+  }
+
+  if (custom) {
+    return "custom";
+  }
+
+  return presetOf(recurrence);
+}
+
 function presetFromKey(key: string): Preset {
   return key === "monthly" || key === "weekly" || key === "yearly" ? key : "custom";
 }
@@ -41,19 +54,21 @@ function parseDays(values: string[]) {
   return values.map(Number).filter(value => Number.isInteger(value) && value >= 1 && value <= maxMilestoneDays);
 }
 
-/** 纪念日的重复规则、结束条件与里程碑；只对纪念日显示。农历或年份未知时只能按年。 */
+/** 重复规则、结束条件与里程碑。农历或年份未知时只能按年。自定义还可以选不重复。 */
 export function RecurrenceFields({
+  allowOnce,
   draft,
   errors,
   onChange,
 }: {
+  allowOnce: boolean;
   draft: EventInput;
   errors: Record<string, string>;
   onChange: (draft: EventInput) => void;
 }) {
   const { t } = useTranslation("events");
   const { recurrence, date } = draft;
-  const [custom, setCustom] = useState(() => presetOf(recurrence) === "custom");
+  const [custom, setCustom] = useState(() => recurrence !== null && presetOf(recurrence) === "custom");
   let yearOnlyReason: string | undefined;
   if (date.calendar === "lunar") {
     yearOnlyReason = t("recurrence.lunarYearOnly");
@@ -61,10 +76,17 @@ export function RecurrenceFields({
     yearOnlyReason = t("recurrence.yearUnknownOnly");
   }
 
-  const preset = custom ? "custom" : presetOf(recurrence);
-  const setRecurrence = (patch: Partial<Recurrence>) => onChange(withRecurrence(draft, { ...recurrence, ...patch }));
+  const once = recurrence === null;
+  const preset = chosenPreset(once, custom, recurrence);
+
+  const setRecurrence = (patch: Partial<Recurrence>) => {
+    const base = recurrence ?? yearlyRecurrence;
+    onChange(withRecurrence(draft, { ...base, ...patch }));
+  };
+
   const start = date.calendar === "gregorian" && date.year !== null ? isoDate(date.year, date.month, date.day) : "";
-  const showMissingDay = date.calendar === "gregorian" && recurrence.unit === "month" && date.day >= 29;
+  const showMissingDay =
+    recurrence !== null && date.calendar === "gregorian" && recurrence.unit === "month" && date.day >= 29;
   const presetDays = milestonePresets.filter(days => draft.milestones.includes(days));
   const customDays = draft.milestones.filter(days => !milestonePresets.includes(days));
   const setMilestones = (milestones: number[]) =>
@@ -81,6 +103,7 @@ export function RecurrenceFields({
         <Space orientation="vertical" style={{ width: "100%" }}>
           <Select<Preset>
             options={[
+              ...(allowOnce ? [{ label: t("recurrence.once"), value: "once" as const }] : []),
               { label: t("recurrence.yearly"), value: "yearly" },
               { label: t("recurrence.monthly"), value: "monthly", disabled: Boolean(yearOnlyReason) },
               { label: t("recurrence.weekly"), value: "weekly", disabled: Boolean(yearOnlyReason) },
@@ -90,12 +113,14 @@ export function RecurrenceFields({
             aria-label={t("recurrence.aria")}
             onChange={value => {
               setCustom(value === "custom");
-              if (value !== "custom") {
+              if (value === "once") {
+                onChange(withRecurrence(draft, null));
+              } else if (value !== "custom") {
                 setRecurrence(presetRules[value]);
               }
             }}
           />
-          {preset === "custom" ? (
+          {preset === "custom" && recurrence ? (
             <Space.Compact>
               <InputNumber
                 max={maxInterval[recurrence.unit]}
@@ -121,7 +146,7 @@ export function RecurrenceFields({
           ) : null}
         </Space>
       </Form.Item>
-      {showMissingDay ? (
+      {!once && showMissingDay ? (
         <Form.Item label={t("recurrence.missingDay")} {...fieldStatus(errors, "gregorianMissingDay")}>
           <Select
             options={[
@@ -134,58 +159,60 @@ export function RecurrenceFields({
           />
         </Form.Item>
       ) : null}
-      <Form.Item
-        label={t("recurrence.end")}
-        {...fieldStatus(errors, "recurrence.end", "recurrence.end.count", "recurrence.end.until")}
-      >
-        <Space orientation="vertical">
-          <Radio.Group
-            disabled={date.year === null}
-            options={[
-              { label: t("recurrence.never"), value: "never" },
-              { label: t("recurrence.countCycles"), value: "count" },
-              { label: t("recurrence.until"), value: "until" },
-            ]}
-            value={recurrence.end.type}
-            onChange={event => {
-              const type: unknown = event.target.value;
-              if (type === "count") {
-                setRecurrence({ end: { type, count: 10 } });
-              } else if (type === "until") {
-                setRecurrence({ end: { type, until: start || isoDate(new Date().getFullYear(), 12, 31) } });
-              } else {
-                setRecurrence({ end: { type: "never" } });
-              }
-            }}
-          />
-          {recurrence.end.type === "count" ? (
-            <InputNumber
-              max={maxRecurrenceCount}
-              min={1}
-              precision={0}
-              prefix={t("recurrence.countPrefix") || undefined}
-              suffix={t("recurrence.countSuffix")}
-              value={recurrence.end.count}
-              aria-label={t("recurrence.countAria")}
-              onChange={value => setRecurrence({ end: { type: "count", count: value ?? 1 } })}
-            />
-          ) : null}
-          {recurrence.end.type === "until" ? (
-            <DatePicker
-              allowClear={false}
-              disabledDate={current => start !== "" && current.isBefore(dayjs(start), "day")}
-              format="YYYY-MM-DD"
-              value={dayjs(recurrence.end.until)}
-              aria-label={t("recurrence.untilAria")}
-              onChange={value => {
-                if (value) {
-                  setRecurrence({ end: { type: "until", until: value.format("YYYY-MM-DD") } });
+      {!once && recurrence ? (
+        <Form.Item
+          label={t("recurrence.end")}
+          {...fieldStatus(errors, "recurrence.end", "recurrence.end.count", "recurrence.end.until")}
+        >
+          <Space orientation="vertical">
+            <Radio.Group
+              disabled={date.year === null}
+              options={[
+                { label: t("recurrence.never"), value: "never" },
+                { label: t("recurrence.countCycles"), value: "count" },
+                { label: t("recurrence.until"), value: "until" },
+              ]}
+              value={recurrence.end.type}
+              onChange={event => {
+                const type: unknown = event.target.value;
+                if (type === "count") {
+                  setRecurrence({ end: { type, count: 10 } });
+                } else if (type === "until") {
+                  setRecurrence({ end: { type, until: start || isoDate(new Date().getFullYear(), 12, 31) } });
+                } else {
+                  setRecurrence({ end: { type: "never" } });
                 }
               }}
             />
-          ) : null}
-        </Space>
-      </Form.Item>
+            {recurrence.end.type === "count" ? (
+              <InputNumber
+                max={maxRecurrenceCount}
+                min={1}
+                precision={0}
+                prefix={t("recurrence.countPrefix") || undefined}
+                suffix={t("recurrence.countSuffix")}
+                value={recurrence.end.count}
+                aria-label={t("recurrence.countAria")}
+                onChange={value => setRecurrence({ end: { type: "count", count: value ?? 1 } })}
+              />
+            ) : null}
+            {recurrence.end.type === "until" ? (
+              <DatePicker
+                allowClear={false}
+                disabledDate={current => start !== "" && current.isBefore(dayjs(start), "day")}
+                format="YYYY-MM-DD"
+                value={dayjs(recurrence.end.until)}
+                aria-label={t("recurrence.untilAria")}
+                onChange={value => {
+                  if (value) {
+                    setRecurrence({ end: { type: "until", until: value.format("YYYY-MM-DD") } });
+                  }
+                }}
+              />
+            ) : null}
+          </Space>
+        </Form.Item>
+      ) : null}
       <Form.Item
         extra={
           date.year === null

@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { ApiRequestError, errorMessage } from "../../api/client.js";
 import { translateFieldError } from "../../i18n/translateMessage.js";
 import { guideTargets } from "../guide/guideTargets.js";
-import { draftIssues } from "./eventDraft.js";
+import { draftForSave, draftIssues } from "./eventDraft.js";
 import { EventForm } from "./EventForm.js";
 import { EventPreview } from "./EventPreview.js";
 
@@ -45,7 +45,7 @@ export function EventEditor({
     setSaving(true);
     setSaveError(undefined);
     try {
-      await onSave(draft);
+      await onSave(draftForSave(draft));
     } catch (error) {
       if (error instanceof ApiRequestError && Object.keys(error.fields).length) {
         setServerErrors(
@@ -80,6 +80,7 @@ export function EventEditor({
         <Col md={13} xs={24}>
           <EventForm
             draft={draft}
+            editing={editing}
             errors={errors}
             timeZone={timeZone}
             onChange={next => {

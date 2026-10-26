@@ -19,16 +19,22 @@ export function ScheduleFields({
   const { t } = useTranslation("events");
   const { date } = draft;
   const start = date.year === null ? undefined : isoDate(date.year, date.month, date.day);
-  const yearly = draft.recurrence.unit === "year";
   const showFeb29 =
-    yearly && date.calendar === "gregorian" && date.month === 2 && date.day === 29 && draft.kind !== "event";
+    draft.recurrence !== null &&
+    draft.recurrence.unit === "year" &&
+    date.calendar === "gregorian" &&
+    date.month === 2 &&
+    date.day === 29;
   // 按天/周/月时持续天数不超过一个最短周期。
-  const maxDays = yearly ? maxDurationDays : Math.min(minCycleDays[draft.recurrence.unit], maxDurationDays);
+  const maxDays =
+    draft.recurrence === null || draft.recurrence.unit === "year"
+      ? maxDurationDays
+      : Math.min(minCycleDays[draft.recurrence.unit], maxDurationDays);
   const showLeap = date.calendar === "lunar" && date.leapMonth;
   const showMissingDay = date.calendar === "lunar" && date.day === 30;
   return (
     <>
-      {draft.kind === "event" && start ? (
+      {draft.recurrence === null && date.calendar === "gregorian" && start ? (
         <Form.Item
           extra={t("schedule.totalDays", { count: draft.durationDays })}
           label={t("schedule.lastDay")}
@@ -62,7 +68,7 @@ export function ScheduleFields({
         </Form.Item>
       )}
       {showFeb29 ? (
-        <Form.Item label={t("schedule.feb29")} {...fieldStatus(errors, "rules.feb29")}>
+        <Form.Item extra={t("schedule.feb29Hint")} label={t("schedule.feb29")} {...fieldStatus(errors, "rules.feb29")}>
           <Select
             options={[
               { label: t("schedule.feb28"), value: "feb28" },

@@ -16,6 +16,11 @@ function parse(text: string) {
 }
 
 describe("ICS 输出", () => {
+  it("同一日程配上不同预设标识时订阅字节相同", () => {
+    const event = calendarEvent();
+    expect(feed([event])).toBe(feed([{ ...event, kind: "custom" }]));
+  });
+
   it("全天事件使用 VALUE=DATE，跨天 DTEND 为排他结束日", () => {
     const text = feed([
       calendarEvent({
@@ -23,6 +28,7 @@ describe("ICS 输出", () => {
         name: "国庆旅行",
         titleTemplate: "{{name}}",
         durationDays: 7,
+        recurrence: null,
         date: { year: 2026, month: 10, day: 1 },
       }),
     ]);

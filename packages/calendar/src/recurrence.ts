@@ -16,7 +16,12 @@ export function recurrenceOrigin(date: EventInput["date"]): IsoDate {
  * 公历按月时当月没有原始日：lastDay 落到月末，skip 返回 null（该次被跳过，但仍占序号）。
  */
 export function cycleStart(event: Pick<EventInput, "date" | "gregorianMissingDay" | "recurrence">, k: number) {
-  const { date, recurrence } = event;
+  const { date } = event;
+  if (event.recurrence === null) {
+    throw new Error("只发生一次没有周期序号");
+  }
+
+  const { recurrence } = event;
   const origin = recurrenceOrigin(date);
   if (recurrence.unit === "day") {
     return addDays(origin, k * recurrence.interval);
@@ -44,6 +49,10 @@ export function cycleStart(event: Pick<EventInput, "date" | "gregorianMissingDay
 /** 序号不超过一个下界：从这个 k 起往后找，不会漏掉开始日不早于 from 的那几次。 */
 export function firstCycleAtOrAfter(event: Pick<EventInput, "date" | "recurrence">, from: IsoDate) {
   const origin = recurrenceOrigin(event.date);
+  if (event.recurrence === null) {
+    throw new Error("只发生一次没有周期序号");
+  }
+
   const { recurrence } = event;
   const elapsed = daysBetween(origin, from);
   if (elapsed <= 0) {

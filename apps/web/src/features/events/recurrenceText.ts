@@ -17,7 +17,7 @@ export const milestonePresets: readonly number[] = [100, 200, 365, 500, 520, 999
 export function recurrenceSummary(event: Pick<CalendarEvent, "milestones" | "recurrence">): string[] {
   const { recurrence } = event;
   const parts: string[] = [];
-  if (!isYearlyEveryYear(recurrence) || recurrence.end.type !== "never") {
+  if (recurrence !== null && (!isYearlyEveryYear(recurrence) || recurrence.end.type !== "never")) {
     const everyOne = i18n.t(`summary.everyOne.${recurrence.unit}`, { ns: "events" });
     const everyN = i18n.t(`summary.everyN.${recurrence.unit}`, { ns: "events" });
     const every =

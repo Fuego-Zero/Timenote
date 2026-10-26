@@ -7,6 +7,7 @@ function alarmsAt(timeZone: string, date: { month: number; day: number }, alarm:
   const event = eventInput({
     kind: "event",
     titleTemplate: "{{name}}",
+    recurrence: null,
     date: { year: 2026, ...date },
     alarms: [alarm],
   });

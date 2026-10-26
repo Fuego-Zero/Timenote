@@ -30,9 +30,15 @@ describe("重复规则契约", () => {
     expect(issues(rest)).toHaveProperty("recurrence");
   });
 
-  it("生日和普通事件只能每 1 年且无里程碑", () => {
-    expect(issues(eventInput({ recurrence: monthly, titleTemplate: "{{name}}" }))).toHaveProperty("recurrence");
-    expect(issues(eventInput({ milestones: [100] }))).toHaveProperty("milestones", "milestones_anniversary_only");
+  it("按月重复和有起点的里程碑不限预设标识；只发生一次必须有年份", () => {
+    expect(
+      issues(eventInput({ kind: "birthday", recurrence: monthly, titleTemplate: "{{name}}第 {{count}} 个月" }))
+    ).toEqual({});
+    expect(issues(eventInput({ kind: "birthday", milestones: [100] }))).toEqual({});
+    expect(issues(eventInput({ recurrence: null, date: { year: null }, titleTemplate: "{{name}}" }))).toHaveProperty(
+      "date.year",
+      "event_year_required"
+    );
   });
 
   it("间隔、农历、年份未知、截止日期的非法组合被拒绝", () => {
@@ -96,10 +102,10 @@ describe("重复规则契约", () => {
     });
   });
 
-  it("备份只接受 v2，v1 给出重新导出的提示", () => {
+  it("备份只接受 v3，更早的版本给出重新导出的提示", () => {
     const file = { format: "timenote-backup", exportedAt: new Date().toISOString(), events: [] };
-    expect(backupFileSchema.safeParse({ ...file, version: 2 }).success).toBe(true);
-    const v1 = backupFileSchema.safeParse({ ...file, version: 1 });
-    expect(v1.success ? "" : v1.error.issues[0]?.message).toBe("backup_v1");
+    expect(backupFileSchema.safeParse({ ...file, version: 3 }).success).toBe(true);
+    const v2 = backupFileSchema.safeParse({ ...file, version: 2 });
+    expect(v2.success ? "" : v2.error.issues[0]?.message).toBe("backup_v1");
   });
 });

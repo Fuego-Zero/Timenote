@@ -121,7 +121,7 @@ describe("重复规则与订阅", () => {
 
     const file: BackupFile = {
       format: "timenote-backup",
-      version: 2,
+      version: 3,
       exportedAt: new Date(h.clock.now).toISOString(),
       events: [
         { id: uuid(900), event: eventInput({ name: "合法" }) },
@@ -140,7 +140,7 @@ describe("重复规则与订阅", () => {
     expect(feed.status).toBe(200);
   });
 
-  it("备份 v2 往返无损，v1 被拒", async () => {
+  it("备份 v3 往返无损，更早版本被拒", async () => {
     const { b } = await signedIn();
     await b.request(
       "POST",
@@ -155,7 +155,7 @@ describe("重复规则与订阅", () => {
       })
     );
     const exported = await b.request<BackupFile>("GET", "/api/backup");
-    expect(exported.json.version).toBe(2);
+    expect(exported.json.version).toBe(3);
     const reimport = await b.request("POST", "/api/backup", exported.json);
     expect(reimport.json).toEqual({ created: 0, updated: 1 });
     const again = await b.request<BackupFile>("GET", "/api/backup");

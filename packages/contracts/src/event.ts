@@ -1,13 +1,11 @@
 import { z } from "zod";
 
-import { calendarSystems, eventKinds } from "./eventEnums.js";
+import { calendarSystems, maxKindLength } from "./eventEnums.js";
 import { maxPageSize, pageQuerySchema } from "./pagination.js";
 
 export {
   type CalendarSystem,
   calendarSystems,
-  type EventKind,
-  eventKinds,
   extraBoundPerEvent,
   feb29Policies,
   gregorianMissingDayPolicies,
@@ -17,6 +15,7 @@ export {
   maxExtraFeedOccurrences,
   maxFutureOccurrences,
   maxInterval,
+  maxKindLength,
   maxMilestoneDays,
   maxMilestones,
   maxPastOccurrences,
@@ -60,7 +59,7 @@ export type EventSort = (typeof eventSorts)[number];
 /** 事件列表查询；各筛选条件与 ids 之间为 AND。ids 为逗号分隔的 uuid。 */
 export const eventPageQuerySchema = pageQuerySchema.extend({
   sort: z.enum(eventSorts).default("createdAt"),
-  kind: z.enum(eventKinds).optional(),
+  kind: z.string().trim().min(1).max(maxKindLength).optional(),
   calendar: z.enum(calendarSystems).optional(),
   hasAlarm: z
     .enum(["true", "false"])

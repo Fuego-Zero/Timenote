@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { dateLabels, dayOptions, lunarMonthOptions, monthOptions } from "./dateFieldOptions.js";
+import { clampSelectedDay, dayOptions, lunarMonthOptions, monthOptions } from "./dateFieldOptions.js";
 import { withYear } from "./eventDraft.js";
 import { fieldStatus } from "./fieldStatus.js";
 import { switchCalendarDate } from "./switchCalendarDate.js";
@@ -13,19 +13,24 @@ import { switchCalendarDate } from "./switchCalendarDate.js";
 const rowItemStyle: CSSProperties = { flex: "1 1 120px", minWidth: 0 };
 
 export function OriginalDateFields({
+  dateLabel,
   draft,
   errors,
+  showsCalendar,
+  showsYearUnknown,
   onChange,
 }: {
+  dateLabel: string;
   draft: EventInput;
   errors: Record<string, string>;
+  showsCalendar: boolean;
+  showsYearUnknown: boolean;
   onChange: (draft: EventInput) => void;
 }) {
   const { t } = useTranslation("events");
   const { date } = draft;
   const [notice, setNotice] = useState<string>();
   const setDate = (patch: Partial<EventInput["date"]>) => onChange({ ...draft, date: { ...date, ...patch } });
-  const labels = dateLabels();
 
   function switchCalendar(calendar: EventInput["date"]["calendar"]) {
     const result = switchCalendarDate(date, calendar);
@@ -40,11 +45,10 @@ export function OriginalDateFields({
     }
   }
 
-  const yearUnknownAllowed = draft.kind !== "event";
   const lunar = date.calendar === "lunar";
   return (
     <>
-      {draft.kind !== "event" ? (
+      {showsCalendar ? (
         <Form.Item label={t("originalDate.basis")} {...fieldStatus(errors, "date.calendar")}>
           <Segmented<EventInput["date"]["calendar"]>
             options={[
@@ -68,11 +72,12 @@ export function OriginalDateFields({
       ) : null}
       <Form.Item
         required
-        label={labels[draft.kind]}
+        extra={!lunar && date.month === 2 ? t("originalDate.feb29Hint") : undefined}
+        label={dateLabel}
         {...fieldStatus(errors, "date.year", "date.month", "date.day", "date.leapMonth", "date")}
       >
         <Space orientation="vertical" style={{ width: "100%" }}>
-          {yearUnknownAllowed ? (
+          {showsYearUnknown ? (
             <Checkbox
               checked={date.year === null}
               onChange={event =>
@@ -112,7 +117,7 @@ export function OriginalDateFields({
                 style={rowItemStyle}
                 value={date.month}
                 aria-label={t("originalDate.monthAria")}
-                onChange={month => setDate({ month })}
+                onChange={month => setDate({ month, day: clampSelectedDay(lunar, month, date.day) })}
               />
               <Select
                 options={dayOptions(lunar, date.month)}

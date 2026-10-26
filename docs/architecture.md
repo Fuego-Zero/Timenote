@@ -60,7 +60,7 @@ Web 反代只转发白名单请求头（`content-type`、`cookie`、`origin`、`
 `GET /api/feeds/<43 位 token>.ics`：
 
 1. 用 token 的 SHA-256 查找订阅地址；不存在、已撤销、账号已停用都返回同样的 JSON 404。
-2. 按账号时区取当前年份，窗口为「过去 `FEED_WINDOW_PAST_YEARS` 年 ～ 未来 `FEED_WINDOW_FUTURE_YEARS` 年」的逻辑年份；普通事件不受窗口限制。再按该订阅的 `eventScope` / `eventIds` 过滤事件。
+2. 按账号时区取当前年份，窗口为「过去 `FEED_WINDOW_PAST_YEARS` 年 ～ 未来 `FEED_WINDOW_FUTURE_YEARS` 年」的逻辑年份；只发生一次的事件不受窗口限制。再按该订阅的 `eventScope` / `eventIds` 过滤事件。
 3. 事件按 `createdAt`、`id` 稳定排序后逐个展开，生成 RFC 5545 文本（CRLF、75 字节折行、转义）。
 4. 响应头 `Cache-Control: private, no-cache` 与内容 SHA-256 的强 ETag；`If-None-Match` 命中返回 304。
 
@@ -68,8 +68,8 @@ Web 反代只转发白名单请求头（`content-type`、`cookie`、`origin`、`
 
 | 字段                      | 取值                                         |
 | ------------------------- | -------------------------------------------- |
-| `UID`（周年类）           | `<事件 ID>-<逻辑年份>@timenote`              |
-| `UID`（普通事件）         | `<事件 ID>@timenote`                         |
+| `UID`（重复）             | `<事件 ID>-<发生键>@timenote`                |
+| `UID`（只发生一次）       | `<事件 ID>@timenote`                         |
 | `SEQUENCE`                | 事件 `revision`，每次修改 +1                 |
 | `DTSTAMP`/`LAST-MODIFIED` | 事件 `updatedAt`（取整到秒），不使用请求时刻 |
 | `DTSTART`/`DTEND`         | `VALUE=DATE` 全天事件，`DTEND` 为排他结束日  |

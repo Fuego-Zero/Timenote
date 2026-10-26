@@ -65,6 +65,7 @@ describe("跨天与普通事件", () => {
       name: "国庆旅行",
       titleTemplate: "{{name}}",
       durationDays: 7,
+      recurrence: null,
       date: { year: 2026, month: 10, day: 1 },
     });
     const result = expandEvent(event, { fromYear: 2030, toYear: 2040 }, tz, "2026-10-02");

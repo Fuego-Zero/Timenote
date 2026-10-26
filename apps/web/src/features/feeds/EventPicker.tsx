@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { apiPath } from "../../api/apiPath.js";
 import { errorMessage } from "../../api/client.js";
 import { useApiResource } from "../../api/useApiResource.js";
-import { kindLabels, kindTagTones } from "../events/eventDraft.js";
+import { kindLabel, kindTone } from "../events/eventDraft.js";
 import { fetchEventsByIds } from "../events/eventsByIds.js";
 import { EventTag } from "../events/EventTag.js";
 
@@ -35,13 +35,12 @@ export function EventPicker({
   reloadKey?: number;
 }) {
   const { t } = useTranslation(["feeds", "common", "events"]);
-  const labels = kindLabels();
   const columns: TableColumnsType<CalendarEvent> = [
     { key: "name", title: t("common:name"), render: (_value, event) => event.name },
     {
       key: "kind",
       title: t("common:type"),
-      render: (_value, event) => <EventTag tone={kindTagTones[event.kind]}>{labels[event.kind]}</EventTag>,
+      render: (_value, event) => <EventTag tone={kindTone(event.kind)}>{kindLabel(event.kind)}</EventTag>,
     },
   ];
   const [search, setSearch] = useState("");

@@ -11,7 +11,7 @@ test("导入失败时确认框保持打开，可直接重试", async ({ page }) 
     name: "backup.json",
     mimeType: "application/json",
     buffer: Buffer.from(
-      JSON.stringify({ format: "timenote-backup", version: 2, exportedAt: new Date().toISOString(), events })
+      JSON.stringify({ format: "timenote-backup", version: 3, exportedAt: new Date().toISOString(), events })
     ),
   });
   const dialog = page.getByRole("dialog").filter({ hasText: "确认导入" });

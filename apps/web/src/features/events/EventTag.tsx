@@ -1,7 +1,8 @@
 import { Tag, theme } from "antd";
 import type { CSSProperties, ReactNode } from "react";
 
-export type EventTagTone = "birthday" | "anniversary" | "general" | "solar" | "lunar" | "duration" | "reminder";
+export type EventTagTone =
+  "anniversary" | "birthday" | "custom" | "duration" | "general" | "holiday" | "lunar" | "reminder" | "solar";
 
 /** 事件相关 Tag 的唯一入口：字色与底色只取主题 token，组件内不写颜色值。 */
 export function EventTag({
@@ -17,6 +18,8 @@ export function EventTag({
   const colors: Record<EventTagTone, { color: string; backgroundColor: string }> = {
     birthday: { color: token.tagBirthdayColor, backgroundColor: token.tagBirthdayBg },
     anniversary: { color: token.tagAnniversaryColor, backgroundColor: token.tagAnniversaryBg },
+    holiday: { color: token.tagHolidayColor, backgroundColor: token.tagHolidayBg },
+    custom: { color: token.tagCustomColor, backgroundColor: token.tagCustomBg },
     general: { color: token.tagGeneralColor, backgroundColor: token.tagGeneralBg },
     solar: { color: token.tagSolarColor, backgroundColor: token.tagSolarBg },
     lunar: { color: token.tagLunarColor, backgroundColor: token.tagLunarBg },
