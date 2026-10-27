@@ -1,13 +1,24 @@
 const maxPrefixLength = 16;
 const maxSearchResults = 80;
+/**
+ * 选择器只收录 Emoji 12.0 及更早。
+ * 12.1 及以后的字符在 Windows 10 上可能显示为方框。
+ */
+export const maxEmojiVersion = 12;
 /** 单独的肤色修饰符，以及带肤色的变体，都不作为前缀候选。 */
 const skinTone = /[\u{1F3FB}-\u{1F3FF}]/u;
 
 interface CompactEmoji {
+  hexcode: string;
   label: string;
   order?: number;
   tags?: string[];
   unicode: string;
+}
+
+interface VersionedEmoji {
+  hexcode: string;
+  version: number;
 }
 
 export interface EmojiEntry {
@@ -29,8 +40,8 @@ function normalize(text: string) {
   return text.trim().toLowerCase().replaceAll(/\s+/g, "");
 }
 
-function remember(catalog: Map<string, EmojiEntry>, entry: CompactEmoji) {
-  if (!isSelectableEmoji(entry.unicode)) {
+function remember(catalog: Map<string, EmojiEntry>, entry: CompactEmoji, allowed: ReadonlySet<string>) {
+  if (!allowed.has(entry.hexcode) || !isSelectableEmoji(entry.unicode)) {
     return;
   }
 
@@ -63,15 +74,35 @@ function remember(catalog: Map<string, EmojiEntry>, entry: CompactEmoji) {
 let catalogPromise: Promise<EmojiEntry[]> | undefined;
 let paintablePromise: Promise<EmojiEntry[]> | undefined;
 
-/** 加载中英文名称和标签，搜索不访问网络。 */
+/** 供测试核对目录里的字符属于哪一版。键是表情字符。 */
+export function loadEmojiVersions() {
+  return import("emojibase-data/en/data.json").then(
+    versions => new Map(versions.default.map(item => [item.emoji, item.version]))
+  );
+}
+
+function allowedHexcodes(entries: readonly VersionedEmoji[]) {
+  const allowed = new Set<string>();
+  for (const entry of entries) {
+    if (entry.version <= maxEmojiVersion) {
+      allowed.add(entry.hexcode);
+    }
+  }
+
+  return allowed;
+}
+
+/** 加载中英文名称和标签，搜索不访问网络。目录停在 Emoji 12.0。 */
 export function loadEmojiCatalog() {
   catalogPromise ??= Promise.all([
     import("emojibase-data/zh/compact.json"),
     import("emojibase-data/en/compact.json"),
-  ]).then(([zh, en]) => {
+    import("emojibase-data/en/data.json"),
+  ]).then(([zh, en, versions]) => {
+    const allowed = allowedHexcodes(versions.default);
     const catalog = new Map<string, EmojiEntry>();
     for (const entry of [...zh.default, ...en.default]) {
-      remember(catalog, entry);
+      remember(catalog, entry, allowed);
     }
 
     // 按 Unicode 常用顺序排列，笑脸在前。没有序号的区域字母放到最后。

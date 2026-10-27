@@ -4,6 +4,8 @@ import {
   type EmojiEntry,
   isSelectableEmoji,
   loadEmojiCatalog,
+  loadEmojiVersions,
+  maxEmojiVersion,
   omitUnpaintedEmojis,
   searchEmojis,
   visibleRowRange,
@@ -24,6 +26,20 @@ describe("表情搜索", () => {
     expect(catalog[0]?.emoji).toBe("😀");
     expect(catalog.length).toBeGreaterThan(1000);
     expect(catalog.some(entry => entry.emoji.includes("\u{1F3FB}"))).toBe(false);
+  });
+
+  it("目录停在 Emoji 12.0，不含之后的表情", async () => {
+    const catalog = await loadEmojiCatalog();
+    const byEmoji = await loadEmojiVersions();
+    for (const entry of catalog) {
+      const version = byEmoji.get(entry.emoji);
+      expect(version, entry.emoji).toBeDefined();
+      expect(version ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(maxEmojiVersion);
+    }
+
+    expect(catalog.some(entry => entry.emoji === "🥲" || entry.emoji === "🫠")).toBe(false);
+    expect(searchEmojis(catalog, "含泪")).toEqual([]);
+    expect(searchEmojis(catalog, "melting")).toEqual([]);
   });
 
   it("去掉画不出来的表情，彩色回退只留最短的一个", () => {
