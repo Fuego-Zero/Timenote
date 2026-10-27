@@ -29,13 +29,13 @@ export function OriginalDateFields({
 }) {
   const { t } = useTranslation("events");
   const { date } = draft;
-  const [notice, setNotice] = useState<string>();
+  const [notice, setNotice] = useState<{ calendar: EventInput["date"]["calendar"]; text: string }>();
   const setDate = (patch: Partial<EventInput["date"]>) => onChange({ ...draft, date: { ...date, ...patch } });
 
   function switchCalendar(calendar: EventInput["date"]["calendar"]) {
     const result = switchCalendarDate(date, calendar);
     if (result.notice !== undefined) {
-      setNotice(result.notice);
+      setNotice({ calendar, text: result.notice });
     } else if (calendar !== date.calendar) {
       setNotice(undefined);
     }
@@ -60,12 +60,12 @@ export function OriginalDateFields({
           />
         </Form.Item>
       ) : null}
-      {notice ? (
+      {notice?.calendar === date.calendar ? (
         <Alert
           closable
           showIcon
           style={{ marginBottom: 16 }}
-          title={notice}
+          title={notice.text}
           type="info"
           onClose={() => setNotice(undefined)}
         />
