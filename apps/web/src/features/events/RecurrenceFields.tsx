@@ -121,12 +121,13 @@ export function RecurrenceFields({
             }}
           />
           {preset === "custom" && recurrence ? (
-            <Space.Compact>
+            <Space size={8}>
               <InputNumber
                 max={maxInterval[recurrence.unit]}
                 min={1}
                 precision={0}
                 prefix={t("recurrence.everyPrefix")}
+                style={{ width: 112 }}
                 value={recurrence.interval}
                 aria-label={t("recurrence.intervalAria")}
                 onChange={value => setRecurrence({ interval: value ?? 1 })}
@@ -142,7 +143,7 @@ export function RecurrenceFields({
                 aria-label={t("recurrence.unitAria")}
                 onChange={unit => setRecurrence({ unit, interval: Math.min(recurrence.interval, maxInterval[unit]) })}
               />
-            </Space.Compact>
+            </Space>
           ) : null}
         </Space>
       </Form.Item>
@@ -190,6 +191,8 @@ export function RecurrenceFields({
                 min={1}
                 precision={0}
                 prefix={t("recurrence.countPrefix") || undefined}
+                // 默认宽度容不下「共」和「个周期」，数字会被挤到看不见。
+                style={{ width: 168 }}
                 suffix={t("recurrence.countSuffix")}
                 value={recurrence.end.count}
                 aria-label={t("recurrence.countAria")}

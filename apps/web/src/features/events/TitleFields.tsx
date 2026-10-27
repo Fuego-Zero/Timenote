@@ -1,10 +1,10 @@
 import { type EventInput, isYearlyEveryYear, type TemplateVariable, titleVariables } from "@timenote/contracts";
 import { Button, Form, Input, Popover, Space, theme, Typography } from "antd";
+import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
+import { EmojiPrefixPicker } from "./EmojiPrefixPicker.js";
 import { fieldStatus } from "./fieldStatus.js";
-
-const prefixChoices = ["🎂", "💞", "🎉", "⭐", "🌸"];
 
 function HelpIcon() {
   return (
@@ -15,19 +15,26 @@ function HelpIcon() {
   );
 }
 
-const guideVariableKeys = {
-  name: "varName",
-  years: "varYears",
-  count: "varCount",
-  days: "varDays",
+const variableCodes = {
+  name: "{{name}}",
+  years: "{{years}}",
+  count: "{{count}}",
+  days: "{{days}}",
 } as const satisfies Record<TemplateVariable, string>;
-const guideExamples = [
-  "exampleWeekly",
-  "exampleMonthly",
-  "exampleOther",
-  "exampleYearly",
-  "exampleMilestone",
-  "exampleName",
+const meaningKeys = {
+  name: "meaningName",
+  years: "meaningYears",
+  count: "meaningCount",
+  days: "meaningDays",
+} as const satisfies Record<TemplateVariable, string>;
+const patternRows = [
+  ["whenWeekly", "patternWeekly"],
+  ["whenMonthly", "patternMonthly"],
+  ["whenOtherShort", "patternOther"],
+  ["whenYearly", "patternYearly"],
+  ["whenYearly", "patternYearlyAge"],
+  ["whenMilestone", "patternMilestone"],
+  ["whenName", "patternName"],
 ] as const;
 
 function variableUsable(draft: EventInput, variable: TemplateVariable) {
@@ -67,6 +74,104 @@ function inlineHintKeys(draft: EventInput) {
   return keys;
 }
 
+function CodeChip({ children, onTint }: { children: string; onTint?: boolean }) {
+  const { token } = theme.useToken();
+  return (
+    <code
+      style={{
+        background: onTint ? token.colorBgContainer : token.colorFillQuaternary,
+        borderRadius: 6,
+        fontFamily: token.fontFamilyCode,
+        padding: "1px 6px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </code>
+  );
+}
+
+function GuidePanel({ children, tinted, title }: { children: ReactNode; tinted?: boolean; title: string }) {
+  const { token } = theme.useToken();
+  return (
+    <section
+      style={{
+        background: tinted ? token.colorFillQuaternary : token.colorBgContainer,
+        border: `1px solid ${tinted ? "transparent" : token.colorBorderSecondary}`,
+        borderRadius: token.borderRadius,
+        padding: "8px 10px",
+      }}
+    >
+      <div style={{ color: tinted ? token.colorPrimary : token.colorText, fontWeight: 600, marginBottom: 8 }}>
+        {title}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** 左右两栏、每条一行，从问号上方弹出。 */
+function TemplateGuide({
+  examples,
+  variables,
+}: {
+  examples: { key: string; pattern: string; when: string }[];
+  variables: { code: string; key: string; meaning: string; status: string; usable: boolean }[];
+}) {
+  const { t } = useTranslation("events");
+  const { token } = theme.useToken();
+  return (
+    <div
+      style={{ display: "grid", gap: 16, gridTemplateColumns: "minmax(0, 1.35fr) minmax(280px, 0.9fr)", width: 700 }}
+    >
+      <GuidePanel title={t("titleFields.guideVariables")}>
+        <div
+          style={{
+            alignItems: "center",
+            columnGap: 8,
+            display: "grid",
+            gridTemplateColumns: "auto minmax(0, 1fr) auto",
+            rowGap: 4,
+          }}
+        >
+          {variables.map(variable => (
+            <div key={variable.key} style={{ display: "contents" }}>
+              <CodeChip>{variable.code}</CodeChip>
+              <span style={{ whiteSpace: "nowrap" }}>{variable.meaning}</span>
+              <span
+                style={{
+                  color: variable.usable ? token.colorTextSecondary : token.colorTextDescription,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {variable.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </GuidePanel>
+      <GuidePanel tinted title={t("titleFields.guideExamples")}>
+        <div
+          style={{
+            alignItems: "center",
+            columnGap: 8,
+            display: "grid",
+            gridTemplateColumns: "auto minmax(0, 1fr)",
+            rowGap: 4,
+          }}
+        >
+          {examples.map(example => (
+            <div key={example.key} style={{ display: "contents" }}>
+              <span style={{ color: token.colorTextSecondary, whiteSpace: "nowrap" }}>{example.when}</span>
+              <CodeChip onTint>{example.pattern}</CodeChip>
+            </div>
+          ))}
+        </div>
+      </GuidePanel>
+    </div>
+  );
+}
+
 export function TitleFields({
   draft,
   errors,
@@ -89,24 +194,23 @@ export function TitleFields({
     </Typography.Text>
   );
   const guide = (
-    <Typography.Paragraph style={{ marginBottom: 0, maxWidth: 360 }}>
-      {t("titleFields.guideVariables")}
-      {(Object.keys(guideVariableKeys) as TemplateVariable[]).map(variable => (
-        <span key={variable}>
-          <br />
-          {t(`titleFields.${guideVariableKeys[variable]}`)}
-          {variableUsable(draft, variable) ? "" : t("titleFields.unavailableMark")}
-        </span>
-      ))}
-      <br />
-      {t("titleFields.guideExamples")}
-      {guideExamples.map(key => (
-        <span key={key}>
-          <br />
-          {t(`titleFields.${key}`)}
-        </span>
-      ))}
-    </Typography.Paragraph>
+    <TemplateGuide
+      examples={patternRows.map(([whenKey, patternKey]) => ({
+        key: patternKey,
+        pattern: t(`titleFields.${patternKey}`),
+        when: t(`titleFields.${whenKey}`),
+      }))}
+      variables={(Object.keys(variableCodes) as TemplateVariable[]).map(variable => {
+        const usable = variableUsable(draft, variable);
+        return {
+          code: variableCodes[variable],
+          key: variable,
+          meaning: t(`titleFields.${meaningKeys[variable]}`),
+          status: usable ? t("titleFields.availableNow") : t("titleFields.unavailable"),
+          usable,
+        };
+      })}
+    />
   );
   return (
     <>
@@ -116,7 +220,7 @@ export function TitleFields({
         label={
           <Space size={4}>
             {t("titleFields.template")}
-            <Popover content={guide} trigger="click">
+            <Popover content={guide} placement="topLeft" trigger="click">
               <Button
                 icon={<HelpIcon />}
                 size="small"
@@ -141,23 +245,15 @@ export function TitleFields({
         label={t("titleFields.prefix")}
         {...fieldStatus(errors, "titlePrefix")}
       >
-        <Space orientation="vertical" style={{ width: "100%" }}>
+        <Space style={{ width: "100%" }}>
           <Input
             maxLength={16}
+            style={{ flex: 1 }}
             value={draft.titlePrefix}
             aria-label={t("titleFields.prefixAria")}
             onChange={event => onChange({ ...draft, titlePrefix: event.target.value })}
           />
-          <Space wrap size={4}>
-            {prefixChoices.map(prefix => (
-              <Button key={prefix} size="small" onClick={() => onChange({ ...draft, titlePrefix: prefix })}>
-                {prefix}
-              </Button>
-            ))}
-            <Button size="small" onClick={() => onChange({ ...draft, titlePrefix: "" })}>
-              {t("titleFields.noPrefix")}
-            </Button>
-          </Space>
+          <EmojiPrefixPicker onChange={prefix => onChange({ ...draft, titlePrefix: prefix })} />
         </Space>
       </Form.Item>
     </>

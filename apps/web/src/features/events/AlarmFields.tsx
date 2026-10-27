@@ -44,7 +44,8 @@ function AlarmRow({
           min={0}
           precision={0}
           prefix={t("alarm.prefix") || undefined}
-          style={rowItemStyle}
+          // 行内会收缩。留出「提前」和「天」，避免天数被挤没。
+          style={{ ...rowItemStyle, minWidth: 148 }}
           suffix={t("alarm.suffix")}
           value={alarm.daysBefore}
           aria-label={t("alarm.customAria")}
