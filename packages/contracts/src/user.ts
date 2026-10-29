@@ -59,6 +59,13 @@ export const updateUserInputSchema = z.object({
 });
 export const resetPasswordInputSchema = z.object({ password: passwordSchema });
 
+/** 回声反馈的公开接入信息。AK 不是密钥，可以出现在前端。 */
+export const feedbackClientConfigSchema = z.object({
+  serverUrl: z.string(),
+  ak: z.string(),
+});
+export type FeedbackClientConfig = z.infer<typeof feedbackClientConfigSchema>;
+
 export const sessionResponseSchema = z.object({
   user: publicUserSchema.nullable(),
   /** 已登录时返回会话派生 signKey（base64url），供后续请求 HMAC。 */
@@ -69,6 +76,8 @@ export const sessionResponseSchema = z.object({
   publicRegisterEnabled: z.boolean().optional(),
   /** 公开注册新账号是否默认停用（部署开关；默认 true）。 */
   registerDefaultDisabled: z.boolean().optional(),
+  /** 已配置回声时下发；未配置则省略。 */
+  feedback: feedbackClientConfigSchema.optional(),
 });
 
 export const registerInputSchema = z.object({

@@ -546,3 +546,25 @@ describe("公开注册", () => {
     }
   });
 });
+
+describe("回声反馈", () => {
+  it("未配置时会话不返回 feedback，配置后返回服务地址和项目 AK", async () => {
+    const absent = await h.browser().request<{ feedback?: unknown }>("GET", "/api/auth/session");
+    expect(absent.json.feedback).toBeUndefined();
+
+    const ak = "a".repeat(43);
+    const configured = await harness({
+      FEEDBACK_SERVER_URL: "https://feedback.example.com",
+      FEEDBACK_PROJECT_AK: ak,
+    });
+    try {
+      const session = await configured
+        .browser()
+        .request<{ feedback?: { serverUrl: string; ak: string } }>("GET", "/api/auth/session");
+      expect(session.status).toBe(200);
+      expect(session.json.feedback).toEqual({ serverUrl: "https://feedback.example.com", ak });
+    } finally {
+      await configured.close();
+    }
+  });
+});

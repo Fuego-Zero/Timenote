@@ -72,6 +72,7 @@ it("顶栏和登录页只显示当前语言的产品名，标签页保持双语�
   const banner = screen.getByRole("banner");
   expect(banner).toHaveTextContent("岁时记");
   expect(banner).not.toHaveTextContent("Timenote");
+  expect(screen.queryByRole("button", { name: "反 馈" })).not.toBeInTheDocument();
   expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent("岁时记");
   expect(document.title).toBe(productTitle);
 

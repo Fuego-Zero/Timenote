@@ -76,6 +76,7 @@ describe("配置", () => {
       registerLimit: 5,
       publicRegisterEnabled: false,
       registerDefaultDisabled: true,
+      feedback: null,
     });
     expect(loadConfig({ ...base, PUBLIC_REGISTER_ENABLED: "true" }).publicRegisterEnabled).toBe(true);
     expect(() => loadConfig({ ...base, PUBLIC_REGISTER_ENABLED: "yes" })).toThrow(/PUBLIC_REGISTER_ENABLED/);
@@ -110,6 +111,39 @@ describe("配置", () => {
     expect(() => loadConfig({ ...base, API_PORT: "70000" })).toThrow(/API_PORT/);
     expect(() => loadConfig({ ...base, DEFAULT_TIME_ZONE: "Mars/Base" })).toThrow(/DEFAULT_TIME_ZONE/);
     expect(() => loadConfig({ ...base, WEB_ORIGIN: "http://127.0.0.1:8720/app" })).toThrow();
+  });
+
+  it("回声地址和项目标识必须成对且为纯 Origin", () => {
+    const ak = "a".repeat(43);
+    expect(loadConfig({ ...base, FEEDBACK_SERVER_URL: "  ", FEEDBACK_PROJECT_AK: "" }).feedback).toBeNull();
+    expect(
+      loadConfig({ ...base, FEEDBACK_SERVER_URL: "https://feedback.example.com", FEEDBACK_PROJECT_AK: ak }).feedback
+    ).toEqual({
+      serverUrl: "https://feedback.example.com",
+      ak,
+    });
+    expect(() => loadConfig({ ...base, FEEDBACK_SERVER_URL: "https://feedback.example.com" })).toThrow(/必须同时配置/);
+    expect(() => loadConfig({ ...base, FEEDBACK_PROJECT_AK: ak })).toThrow(/必须同时配置/);
+    expect(() =>
+      loadConfig({ ...base, FEEDBACK_SERVER_URL: "https://feedback.example.com", FEEDBACK_PROJECT_AK: "short" })
+    ).toThrow(/43 位/);
+    expect(() =>
+      loadConfig({
+        ...base,
+        FEEDBACK_SERVER_URL: "https://feedback.example.com/app",
+        FEEDBACK_PROJECT_AK: ak,
+      })
+    ).toThrow(/FEEDBACK_SERVER_URL/);
+    expect(() =>
+      loadConfig({
+        ...base,
+        NODE_ENV: "production",
+        WEB_ORIGIN: "https://cal.example.com",
+        SIGN_MASTER_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+        FEEDBACK_SERVER_URL: "http://feedback.example.com",
+        FEEDBACK_PROJECT_AK: ak,
+      })
+    ).toThrow(/FEEDBACK_SERVER_URL/);
   });
 
   it("DEV_AUTH_BYPASS only enables in development", () => {

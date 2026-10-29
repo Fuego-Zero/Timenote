@@ -20,21 +20,24 @@ import { endSession, requireUser, startSession } from "../session.js";
 
 export function registerAuth(ctx: ApiContext) {
   const { app, config, repo } = ctx;
+  const deploymentFlags = () => ({
+    publicRegisterEnabled: config.publicRegisterEnabled,
+    registerDefaultDisabled: config.registerDefaultDisabled,
+    ...(config.feedback ? { feedback: config.feedback } : {}),
+  });
   app.get("/api/auth/session", req => {
     if (req.user) {
       return {
         user: toPublicUser(req.user),
         signKey: issueSessionSignKey(ctx, req.sessionId, req.user.id),
-        publicRegisterEnabled: config.publicRegisterEnabled,
-        registerDefaultDisabled: config.registerDefaultDisabled,
+        ...deploymentFlags(),
       };
     }
 
     return {
       user: null,
       anonSign: ctx.requestSign.issueAnon(ctx.now()),
-      publicRegisterEnabled: config.publicRegisterEnabled,
-      registerDefaultDisabled: config.registerDefaultDisabled,
+      ...deploymentFlags(),
     };
   });
 

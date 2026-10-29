@@ -83,7 +83,7 @@
 
 ## 浏览器侧
 
-- `index.html` 每次请求生成 CSP nonce：`script-src`、`style-src` 只允许同源与 nonce，`worker-src` 允许同源和 `blob:`（注册页的计算题在浏览器里开 Worker），`object-src 'none'`、`frame-ancestors 'none'`、`base-uri 'none'`；Ant Design 的运行时样式统一带 nonce。
+- `index.html` 每次请求生成 CSP nonce：`script-src`、`style-src` 只允许同源与 nonce，`worker-src` 允许同源和 `blob:`（注册页的计算题在浏览器里开 Worker），`img-src` 为同源与 `data:`，`object-src 'none'`、`frame-ancestors 'none'`、`base-uri 'none'`；Ant Design 的运行时样式统一带 nonce。配置了回声反馈时，`connect-src` 额外允许该服务的 Origin，`img-src` 额外允许 `blob:`，供面板预览用户自己选择的图片。反馈面板使用同一个 nonce，不放宽为任意来源或 `unsafe-inline` 脚本。
 - API 使用 helmet 默认安全头；Web 对所有响应加 `X-Content-Type-Options: nosniff` 与 `Referrer-Policy: no-referrer`（避免订阅地址经 Referer 泄露）。
 
 ## 限流

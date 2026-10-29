@@ -102,6 +102,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@echo-feedback/sdk':
+        specifier: 0.1.1
+        version: 0.1.1
       '@timenote/calendar':
         specifier: workspace:*
         version: link:../../packages/calendar
@@ -347,6 +350,9 @@ packages:
 
   '@date-fns/tz@1.5.0':
     resolution: {integrity: sha512-lwYN/vDPeNRULcepoE/LO2Pgx+7/RV+S9ARfbc9lr2DtGkOD7pAiruHvbR1RX3Qyf6ja47EWJDMsNK5vK08DJg==}
+
+  '@echo-feedback/sdk@0.1.1':
+    resolution: {integrity: sha512-Uwl4P1V/vkiIH0/72SxbNJqsnSljocRG+fg/YTLv3oGLBUsqAmtqqOOnt1R14+IC+tuDgCerwP0JITFoKouECQ==}
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -3093,6 +3099,8 @@ snapshots:
   '@csstools/css-tokenizer@3.0.4': {}
 
   '@date-fns/tz@1.5.0': {}
+
+  '@echo-feedback/sdk@0.1.1': {}
 
   '@emnapi/core@1.10.0':
     dependencies:

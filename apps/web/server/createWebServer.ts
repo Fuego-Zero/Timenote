@@ -12,6 +12,7 @@ export function createWebServer(input: {
   port: number;
   getVite: () => ViteDevServer | undefined;
   logging?: WebLogging;
+  feedbackOrigin?: string;
 }): Server {
   return createHttpServer((req, res) => {
     void dispatchWebRequest(req, res, {
@@ -21,6 +22,7 @@ export function createWebServer(input: {
       port: input.port,
       vite: input.getVite(),
       logging: input.logging,
+      feedbackOrigin: input.feedbackOrigin,
     }).catch(() => {
       if (!res.headersSent) {
         res.writeHead(502, { "Content-Type": "application/json" });

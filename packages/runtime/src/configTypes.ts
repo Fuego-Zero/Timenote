@@ -1,3 +1,5 @@
+import type { FeedbackClientConfig } from "@timenote/contracts";
+
 export interface LogSink {
   write(message: string): void;
 }
@@ -11,6 +13,8 @@ export interface Config {
   /** development 且 DEV_AUTH_BYPASS 未设为 0 时，无真实会话则注入最早创建的启用 admin（不落库、不设 Cookie；身份按 createdAt 稳定，不随 username 排序变化）。 */
   devAuthBypass: boolean;
   env: string;
+  /** 回声反馈。两项都未配置时为 null，顶栏不显示入口。 */
+  feedback: FeedbackClientConfig | null;
   feedFutureYears: number;
   feedPastYears: number;
   loginLimit: number;

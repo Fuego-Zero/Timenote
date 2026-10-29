@@ -89,7 +89,14 @@ function Root() {
     );
   }
 
-  return <AppShell user={session.state.user} onLogout={() => void session.logout()} onUserChange={session.setUser} />;
+  return (
+    <AppShell
+      feedback={session.state.feedback}
+      user={session.state.user}
+      onLogout={() => void session.logout()}
+      onUserChange={session.setUser}
+    />
+  );
 }
 
 export default function App() {

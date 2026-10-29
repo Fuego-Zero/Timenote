@@ -14,6 +14,8 @@ WEB_ORIGIN=http://127.0.0.1:8720
 WEB_BIND_HOST=0.0.0.0
 DEFAULT_TIME_ZONE=Asia/Shanghai
 SIGN_MASTER_KEY=${randomBytes(32).toString("base64url")}
+FEEDBACK_SERVER_URL=https://echo.fuego.site
+FEEDBACK_PROJECT_AK=GxHk-figRsFUXmDOGiEHMaUDClyNCdr42HAo71R0qVs
 `,
   { mode: 0o600, flag: "wx" }
 );

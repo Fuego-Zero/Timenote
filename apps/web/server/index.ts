@@ -14,7 +14,7 @@ export async function startWeb(
   apiUrl: string,
   port: number,
   built: boolean,
-  options: { host: string; logging?: WebLogging }
+  options: { host: string; logging?: WebLogging; feedbackOrigin?: string }
 ) {
   let vite: Awaited<ReturnType<typeof createViteServer>> | undefined;
   const server = createWebServer({
@@ -24,6 +24,7 @@ export async function startWeb(
     port,
     getVite: () => vite,
     logging: options.logging,
+    feedbackOrigin: options.feedbackOrigin,
   });
   if (!built) {
     vite = await createViteMiddleware({
