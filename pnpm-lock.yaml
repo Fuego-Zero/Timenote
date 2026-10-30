@@ -13,8 +13,8 @@ importers:
         version: 4.23.13
     devDependencies:
       '@fuego0/configs':
-        specifier: 1.1.0
-        version: 1.1.0(@typescript-eslint/utils@8.71.0(eslint@10.10.0)(typescript@5.9.3))(eslint@10.10.0)(prettier@3.9.7)(typescript@5.9.3)
+        specifier: 1.2.0
+        version: 1.2.0(@typescript-eslint/utils@8.71.0(eslint@10.10.0)(typescript@5.9.3))(eslint@10.10.0)(prettier@3.9.7)(typescript@5.9.3)
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -637,8 +637,8 @@ packages:
   '@fastify/rate-limit@11.2.0':
     resolution: {integrity: sha512-X7osJd4XSvMoejYrnJkSZYYjY1eNYoBqhjlzf1RakC2204qExFqZFTKj5+T7VuzA/iUI9Z3UoSqQRkB2HpG0oQ==}
 
-  '@fuego0/configs@1.1.0':
-    resolution: {integrity: sha512-WimIPb3c6BsywEvkY8GAF3SBd76lsc2nLok004bTts1vvafT8pxpq8mIfEGSobnYrtSJswbCC5Ogn53FLa6CIA==}
+  '@fuego0/configs@1.2.0':
+    resolution: {integrity: sha512-naBjjAwIn5Se43CuSXc8oIYMui9qPhF4QF5ewpLPBSvPY2HV/3n2lXWlis8iFjyw+p6TVfKtNWcYMNk2hTBB8A==}
     engines: {node: '>=22.13.0'}
     peerDependencies:
       eslint: '>=10.4.0 <11'
@@ -3351,7 +3351,7 @@ snapshots:
       ip-address: 10.7.2
       toad-cache: 3.7.4
 
-  '@fuego0/configs@1.1.0(@typescript-eslint/utils@8.71.0(eslint@10.10.0)(typescript@5.9.3))(eslint@10.10.0)(prettier@3.9.7)(typescript@5.9.3)':
+  '@fuego0/configs@1.2.0(@typescript-eslint/utils@8.71.0(eslint@10.10.0)(typescript@5.9.3))(eslint@10.10.0)(prettier@3.9.7)(typescript@5.9.3)':
     dependencies:
       '@eslint/js': 10.0.1(eslint@10.10.0)
       '@stylistic/eslint-plugin': 5.10.0(eslint@10.10.0)
