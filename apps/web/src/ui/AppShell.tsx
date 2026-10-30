@@ -1,4 +1,4 @@
-import type { PublicUser } from "@timenote/contracts";
+import type { FeedbackClientConfig, PublicUser } from "@timenote/contracts";
 import { Button, Dropdown, Flex, Layout, Tabs, theme, Typography } from "antd";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +8,7 @@ import { PasswordModal } from "../features/auth/PasswordModal.js";
 import { ProfileModal } from "../features/auth/ProfileModal.js";
 import { BackupPage } from "../features/backup/BackupPage.js";
 import { EventsPage } from "../features/events/EventsPage.js";
+import { FeedbackButton } from "../features/feedback/FeedbackButton.js";
 import { FeedsPage } from "../features/feeds/FeedsPage.js";
 import { GuideChecklist } from "../features/guide/GuideChecklist.js";
 import { GuideProvider } from "../features/guide/GuideProvider.js";
@@ -20,10 +21,12 @@ const tabSchema = enumParam("tab", ["events", "feeds", "backup", "users"], "even
 
 export function AppShell({
   user,
+  feedback = null,
   onUserChange,
   onLogout,
 }: {
   user: PublicUser;
+  feedback?: FeedbackClientConfig | null;
   onUserChange: (user: PublicUser) => void;
   onLogout: () => void;
 }) {
@@ -73,6 +76,7 @@ export function AppShell({
               {t("brand")}
             </Typography.Text>
             <Flex align="center" gap={8}>
+              {feedback && <FeedbackButton ak={feedback.ak} serverUrl={feedback.serverUrl} userId={user.id} />}
               <HelpButton />
               <Dropdown
                 menu={{

@@ -51,20 +51,27 @@ export function integerEnv(env: NodeJS.Dict<string>, name: string, fallback: num
   return value;
 }
 
-export function originEnv(value: string, httpsOnly: boolean) {
+export function originEnv(value: string, httpsOnly: boolean, name = "WEB_ORIGIN") {
   let parsed: URL;
   try {
     parsed = new URL(value);
   } catch {
-    throw new Error("WEB_ORIGIN 不是有效地址");
+    throw new Error(`${name} 不是有效地址`);
   }
 
-  if (parsed.pathname !== "/" || parsed.search || parsed.hash || parsed.username || value.endsWith("/")) {
-    throw new Error("WEB_ORIGIN 只能包含协议、主机和端口");
+  if (
+    parsed.pathname !== "/" ||
+    parsed.search ||
+    parsed.hash ||
+    parsed.username ||
+    parsed.password ||
+    value.endsWith("/")
+  ) {
+    throw new Error(`${name} 只能包含协议、主机和端口`);
   }
 
   if (httpsOnly && parsed.protocol !== "https:") {
-    throw new Error("生产环境 WEB_ORIGIN 必须使用 HTTPS");
+    throw new Error(`生产环境 ${name} 必须使用 HTTPS`);
   }
 
   return parsed.origin;

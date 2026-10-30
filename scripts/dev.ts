@@ -29,6 +29,7 @@ await api.listen({ host: "127.0.0.1", port: config.apiPort });
 const web = await startWeb(`http://127.0.0.1:${config.apiPort}`, config.webPort, process.argv.includes("--built"), {
   host: config.webBindHost,
   logging: { logSink: config.logSink, env: config.env },
+  feedbackOrigin: config.feedback?.serverUrl,
 });
 const lan = Object.values(networkInterfaces())
   .flatMap(addrs => addrs ?? [])

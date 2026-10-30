@@ -136,13 +136,11 @@ export function EmojiPrefixPicker({ onChange }: { onChange: (prefix: string) => 
             <span ref={glyphRef} className="emoji-prefix-preview-glyph" />
             <span ref={nameRef} className="emoji-prefix-preview-name is-hint" />
           </div>
-          {!catalog ? <span className="emoji-prefix-preview-name is-hint">{t("titleFields.emojiLoading")}</span> : null}
-          {catalog && visible.length === 0 ? (
+          {!catalog && <span className="emoji-prefix-preview-name is-hint">{t("titleFields.emojiLoading")}</span>}
+          {catalog && visible.length === 0 && (
             <span className="emoji-prefix-preview-name is-hint">{t("titleFields.emojiEmpty")}</span>
-          ) : null}
-          {visible.length > 0 ? (
-            <EmojiGrid key={query} entries={visible} onActive={paintPreview} onPick={pick} />
-          ) : null}
+          )}
+          {visible.length > 0 && <EmojiGrid key={query} entries={visible} onActive={paintPreview} onPick={pick} />}
           <Button size="small" type="link" onClick={() => pick("")}>
             {t("titleFields.noPrefix")}
           </Button>

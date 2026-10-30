@@ -20,6 +20,7 @@ export async function dispatchWebRequest(
     port: number;
     vite?: ViteDevServer;
     logging?: WebLogging;
+    feedbackOrigin?: string;
   }
 ) {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -38,7 +39,7 @@ export async function dispatchWebRequest(
   }
 
   if (pathname === "/" || pathname === "/index.html") {
-    await serveIndexHtml(req, res, options.root, options.built, options.port, options.vite);
+    await serveIndexHtml(req, res, options.root, options.built, options.port, options.vite, options.feedbackOrigin);
     return;
   }
 

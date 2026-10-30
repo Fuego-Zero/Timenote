@@ -108,7 +108,7 @@ export function LoginPage({
           const current = entry.code === currentLocale;
           return (
             <span key={entry.code} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              {index > 0 ? <span style={{ color: token.colorTextQuaternary }}>|</span> : null}
+              {index > 0 && <span style={{ color: token.colorTextQuaternary }}>|</span>}
               {current ? (
                 <span style={{ fontWeight: 600 }} aria-current="true">
                   {label}
@@ -138,7 +138,7 @@ export function LoginPage({
       <Layout.Content>
         <Flex align="center" justify="center" style={{ minHeight: "100vh", padding: token.padding }}>
           <Card style={{ maxWidth: 380, width: "100%" }}>
-            {mode === "registerSuccess" ? (
+            {mode === "registerSuccess" && (
               <>
                 <Typography.Title level={3}>
                   {registerDefaultDisabled ? t("register.pendingTitle") : t("register.successTitle")}
@@ -146,20 +146,20 @@ export function LoginPage({
                 <Typography.Paragraph>
                   {registerDefaultDisabled ? t("register.pendingBody") : t("register.successBody")}
                 </Typography.Paragraph>
-                {registerDefaultDisabled ? (
+                {registerDefaultDisabled && (
                   <Typography.Paragraph type="secondary">{t("register.pendingHint")}</Typography.Paragraph>
-                ) : null}
+                )}
                 <Button block type="primary" onClick={goLogin}>
                   {t("register.back")}
                 </Button>
               </>
-            ) : null}
+            )}
 
-            {mode === "login" ? (
+            {mode === "login" && (
               <>
                 <Typography.Title level={3}>{t("common:brand")}</Typography.Title>
                 <Typography.Paragraph type="secondary">{t("login.welcome")}</Typography.Paragraph>
-                {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
+                {error && <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" />}
                 <Form<LoginValues>
                   form={loginForm}
                   layout="vertical"
@@ -184,21 +184,21 @@ export function LoginPage({
                     {t("login.submit")}
                   </Button>
                 </Form>
-                {publicRegisterEnabled ? (
+                {publicRegisterEnabled && (
                   <Button block style={{ marginTop: 12 }} type="link" onClick={goRegister}>
                     {t("login.register")}
                   </Button>
-                ) : null}
+                )}
               </>
-            ) : null}
+            )}
 
-            {mode === "register" ? (
+            {mode === "register" && (
               <>
                 <Typography.Title level={3}>{t("register.title")}</Typography.Title>
                 <Typography.Paragraph type="secondary">
                   {registerDefaultDisabled ? t("register.pendingForm") : t("register.readyForm")}
                 </Typography.Paragraph>
-                {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
+                {error && <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" />}
                 <Form<RegisterValues>
                   form={registerForm}
                   layout="vertical"
@@ -256,7 +256,7 @@ export function LoginPage({
                   {t("register.back")}
                 </Button>
               </>
-            ) : null}
+            )}
           </Card>
         </Flex>
       </Layout.Content>

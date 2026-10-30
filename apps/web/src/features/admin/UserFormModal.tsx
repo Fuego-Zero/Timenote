@@ -95,7 +95,7 @@ export function UserFormModal({
         <Form.Item label={t("form.timeZone")} name="timeZone">
           <Select showSearch options={timeZoneOptions()} />
         </Form.Item>
-        {error ? <div role="alert">{error}</div> : null}
+        {error && <div role="alert">{error}</div>}
       </Form>
     </Modal>
   );

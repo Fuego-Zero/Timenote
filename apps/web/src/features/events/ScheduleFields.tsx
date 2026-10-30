@@ -67,7 +67,7 @@ export function ScheduleFields({
           />
         </Form.Item>
       )}
-      {showFeb29 ? (
+      {showFeb29 && (
         <Form.Item extra={t("schedule.feb29Hint")} label={t("schedule.feb29")} {...fieldStatus(errors, "rules.feb29")}>
           <Select
             options={[
@@ -79,8 +79,8 @@ export function ScheduleFields({
             onChange={feb29 => onChange({ ...draft, rules: { ...draft.rules, feb29 } })}
           />
         </Form.Item>
-      ) : null}
-      {showLeap ? (
+      )}
+      {showLeap && (
         <Form.Item label={t("schedule.noLeapMonth")} {...fieldStatus(errors, "rules.leapMonth")}>
           <Select
             options={[
@@ -91,8 +91,8 @@ export function ScheduleFields({
             onChange={leapMonth => onChange({ ...draft, rules: { ...draft.rules, leapMonth } })}
           />
         </Form.Item>
-      ) : null}
-      {showMissingDay ? (
+      )}
+      {showMissingDay && (
         <Form.Item label={t("schedule.shortMonth")} {...fieldStatus(errors, "rules.missingDay")}>
           <Select
             options={[
@@ -103,7 +103,7 @@ export function ScheduleFields({
             onChange={missingDay => onChange({ ...draft, rules: { ...draft.rules, missingDay } })}
           />
         </Form.Item>
-      ) : null}
+      )}
     </>
   );
 }

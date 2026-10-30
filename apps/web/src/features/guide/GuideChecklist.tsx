@@ -96,11 +96,11 @@ export function GuideChecklist() {
     >
       <Typography.Paragraph type="secondary">{t("checklist.subtitle")}</Typography.Paragraph>
       <Steps items={steps} orientation={screens.md ? "horizontal" : "vertical"} size="small" />
-      {guide.isAdmin ? (
+      {guide.isAdmin && (
         <Typography.Paragraph style={{ marginBottom: 0, marginTop: 12 }} type="secondary">
           {t("checklist.adminTip")}
         </Typography.Paragraph>
-      ) : null}
+      )}
     </Card>
   );
 }

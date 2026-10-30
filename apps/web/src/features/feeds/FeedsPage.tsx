@@ -89,7 +89,7 @@ export function FeedsPage({ user }: { user: PublicUser }) {
           {t("howToAdd")}
         </Button>
       </Typography.Paragraph>
-      {feeds.error ? <Alert showIcon title={errorMessage(feeds.error)} type="error" /> : null}
+      {Boolean(feeds.error) && <Alert showIcon title={errorMessage(feeds.error)} type="error" />}
       <FeedsTable
         loading={!feeds.page && !feeds.error}
         page={feeds.page}
@@ -100,7 +100,7 @@ export function FeedsPage({ user }: { user: PublicUser }) {
         onRevoke={id => void run(() => revoke(id))}
         onRotate={id => void run(() => feeds.rotate(id), t("rotated"))}
       />
-      {form ? (
+      {form && (
         <FeedFormModal
           key={form.feed?.id ?? "new"}
           feed={form.feed}
@@ -108,7 +108,7 @@ export function FeedsPage({ user }: { user: PublicUser }) {
           onCancel={() => setForm(undefined)}
           onSubmit={draft => submit(form.feed, draft)}
         />
-      ) : null}
+      )}
     </Space>
   );
 }

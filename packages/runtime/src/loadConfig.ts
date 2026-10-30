@@ -4,6 +4,26 @@ import type { Config } from "./configTypes.js";
 import { booleanEnv, integerEnv, originEnv, requiredEnv, signMasterKeyEnv, textEnv } from "./envParse.js";
 
 const defaultSessionTtlSeconds = 30 * 24 * 60 * 60;
+const projectAkPattern = /^[\w-]{43}$/;
+
+/** 两项都空则关闭；只填一项或格式不对则拒绝启动。 */
+function feedbackConfig(env: NodeJS.Dict<string>, production: boolean): Config["feedback"] {
+  const serverUrl = env.FEEDBACK_SERVER_URL?.trim() ?? "";
+  const ak = env.FEEDBACK_PROJECT_AK?.trim() ?? "";
+  if (!serverUrl && !ak) {
+    return null;
+  }
+
+  if (!serverUrl || !ak) {
+    throw new Error("FEEDBACK_SERVER_URL 与 FEEDBACK_PROJECT_AK 必须同时配置");
+  }
+
+  if (!projectAkPattern.test(ak)) {
+    throw new Error("FEEDBACK_PROJECT_AK 必须是 43 位项目标识");
+  }
+
+  return { serverUrl: originEnv(serverUrl, production, "FEEDBACK_SERVER_URL"), ak };
+}
 
 export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
   const nodeEnv = textEnv(env, "NODE_ENV", "development");
@@ -39,6 +59,7 @@ export function loadConfig(env: NodeJS.Dict<string> = process.env): Config {
   // 仅 development 开启；未设置 DEV_AUTH_BYPASS 视为开启，设为 0 关闭。production/test 一律关闭。
   const devAuthBypass = nodeEnv === "development" && env.DEV_AUTH_BYPASS !== "0";
   return {
+    feedback: feedbackConfig(env, production),
     env: nodeEnv,
     devAuthBypass,
     apiPort: integerEnv(env, "API_PORT", 8721, 1, 65535),

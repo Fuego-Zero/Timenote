@@ -97,7 +97,7 @@ export function FeedsTable({
       render: (_value, feed) => (
         <Space orientation="vertical" size={0}>
           <span>{dateTime(feed.createdAt, intl)}</span>
-          {feed.rotatedAt === feed.createdAt ? null : (
+          {feed.rotatedAt !== feed.createdAt && (
             <Typography.Text type="secondary">
               {t("rotatedAt", { time: dateTime(feed.rotatedAt, intl) })}
             </Typography.Text>

@@ -228,11 +228,11 @@ export function GuideTour({
       <Tour
         actionsRender={() => (
           <Space wrap size="small">
-            {canGoBack ? (
+            {canGoBack && (
               <Button size="small" onClick={() => setCurrent(current - 1)}>
                 {t("tour.prev")}
               </Button>
-            ) : null}
+            )}
             {canGoForward ? (
               <Button size="small" type="primary" onClick={goForward}>
                 {forwardLabel()}

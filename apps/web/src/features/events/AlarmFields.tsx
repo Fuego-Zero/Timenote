@@ -38,7 +38,7 @@ function AlarmRow({
         aria-label={t("alarm.daysAria")}
         onChange={value => onChange({ ...alarm, daysBefore: value === customValue ? 14 : value })}
       />
-      {preset ? null : (
+      {!preset && (
         <InputNumber
           max={365}
           min={0}
@@ -107,11 +107,11 @@ export function AlarmFields({
             onRemove={() => setAlarms(draft.alarms.filter((_item, at) => at !== index))}
           />
         ))}
-        {enabled && draft.alarms.length < maxAlarms ? (
+        {enabled && draft.alarms.length < maxAlarms && (
           <Button onClick={() => setAlarms([...draft.alarms, { daysBefore: 1, time: "09:00" }])}>
             {t("alarm.add")}
           </Button>
-        ) : null}
+        )}
       </Space>
     </Form.Item>
   );

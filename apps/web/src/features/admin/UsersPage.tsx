@@ -48,7 +48,7 @@ export function UsersPage({ currentUser }: { currentUser: PublicUser }) {
           {t("create")}
         </Button>
       </Space>
-      {users.error ? <Alert showIcon title={errorMessage(users.error)} type="error" /> : null}
+      {Boolean(users.error) && <Alert showIcon title={errorMessage(users.error)} type="error" />}
       <UsersTable
         currentUserId={currentUser.id}
         loading={!users.page && !users.error}
