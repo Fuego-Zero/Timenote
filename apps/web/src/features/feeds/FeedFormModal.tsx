@@ -84,7 +84,7 @@ export function FeedFormModal({
       onOk={() => void submit()}
     >
       <Form layout="vertical">
-        {error ? <Alert showIcon style={{ marginBottom: 16 }} title={errorMessage(error)} type="error" /> : null}
+        {Boolean(error) && <Alert showIcon style={{ marginBottom: 16 }} title={errorMessage(error)} type="error" />}
         <Form.Item extra={t("form.deviceExtra")} label={t("form.deviceName")}>
           <Input
             maxLength={30}
@@ -114,7 +114,7 @@ export function FeedFormModal({
             <Radio value="selected">{t("form.selectedEvents")}</Radio>
           </Radio.Group>
         </Form.Item>
-        {draft.eventScope === "selected" ? (
+        {draft.eventScope === "selected" && (
           <Form.Item label={t("form.pickEvents")}>
             <EventPicker
               reloadKey={reloadKey}
@@ -122,7 +122,7 @@ export function FeedFormModal({
               onChange={eventIds => setDraft(current => ({ ...current, eventIds }))}
             />
           </Form.Item>
-        ) : null}
+        )}
       </Form>
     </Modal>
   );

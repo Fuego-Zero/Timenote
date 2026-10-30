@@ -118,7 +118,7 @@ export function HelpDrawer({
             {t("help.tours.event")}
           </Button>
           <Button onClick={() => guide.startTour("feed")}>{t("help.tours.feed")}</Button>
-          {guide.checklistVisible ? null : (
+          {!guide.checklistVisible && (
             <Button
               type="link"
               onClick={() => {

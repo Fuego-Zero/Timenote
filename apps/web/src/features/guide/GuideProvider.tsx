@@ -235,12 +235,12 @@ export function GuideProvider({
     <GuideContext value={value}>
       {children}
       <ConfigProvider theme={reduceMotion ? reducedMotionTheme : undefined}>
-        {tour ? (
+        {tour && (
           <Suspense fallback={null}>
             <GuideTour key={tour.id} refresh={refresh} segment={tour.segment} start={tour.start} onExit={onTourExit} />
           </Suspense>
-        ) : null}
-        {help ? (
+        )}
+        {help && (
           <Suspense fallback={null}>
             <HelpDrawer
               open={help.open}
@@ -255,7 +255,7 @@ export function GuideProvider({
               }}
             />
           </Suspense>
-        ) : null}
+        )}
       </ConfigProvider>
     </GuideContext>
   );

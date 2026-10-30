@@ -129,7 +129,7 @@ export function UsersTable({
             render: (_value, user) => (
               <Space orientation="vertical" size={0}>
                 <span>{user.username}</span>
-                {user.displayName ? <Typography.Text type="secondary">{user.displayName}</Typography.Text> : null}
+                {user.displayName && <Typography.Text type="secondary">{user.displayName}</Typography.Text>}
               </Space>
             ),
           },

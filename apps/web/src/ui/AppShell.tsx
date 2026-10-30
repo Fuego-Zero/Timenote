@@ -76,7 +76,7 @@ export function AppShell({
               {t("brand")}
             </Typography.Text>
             <Flex align="center" gap={8}>
-              {feedback ? <FeedbackButton ak={feedback.ak} serverUrl={feedback.serverUrl} userId={user.id} /> : null}
+              {feedback && <FeedbackButton ak={feedback.ak} serverUrl={feedback.serverUrl} userId={user.id} />}
               <HelpButton />
               <Dropdown
                 menu={{

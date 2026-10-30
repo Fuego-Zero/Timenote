@@ -42,7 +42,7 @@ export function SetupPage({ onReady }: { onReady: (user: PublicUser) => void }) 
           <Card style={{ maxWidth: 380, width: "100%" }}>
             <Typography.Title level={3}>{t("setup.title")}</Typography.Title>
             <Typography.Paragraph type="secondary">{t("setup.hint")}</Typography.Paragraph>
-            {error ? <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" /> : null}
+            {error && <Alert showIcon style={{ marginBottom: 16 }} title={error} type="error" />}
             <Form<SetupValues> layout="vertical" requiredMark={false} onFinish={values => void submit(values)}>
               <Form.Item
                 label={t("setup.username")}

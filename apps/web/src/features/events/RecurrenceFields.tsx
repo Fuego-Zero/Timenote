@@ -120,7 +120,7 @@ export function RecurrenceFields({
               }
             }}
           />
-          {preset === "custom" && recurrence ? (
+          {preset === "custom" && recurrence && (
             <Space size={8}>
               <InputNumber
                 max={maxInterval[recurrence.unit]}
@@ -144,10 +144,10 @@ export function RecurrenceFields({
                 onChange={unit => setRecurrence({ unit, interval: Math.min(recurrence.interval, maxInterval[unit]) })}
               />
             </Space>
-          ) : null}
+          )}
         </Space>
       </Form.Item>
-      {!once && showMissingDay ? (
+      {!once && showMissingDay && (
         <Form.Item label={t("recurrence.missingDay")} {...fieldStatus(errors, "gregorianMissingDay")}>
           <Select
             options={[
@@ -159,8 +159,8 @@ export function RecurrenceFields({
             onChange={gregorianMissingDay => onChange({ ...draft, gregorianMissingDay })}
           />
         </Form.Item>
-      ) : null}
-      {!once && recurrence ? (
+      )}
+      {!once && recurrence && (
         <Form.Item
           label={t("recurrence.end")}
           {...fieldStatus(errors, "recurrence.end", "recurrence.end.count", "recurrence.end.until")}
@@ -185,7 +185,7 @@ export function RecurrenceFields({
                 }
               }}
             />
-            {recurrence.end.type === "count" ? (
+            {recurrence.end.type === "count" && (
               <InputNumber
                 max={maxRecurrenceCount}
                 min={1}
@@ -198,8 +198,8 @@ export function RecurrenceFields({
                 aria-label={t("recurrence.countAria")}
                 onChange={value => setRecurrence({ end: { type: "count", count: value ?? 1 } })}
               />
-            ) : null}
-            {recurrence.end.type === "until" ? (
+            )}
+            {recurrence.end.type === "until" && (
               <DatePicker
                 allowClear={false}
                 disabledDate={current => start !== "" && current.isBefore(dayjs(start), "day")}
@@ -212,10 +212,10 @@ export function RecurrenceFields({
                   }
                 }}
               />
-            ) : null}
+            )}
           </Space>
         </Form.Item>
-      ) : null}
+      )}
       <Form.Item
         extra={
           date.year === null
@@ -246,7 +246,7 @@ export function RecurrenceFields({
           />
         </Space>
       </Form.Item>
-      {draft.milestones.length ? (
+      {draft.milestones.length > 0 && (
         <Form.Item
           required
           extra={t("recurrence.milestoneTemplateExtra")}
@@ -260,7 +260,7 @@ export function RecurrenceFields({
             onChange={event => onChange({ ...draft, milestoneTemplate: event.target.value })}
           />
         </Form.Item>
-      ) : null}
+      )}
     </>
   );
 }

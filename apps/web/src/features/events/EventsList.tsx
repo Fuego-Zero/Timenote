@@ -105,9 +105,7 @@ export function EventsList({
           ) : (
             <EventTag tone="solar">{t("gregorian")}</EventTag>
           )}
-          {event.durationDays > 1 ? (
-            <EventTag tone="duration">{t("daysTag", { count: event.durationDays })}</EventTag>
-          ) : null}
+          {event.durationDays > 1 && <EventTag tone="duration">{t("daysTag", { count: event.durationDays })}</EventTag>}
           {recurrenceSummary(event).map(text => (
             <EventTag key={text} tone="general">
               {text}
@@ -182,7 +180,7 @@ export function EventsList({
             onQueryChange({ sort, page: 1, ...(sort === "createdAt" ? { nextWithinDays: undefined } : {}) })
           }
         />
-        {query.sort === "nextOccurrence" ? (
+        {query.sort === "nextOccurrence" && (
           <Select
             allowClear
             id="events-next-within"
@@ -193,7 +191,7 @@ export function EventsList({
             aria-label={t("nextWithinAria")}
             onChange={(days?: number) => onQueryChange({ nextWithinDays: days, page: 1 })}
           />
-        ) : null}
+        )}
       </Flex>
       <Table<CalendarEvent>
         columns={columns}

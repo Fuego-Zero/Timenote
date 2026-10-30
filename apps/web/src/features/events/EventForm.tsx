@@ -109,9 +109,9 @@ export function EventForm({
           onChange={change}
         />
       </div>
-      {view.showsRecurrence ? (
+      {view.showsRecurrence && (
         <RecurrenceFields allowOnce={view.allowOnce} draft={draft} errors={errors} onChange={change} />
-      ) : null}
+      )}
       <ScheduleFields draft={draft} errors={errors} onChange={change} />
       <TitleFields draft={draft} errors={errors} onChange={change} />
       <div data-guide={guideTargets.eventAlarm}>

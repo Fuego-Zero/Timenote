@@ -48,7 +48,7 @@ export function OriginalDateFields({
   const lunar = date.calendar === "lunar";
   return (
     <>
-      {showsCalendar ? (
+      {showsCalendar && (
         <Form.Item label={t("originalDate.basis")} {...fieldStatus(errors, "date.calendar")}>
           <Segmented<EventInput["date"]["calendar"]>
             options={[
@@ -59,8 +59,8 @@ export function OriginalDateFields({
             onChange={value => switchCalendar(value)}
           />
         </Form.Item>
-      ) : null}
-      {notice?.calendar === date.calendar ? (
+      )}
+      {notice?.calendar === date.calendar && (
         <Alert
           closable
           showIcon
@@ -69,7 +69,7 @@ export function OriginalDateFields({
           type="info"
           onClose={() => setNotice(undefined)}
         />
-      ) : null}
+      )}
       <Form.Item
         required
         extra={!lunar && date.month === 2 ? t("originalDate.feb29Hint") : undefined}
@@ -77,7 +77,7 @@ export function OriginalDateFields({
         {...fieldStatus(errors, "date.year", "date.month", "date.day", "date.leapMonth", "date")}
       >
         <Space orientation="vertical" style={{ width: "100%" }}>
-          {showsYearUnknown ? (
+          {showsYearUnknown && (
             <Checkbox
               checked={date.year === null}
               onChange={event =>
@@ -86,7 +86,7 @@ export function OriginalDateFields({
             >
               {t("originalDate.yearUnknown")}
             </Checkbox>
-          ) : null}
+          )}
           {!lunar && date.year !== null ? (
             <DatePicker
               allowClear={false}
@@ -101,7 +101,7 @@ export function OriginalDateFields({
             />
           ) : (
             <Flex wrap gap={8}>
-              {lunar && date.year !== null ? (
+              {lunar && date.year !== null && (
                 <InputNumber
                   max={LUNAR_MAX_YEAR}
                   min={LUNAR_MIN_YEAR}
@@ -111,7 +111,7 @@ export function OriginalDateFields({
                   aria-label={t("originalDate.lunarYearAria")}
                   onChange={value => setDate({ year: value ?? date.year })}
                 />
-              ) : null}
+              )}
               <Select
                 options={lunar ? lunarMonthOptions() : monthOptions()}
                 style={rowItemStyle}
@@ -128,11 +128,11 @@ export function OriginalDateFields({
               />
             </Flex>
           )}
-          {lunar ? (
+          {lunar && (
             <Checkbox checked={date.leapMonth} onChange={event => setDate({ leapMonth: event.target.checked })}>
               {t("originalDate.leapMonth")}
             </Checkbox>
-          ) : null}
+          )}
         </Space>
       </Form.Item>
     </>

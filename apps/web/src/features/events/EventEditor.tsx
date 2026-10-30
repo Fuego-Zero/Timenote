@@ -75,7 +75,7 @@ export function EventEditor({
       title={editing ? t("editEvent") : t("newEvent")}
       onClose={onClose}
     >
-      {saveError ? <Alert showIcon style={{ marginBottom: 16 }} title={saveError} type="error" /> : null}
+      {saveError && <Alert showIcon style={{ marginBottom: 16 }} title={saveError} type="error" />}
       <Row align="top" gutter={[24, 0]}>
         <Col md={13} xs={24}>
           <EventForm
@@ -96,7 +96,7 @@ export function EventEditor({
           }
           xs={24}
         >
-          {screens.md ? null : <Divider />}
+          {!screens.md && <Divider />}
           <div
             style={
               screens.md

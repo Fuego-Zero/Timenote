@@ -52,7 +52,7 @@ export function EventsPage({ user }: { user: PublicUser }) {
           {t("newEvent")}
         </Button>
       </Space>
-      {events.error ? <Alert showIcon title={errorMessage(events.error)} type="error" /> : null}
+      {Boolean(events.error) && <Alert showIcon title={errorMessage(events.error)} type="error" />}
       <EventsList
         loading={!events.page && !events.error}
         page={events.page}
@@ -62,7 +62,7 @@ export function EventsPage({ user }: { user: PublicUser }) {
         onQueryChange={setQuery}
         onRemove={remove}
       />
-      {editor ? (
+      {editor && (
         <EventEditor
           editing={Boolean(editor.id)}
           initial={editor.initial}
@@ -75,7 +75,7 @@ export function EventsPage({ user }: { user: PublicUser }) {
             void message.success(t("saved"));
           }}
         />
-      ) : null}
+      )}
     </Space>
   );
 }

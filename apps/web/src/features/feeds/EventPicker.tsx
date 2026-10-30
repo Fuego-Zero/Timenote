@@ -125,8 +125,8 @@ export function EventPicker({
           onChange={event => setSearch(event.target.value)}
         />
       </Flex>
-      {error ? <Alert showIcon title={errorMessage(error)} type="error" /> : null}
-      {missing.length ? (
+      {Boolean(error) && <Alert showIcon title={errorMessage(error)} type="error" />}
+      {missing.length > 0 && (
         <Alert
           showIcon
           action={
@@ -137,7 +137,7 @@ export function EventPicker({
           title={t("picker.missing", { count: missing.length })}
           type="warning"
         />
-      ) : null}
+      )}
       <Table<CalendarEvent>
         columns={columns}
         dataSource={rows}

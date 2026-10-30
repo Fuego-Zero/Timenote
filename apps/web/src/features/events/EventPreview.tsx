@@ -55,11 +55,11 @@ export function EventPreview({
             </Typography.Text>
             <div>
               <Typography.Text type="secondary">{rangeText(occurrence)}</Typography.Text>
-              {draft.date.calendar === "lunar" ? (
+              {draft.date.calendar === "lunar" && (
                 <EventTag style={{ marginInlineStart: 8 }} tone="lunar">
                   {t("preview.lunarYear", { year: occurrence.logicalYear })}
                 </EventTag>
-              ) : null}
+              )}
             </div>
             {occurrence.alarms.map(alarm => (
               <div key={`${alarm.daysBefore}-${alarm.time}`}>
